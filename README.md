@@ -35,14 +35,19 @@ npm run preview      # serve dist/
 
 ## Content
 
+> 📝 Редагуєте контент через `/admin`? Дивіться **[ADMIN-UA.md](./ADMIN-UA.md)** —
+> покрокова інструкція українською для власників сайту.
+
 | File | Edited in CMS as | Drives |
 |---|---|---|
-| `src/content/site/settings.yml` | Налаштування сайту | brand, nav, Instagram, footer, SEO |
-| `src/content/fundraiser/active.yml` | Активний збір | home fundraiser card **and** template defaults |
-| `src/content/pages/home.yml` | Головна | hero, section headings, stats, members, teaser |
+| `src/content/site/settings.yml` | Налаштування сайту | brand, nav, header CTA, footer, SEO |
+| `src/content/active-jar/active.yml` | Активний збір | home fundraiser block + `isActive` toggle (also shows/hides the header CTA) |
+| `src/content/fundraiser/active.yml` | Дані для шаблонів | defaults for the `/templates` generator |
+| `src/content/pages/home.yml` | Сторінки → Головна | hero, section headings, stats, team members, teaser |
 
-The active fundraiser is a single source of truth: editing it updates both the
-home page card and the initial state of the `/templates` generator.
+The `/templates` generator prefills from `fundraiser/active.yml`, while the home
+"Активний збір" block and the header donate button are driven by
+`active-jar/active.yml` (hidden entirely when `isActive: false`).
 
 ## Deploy (Netlify)
 
