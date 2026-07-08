@@ -236,8 +236,6 @@ p {
 .gang .drip { position: absolute; background: var(--ink); }
 .gang .drip1 { left: 150px; bottom: -34px; width: 10px; height: 46px; border-radius: 0 0 6px 6px; }
 .gang .drip2 { left: 320px; bottom: -22px; width: 8px; height: 32px; border-radius: 0 0 5px 5px; }
-.gang-heart1 { position: absolute; top: 34px; right: -64px; font-size: 48px; color: var(--pink); transform: rotate(18deg); }
-.gang-heart2 { position: absolute; top: 96px; right: -100px; font-size: 28px; color: var(--chalk); transform: rotate(-12deg); }
 .gang-underline { position: absolute; left: -8px; bottom: -50px; overflow: visible; }
 
 /* ---------- active fundraiser ---------- */
