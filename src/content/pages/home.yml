@@ -21,13 +21,13 @@ sections:
     title: Шаблони для Instagram
 stats:
   - k: ЗБОРІВ ЗАКРИТО
-    v: "46"
+    v: "20"
     color: pink
   - k: ЗІБРАНО ВСЬОГО
-    v: ₴ 9.4 млн
+    v: ₴ 500 тис
     color: chalk
-  - k: ЗВІТІВ
-    v: 46/46
+  - k: ЗВІТУЄМО В
+    v: instagram
     color: acid
 proofLine: ЧЕКИ ✓ ФОТО ПЕРЕДАЧІ ✓ НАКЛАДНІ ✓
 members:
