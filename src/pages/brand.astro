@@ -24,6 +24,23 @@ const palette = [
 ];
 
 const faviconSizes = [48, 32, 16];
+
+// Ready-made icon files in public/ — offered as direct downloads (no capture).
+const iconDownloads = [
+  { label: 'SVG', href: '/favicon.svg' },
+  { label: '16', href: '/favicon-16.png' },
+  { label: '32', href: '/favicon-32.png' },
+  { label: '180', href: '/apple-touch-icon.png' },
+  { label: '192', href: '/icon-192.png' },
+  { label: '512', href: '/icon-512.png' },
+];
+
+// Copyable type specimens (label → sample string) for the Typography section.
+const typeSpecimens = {
+  head: 'Збір закрито за 6 годин',
+  body: 'Купуємо тепловізори для 92-ї ОШБр за прямим запитом бійців. Кожна гривня йде у звіт.',
+  num: '₴ 341 500',
+};
 ---
 
 <Layout title="Volunteer Gang — Бренд-бук" description="Логотип, кольори та типографіка Volunteer Gang." ogId="home" noindex>
@@ -41,22 +58,37 @@ const faviconSizes = [48, 32, 16];
     <div class="sec-head"><span class="sec-num">01</span><h2 class="sec-title">Логотип</h2></div>
     <div class="brand-grid brand-grid--3">
       <div class="brand-cell">
-        <div class="brand-frame">
+        <div class="brand-frame" id="dl-logo-main">
           <Logo word1={word1} word2={word2} graffiti="layered" layout="stack" size={30} gangSize={38} rotate={-5} heart />
         </div>
         <div class="brand-cap">ОСНОВНИЙ · на чорному</div>
+        <div class="brand-actions">
+          <button type="button" class="dl-btn" data-dl="logo-main" data-track="brand_download" data-evt-asset="logo-main">↓ PNG</button>
+          <button type="button" class="cp-btn" data-cp="logo-main">⧉ Копіювати</button>
+          <span class="tpl-status" data-status="logo-main"></span>
+        </div>
       </div>
       <div class="brand-cell">
-        <div class="brand-frame brand-frame--pink">
+        <div class="brand-frame brand-frame--pink" id="dl-logo-inverse">
           <Logo word1={word1} word2={word2} graffiti="layered" layout="stack" size={24} gangSize={30} rotate={-5} heart inverse />
         </div>
         <div class="brand-cap">ІНВЕРСІЯ · на рожевому</div>
+        <div class="brand-actions">
+          <button type="button" class="dl-btn" data-dl="logo-inverse" data-track="brand_download" data-evt-asset="logo-inverse">↓ PNG</button>
+          <button type="button" class="cp-btn" data-cp="logo-inverse">⧉ Копіювати</button>
+          <span class="tpl-status" data-status="logo-inverse"></span>
+        </div>
       </div>
       <div class="brand-cell">
-        <div class="brand-frame">
+        <div class="brand-frame" id="dl-patch">
           <VgPatch since={settings.since} region={settings.region} />
         </div>
         <div class="brand-cap">ШЕВРОН · монограма VG</div>
+        <div class="brand-actions">
+          <button type="button" class="dl-btn" data-dl="patch" data-track="brand_download" data-evt-asset="patch">↓ PNG</button>
+          <button type="button" class="cp-btn" data-cp="patch">⧉ Копіювати</button>
+          <span class="tpl-status" data-status="patch"></span>
+        </div>
       </div>
     </div>
 
@@ -64,8 +96,13 @@ const faviconSizes = [48, 32, 16];
     <div class="brand-sub">ЗНАК · ФАВІКОН · ЛОГОТИП З ТЕКСТОМ</div>
     <div class="brand-grid brand-grid--3">
       <div class="brand-cell">
-        <div class="brand-frame"><GangMonogram size={132} /></div>
+        <div class="brand-frame" id="dl-znak"><GangMonogram size={132} /></div>
         <div class="brand-cap">ЗНАК · іконка застосунку</div>
+        <div class="brand-actions">
+          <button type="button" class="dl-btn" data-dl="znak" data-track="brand_download" data-evt-asset="znak">↓ PNG</button>
+          <button type="button" class="cp-btn" data-cp="znak">⧉ Копіювати</button>
+          <span class="tpl-status" data-status="znak"></span>
+        </div>
       </div>
       <div class="brand-cell">
         <div class="brand-frame brand-favicons">
@@ -76,30 +113,52 @@ const faviconSizes = [48, 32, 16];
             </div>
           ))}
         </div>
-        <div class="brand-cap">ФАВІКОН · 16 / 32 / 48 px</div>
+        <div class="brand-cap">ФАВІКОН · готові файли</div>
+        <div class="brand-actions brand-actions--icons">
+          {iconDownloads.map((f) => (
+            <a class="dl-btn" href={f.href} download data-track="brand_download" data-evt-asset={`icon-${f.label}`}>
+              ↓ {f.label}
+            </a>
+          ))}
+        </div>
       </div>
       <div class="brand-cell">
-        <div class="brand-frame brand-frame--row">
+        <div class="brand-frame brand-frame--row" id="dl-lockup">
           <GangMonogram size={84} />
           <Logo word1={word1} word2={word2} graffiti="layered" layout="stack" size={26} gangSize={32} rotate={-5} heart />
         </div>
         <div class="brand-cap">ЛОГОТИП З ТЕКСТОМ · горизонтальний лок-ап</div>
+        <div class="brand-actions">
+          <button type="button" class="dl-btn" data-dl="lockup" data-track="brand_download" data-evt-asset="lockup">↓ PNG</button>
+          <button type="button" class="cp-btn" data-cp="lockup">⧉ Копіювати</button>
+          <span class="tpl-status" data-status="lockup"></span>
+        </div>
       </div>
     </div>
 
     <!-- text-only lockups -->
     <div class="brand-grid brand-grid--2">
       <div class="brand-cell">
-        <div class="brand-frame">
+        <div class="brand-frame" id="dl-logo-stack">
           <Logo word1={word1} word2={word2} graffiti="layered" layout="stack" size={40} gangSize={50} rotate={-5} heart />
         </div>
         <div class="brand-cap">ЛОГОТИП ТЕКСТОМ · без знака</div>
+        <div class="brand-actions">
+          <button type="button" class="dl-btn" data-dl="logo-stack" data-track="brand_download" data-evt-asset="logo-stack">↓ PNG</button>
+          <button type="button" class="cp-btn" data-cp="logo-stack">⧉ Копіювати</button>
+          <span class="tpl-status" data-status="logo-stack"></span>
+        </div>
       </div>
       <div class="brand-cell">
-        <div class="brand-frame">
+        <div class="brand-frame" id="dl-logo-inline">
           <Logo word1={word1} word2={word2} graffiti="layered" layout="inline" size={44} gangSize={52} rotate={-5} heart />
         </div>
         <div class="brand-cap">ЛОГОТИП ТЕКСТОМ · без знака — горизонтальний</div>
+        <div class="brand-actions">
+          <button type="button" class="dl-btn" data-dl="logo-inline" data-track="brand_download" data-evt-asset="logo-inline">↓ PNG</button>
+          <button type="button" class="cp-btn" data-cp="logo-inline">⧉ Копіювати</button>
+          <span class="tpl-status" data-status="logo-inline"></span>
+        </div>
       </div>
     </div>
 
@@ -113,19 +172,33 @@ const faviconSizes = [48, 32, 16];
   <section class="section">
     <div class="sec-head"><span class="sec-num">02</span><h2 class="sec-title">Кольори</h2></div>
     <div class="brand-swatches">
-      {palette.map((c) => (
-        <div
+      {palette.map((c, i) => (
+        <button
+          type="button"
           class:list={['brand-swatch', { 'is-wide': c.span, 'is-bordered': c.border }]}
           style={`background:${c.hex}; color:${c.fg}`}
+          data-copy-hex={c.hex}
+          data-for={`hex-${i}`}
+          data-track="brand_copy_hex"
+          data-evt-hex={c.hex}
+          title="Натисніть, щоб скопіювати HEX"
         >
           <div class="brand-swatch-name">{c.name}</div>
-          <div class="brand-swatch-hex mono">{c.hex} · {c.use}</div>
-        </div>
+          <div class="brand-swatch-hex mono">
+            {c.hex} · {c.use}
+            <span class="brand-swatch-status" data-status={`hex-${i}`}></span>
+          </div>
+        </button>
       ))}
     </div>
     <div class="brand-chevrons-row">
-      <Chevrons />
+      <span id="dl-chevrons" class="brand-chevrons-hold"><Chevrons /></span>
       <span class="mono brand-cap">← вторинний знак · шеврони</span>
+      <div class="brand-actions">
+        <button type="button" class="dl-btn" data-dl="chevrons" data-track="brand_download" data-evt-asset="chevrons">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="chevrons">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="chevrons"></span>
+      </div>
     </div>
   </section>
 
@@ -135,18 +208,36 @@ const faviconSizes = [48, 32, 16];
     <div class="brand-grid brand-grid--3">
       <div class="brand-frame brand-type">
         <div class="mono brand-type-k">ЗАГОЛОВКИ · OSWALD</div>
-        <div class="brand-type-head">Збір закрито за 6 годин</div>
+        <div class="brand-type-head">{typeSpecimens.head}</div>
+        <div class="brand-actions">
+          <button type="button" class="cp-btn" data-copy-text={typeSpecimens.head} data-for="type-head" data-track="brand_copy_text" data-evt-sample="oswald">⧉ Копіювати текст</button>
+          <span class="tpl-status" data-status="type-head"></span>
+        </div>
       </div>
       <div class="brand-frame brand-type">
         <div class="mono brand-type-k">ТЕКСТ · IBM PLEX SANS</div>
-        <p class="brand-type-body">Купуємо тепловізори для 92-ї ОШБр за прямим запитом бійців. Кожна гривня йде у звіт.</p>
+        <p class="brand-type-body">{typeSpecimens.body}</p>
+        <div class="brand-actions">
+          <button type="button" class="cp-btn" data-copy-text={typeSpecimens.body} data-for="type-body" data-track="brand_copy_text" data-evt-sample="plex-sans">⧉ Копіювати текст</button>
+          <span class="tpl-status" data-status="type-body"></span>
+        </div>
       </div>
       <div class="brand-frame brand-type">
         <div class="mono brand-type-k">ЦИФРИ · IBM PLEX MONO</div>
-        <div class="brand-type-num mono">₴ 341 500</div>
+        <div class="brand-type-num mono">{typeSpecimens.num}</div>
+        <div class="brand-actions">
+          <button type="button" class="cp-btn" data-copy-text={typeSpecimens.num} data-for="type-num" data-track="brand_copy_text" data-evt-sample="plex-mono">⧉ Копіювати текст</button>
+          <span class="tpl-status" data-status="type-num"></span>
+        </div>
       </div>
     </div>
   </section>
+
+  <!-- html-to-image (CDN global) powers PNG export/copy, same as /templates -->
+  <script is:inline async src="https://unpkg.com/html-to-image@1.11.13/dist/html-to-image.js"></script>
+  <script>
+    import '../scripts/brand-export';
+  </script>
 </Layout>
 
 <style>
@@ -199,12 +290,25 @@ const faviconSizes = [48, 32, 16];
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    /* now a <button> — reset native chrome, keep the click-to-copy affordance */
+    border: none;
+    width: 100%;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: transform 0.12s ease;
   }
+  .brand-swatch:hover { transform: translateY(-2px); }
+  .brand-swatch:active { transform: translateY(0); }
   .brand-swatch.is-wide { grid-column: span 1; }
   .brand-swatch.is-bordered { border: 1px solid var(--border); }
   .brand-swatch-name { font-family: var(--font-head); font-weight: 700; font-size: 22px; }
   .brand-swatch-hex { font-size: 13px; }
-  .brand-chevrons-row { display: flex; align-items: center; gap: 16px; margin-top: 28px; }
+  .brand-swatch-status { margin-left: 8px; font-weight: 600; opacity: 0.85; }
+  .brand-chevrons-row { display: flex; align-items: center; gap: 16px; margin-top: 28px; flex-wrap: wrap; }
+  .brand-chevrons-hold { display: inline-flex; }
 
   .brand-type { flex-direction: column; align-items: flex-start; gap: 18px; min-height: 0; }
   .brand-type-k { font-size: 12px; letter-spacing: 0.08em; color: var(--acid); }
@@ -218,6 +322,11 @@ const faviconSizes = [48, 32, 16];
   }
   .brand-type-body { font-size: 16px; line-height: 1.6; }
   .brand-type-num { font-size: 34px; font-weight: 500; color: var(--pink); }
+
+  /* download / copy action rows (reuse global .dl-btn/.cp-btn/.tpl-status) */
+  .brand-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .brand-actions--icons { gap: 8px; }
+  a.dl-btn { display: inline-block; text-decoration: none; }
 
   @media (max-width: 900px) {
     .brand-grid--3, .brand-grid--2, .brand-swatches { grid-template-columns: 1fr 1fr; }

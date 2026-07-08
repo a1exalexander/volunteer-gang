@@ -26,6 +26,7 @@ const initial = {
   goal: fund.goal,
   raised: fund.raised,
   photo: null,
+  gift: null,
 };
 ---
 
@@ -88,6 +89,17 @@ const initial = {
       </div>
     </div>
 
+    <div class="panel-photo">
+      <span class="field-label">ФОТО ТОВАРУ · ЩО КУПУЄМО (анонси)</span>
+      <div class="panel-photo-row">
+        <label class="file-btn">
+          Завантажити товар
+          <input id="tpl-gift" type="file" accept="image/*" style="display:none" />
+        </label>
+        <button type="button" id="tpl-gift-clear" class="ghost-btn" style="display:none">✕ Прибрати</button>
+      </div>
+    </div>
+
     <div class="panel-colors">
       <div class="panel-colors-head">
         <span class="field-label">КОЛЬОРИ ШАБЛОНІВ</span>
@@ -116,9 +128,18 @@ const initial = {
               <TemplateLockup layout="stack" color="var(--c-chalk)" vSize={30} gSize={34} rotate={-5} />
               <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--c-ink);font-weight:500;padding:12px 8px 0 0;">АКТИВНИЙ ЗБІР</div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:36px;position:relative;">
-              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:104px;line-height:1;color:var(--c-chalk);"><span style="white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</span><br /><span style="color:var(--c-pink);" data-bind="titleAccent">{fund.titleAccent}</span></div>
-              <p style="margin:0;font-size:32px;line-height:1.5;color:var(--c-dust);max-width:680px;" data-bind="desc">{fund.desc}</p>
+            <div style="display:flex;gap:44px;align-items:stretch;position:relative;">
+              <div style="flex:1;display:flex;flex-direction:column;gap:28px;justify-content:center;min-width:0;">
+                <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:80px;line-height:1;color:var(--c-chalk);"><span style="white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</span><br /><span style="color:var(--c-pink);" data-bind="titleAccent">{fund.titleAccent}</span></div>
+                <p style="margin:0;font-size:30px;line-height:1.5;color:var(--c-dust);" data-bind="desc">{fund.desc}</p>
+              </div>
+              <div style="width:360px;flex-shrink:0;position:relative;border:8px solid var(--c-pink);overflow:hidden;">
+                <div role="img" aria-label="Фото товару" data-gift style="position:absolute;inset:0;background-size:cover;background-position:center;display:none;"></div>
+                <div data-nogift style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,var(--c-panel2),var(--c-panel2) 20px,var(--c-ink) 20px,var(--c-ink) 40px);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--c-dust);line-height:1.5;">ФОТО<br />ЩО КУПУЄМО</span>
+                </div>
+                <div style="position:absolute;left:0;bottom:0;background:var(--c-pink);color:var(--c-ink);font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;padding:10px 18px;letter-spacing:0.08em;">ЗБІР НА ↓</div>
+              </div>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;position:relative;">
               <div style="background:var(--c-pink);color:var(--c-ink);font-family:'Unbounded',sans-serif;font-weight:800;font-size:34px;padding:28px 44px;">Ціль: <span data-bind="goalFmt">{goalFmt}</span></div>
@@ -136,10 +157,10 @@ const initial = {
 
     <!-- STORY: PROGRESS -->
     <div class="tpl">
-      <div class="tpl-cap">СТОРІЗ · ПРОГРЕС · 1080×1920</div>
-      <div class="tpl-preview" style="width:356px;height:633px;border:1px solid var(--c-line);">
+      <div class="tpl-cap">СТОРІЗ · ПРОГРЕС · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;border:1px solid var(--c-line);">
         <div class="tpl-scale">
-          <div id="vgx-progress" class="canvas" style="width:1080px;height:1920px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div id="vgx-progress" class="canvas" style="width:1080px;height:1350px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <TemplateMonogram size={53} color="var(--c-chalk)" />
               <div style="display:flex;gap:14px;">
@@ -181,10 +202,21 @@ const initial = {
                 <div style="width:36px;height:26px;background:var(--c-pink);clip-path:polygon(50% 0,100% 45%,100% 100%,50% 55%,0 100%,0 45%);"></div>
               </div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:40px;">
+            <div style="display:flex;flex-direction:column;gap:32px;">
               <div style="font-family:'IBM Plex Mono',monospace;font-size:26px;letter-spacing:0.24em;color:var(--c-acid);">ТЕРМІНОВО · ЗБІР</div>
-              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:110px;line-height:0.98;color:var(--c-chalk);"><span style="white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</span><br /><span style="color:transparent;-webkit-text-stroke:3px var(--c-acid);" data-bind="titleAccent">{fund.titleAccent}</span></div>
-              <p style="margin:0;font-size:32px;line-height:1.5;color:var(--c-dust);max-width:720px;" data-bind="desc">{fund.desc}</p>
+              <div style="display:flex;gap:40px;align-items:stretch;">
+                <div style="flex:1;display:flex;flex-direction:column;gap:30px;justify-content:center;min-width:0;">
+                  <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:88px;line-height:0.98;color:var(--c-chalk);"><span style="white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</span><br /><span style="color:transparent;-webkit-text-stroke:3px var(--c-acid);" data-bind="titleAccent">{fund.titleAccent}</span></div>
+                  <p style="margin:0;font-size:30px;line-height:1.5;color:var(--c-dust);" data-bind="desc">{fund.desc}</p>
+                </div>
+                <div style="width:320px;flex-shrink:0;position:relative;border:8px solid var(--c-acid);overflow:hidden;">
+                  <div role="img" aria-label="Фото товару" data-gift style="position:absolute;inset:0;background-size:cover;background-position:center;display:none;"></div>
+                  <div data-nogift style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,var(--c-panel2),var(--c-panel2) 20px,var(--c-ink) 20px,var(--c-ink) 40px);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;">
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--c-dust);line-height:1.5;">ФОТО<br />ЩО КУПУЄМО</span>
+                  </div>
+                  <div style="position:absolute;left:0;bottom:0;background:var(--c-acid);color:var(--c-ink);font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;padding:10px 18px;letter-spacing:0.08em;">ЗБІР НА ↓</div>
+                </div>
+              </div>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <div style="background:var(--c-chalk);color:var(--c-ink);font-family:'Unbounded',sans-serif;font-weight:800;font-size:32px;padding:26px 40px;">Ціль: <span data-bind="goalFmt">{goalFmt}</span></div>
@@ -202,10 +234,10 @@ const initial = {
 
     <!-- STORY: LAST PUSH -->
     <div class="tpl">
-      <div class="tpl-cap">СТОРІЗ · ОСТАННІЙ РИВОК · 1080×1920</div>
-      <div class="tpl-preview" style="width:356px;height:633px;">
+      <div class="tpl-cap">СТОРІЗ · ОСТАННІЙ РИВОК · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;">
         <div class="tpl-scale">
-          <div id="vgx-push" class="canvas" style="width:1080px;height:1920px;background:var(--c-pink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div id="vgx-push" class="canvas" style="width:1080px;height:1350px;background:var(--c-pink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <TemplateMonogram size={53} color="var(--c-ink)" shadow="var(--c-chalk)" />
               <div style="font-family:'IBM Plex Mono',monospace;font-size:39px;letter-spacing:0.18em;color:var(--c-ink);">ДЕНЬ <span data-bind="day">{fund.day}</span></div>
@@ -260,10 +292,10 @@ const initial = {
 
     <!-- STORY: THANKS -->
     <div class="tpl">
-      <div class="tpl-cap">СТОРІЗ · ПОДЯКА · 1080×1920</div>
-      <div class="tpl-preview" style="width:356px;height:633px;border:1px solid var(--c-line);">
+      <div class="tpl-cap">СТОРІЗ · ПОДЯКА · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;border:1px solid var(--c-line);">
         <div class="tpl-scale">
-          <div id="vgx-thanks" class="canvas" style="width:1080px;height:1920px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div id="vgx-thanks" class="canvas" style="width:1080px;height:1350px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <TemplateMonogram size={53} color="var(--c-chalk)" />
               <div style="font-family:'IBM Plex Mono',monospace;font-size:39px;letter-spacing:0.18em;color:var(--c-dust);">ЗБІР ЗАКРИТО</div>
@@ -309,10 +341,10 @@ const initial = {
 
     <!-- STORY: MILESTONE -->
     <div class="tpl">
-      <div class="tpl-cap">СТОРІЗ · ВІХА · 1080×1920</div>
-      <div class="tpl-preview" style="width:356px;height:633px;border:1px solid var(--c-line);">
+      <div class="tpl-cap">СТОРІЗ · ВІХА · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;border:1px solid var(--c-line);">
         <div class="tpl-scale">
-          <div id="vgx-milestone" class="canvas" style="width:1080px;height:1920px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div id="vgx-milestone" class="canvas" style="width:1080px;height:1350px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <TemplateMonogram size={53} color="var(--c-chalk)" />
               <div style="font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.22em;color:var(--c-acid);">ВЖЕ ЗІБРАНО</div>
@@ -339,10 +371,10 @@ const initial = {
 
     <!-- STORY: REMAINING -->
     <div class="tpl">
-      <div class="tpl-cap">СТОРІЗ · ЗАЛИШИЛОСЬ · 1080×1920</div>
-      <div class="tpl-preview" style="width:356px;height:633px;">
+      <div class="tpl-cap">СТОРІЗ · ЗАЛИШИЛОСЬ · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;">
         <div class="tpl-scale">
-          <div id="vgx-remaining" class="canvas" style="width:1080px;height:1920px;background:var(--c-acid);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div id="vgx-remaining" class="canvas" style="width:1080px;height:1350px;background:var(--c-acid);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <TemplateMonogram size={53} color="var(--c-ink)" />
               <div style="font-family:'IBM Plex Mono',monospace;font-size:39px;letter-spacing:0.2em;color:var(--c-ink);">ДЕНЬ <span data-bind="day">{fund.day}</span></div>
@@ -365,10 +397,10 @@ const initial = {
 
     <!-- STORY: THERMOMETER -->
     <div class="tpl">
-      <div class="tpl-cap">СТОРІЗ · ТЕРМОМЕТР · 1080×1920</div>
-      <div class="tpl-preview" style="width:356px;height:633px;border:1px solid var(--c-line);">
+      <div class="tpl-cap">СТОРІЗ · ТЕРМОМЕТР · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;border:1px solid var(--c-line);">
         <div class="tpl-scale">
-          <div id="vgx-thermo" class="canvas" style="width:1080px;height:1920px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div id="vgx-thermo" class="canvas" style="width:1080px;height:1350px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <TemplateMonogram size={53} color="var(--c-chalk)" />
               <div style="font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.22em;color:var(--c-acid);">ТЕРМОМЕТР ЗБОРУ</div>
@@ -456,20 +488,20 @@ const initial = {
 
     <!-- STORY: PHOTO OF THE DAY -->
     <div class="tpl">
-      <div class="tpl-cap">СТОРІЗ · ФОТО ДНЯ · 1080×1920</div>
-      <div class="tpl-preview" style="width:356px;height:633px;border:1px solid var(--c-line);">
+      <div class="tpl-cap">СТОРІЗ · ФОТО ДНЯ · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;border:1px solid var(--c-line);">
         <div class="tpl-scale">
-          <div id="vgx-photostory" class="canvas" style="width:1080px;height:1920px;background:var(--c-ink);display:flex;flex-direction:column;">
-            <div style="position:relative;height:1150px;flex-shrink:0;">
+          <div id="vgx-photostory" class="canvas" style="width:1080px;height:1350px;background:var(--c-ink);display:flex;flex-direction:column;">
+            <div style="position:relative;height:760px;flex-shrink:0;">
               <div role="img" aria-label="Фото дня" data-photo style="position:absolute;inset:0;background-size:cover;background-position:center;display:none;"></div>
               <div data-nophoto style="position:absolute;inset:0;border-bottom:4px solid var(--c-line);background:repeating-linear-gradient(45deg,var(--c-panel2),var(--c-panel2) 24px,var(--c-ink) 24px,var(--c-ink) 48px);display:flex;align-items:center;justify-content:center;">
                 <span style="font-family:'IBM Plex Mono',monospace;font-size:30px;color:var(--c-dust);">ФОТО ДНЯ</span>
               </div>
             </div>
-            <div style="flex:1;padding:70px 100px;display:flex;flex-direction:column;justify-content:space-between;">
-              <div style="display:flex;flex-direction:column;gap:40px;">
+            <div style="flex:1;padding:56px 90px;display:flex;flex-direction:column;justify-content:space-between;">
+              <div style="display:flex;flex-direction:column;gap:28px;">
                 <div style="font-family:'IBM Plex Mono',monospace;font-size:39px;letter-spacing:0.2em;color:var(--c-acid);">ДЕНЬ <span data-bind="day">{fund.day}</span></div>
-                <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:90px;line-height:1;color:var(--c-chalk);"><span style="white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</span></div>
+                <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:72px;line-height:1;color:var(--c-chalk);"><span style="white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</span></div>
                 <div style="height:40px;background:var(--c-line);position:relative;"><span data-bar style={`position:absolute;inset:0;background:var(--c-pink);width:${percent}%`}></span></div>
                 <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:40px;color:var(--c-dust);">
                   <span style="color:var(--c-pink);font-weight:500;" data-bind="raisedFmt">{raisedFmt}</span>
@@ -513,10 +545,10 @@ const initial = {
 
     <!-- STORY: DEADLINE -->
     <div class="tpl">
-      <div class="tpl-cap">СТОРІЗ · ДЕДЛАЙН · 1080×1920</div>
-      <div class="tpl-preview" style="width:356px;height:633px;">
+      <div class="tpl-cap">СТОРІЗ · ДЕДЛАЙН · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;">
         <div class="tpl-scale">
-          <div id="vgx-deadline" class="canvas" style="width:1080px;height:1920px;background:var(--c-ink);border:28px solid var(--c-pink);padding:96px 80px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div id="vgx-deadline" class="canvas" style="width:1080px;height:1350px;background:var(--c-ink);border:28px solid var(--c-pink);padding:96px 80px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.22em;color:var(--c-acid);">ЗАКРИВАЄМО СЬОГОДНІ</div>
             <div style="display:flex;flex-direction:column;gap:36px;">
               <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:220px;line-height:0.85;color:var(--c-chalk);">ДЕНЬ <span data-bind="day">{fund.day}</span></div>
@@ -537,10 +569,10 @@ const initial = {
 
     <!-- STORY: SHARE -->
     <div class="tpl">
-      <div class="tpl-cap">СТОРІЗ · РЕПОСТ · 1080×1920</div>
-      <div class="tpl-preview" style="width:356px;height:633px;">
+      <div class="tpl-cap">СТОРІЗ · РЕПОСТ · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;">
         <div class="tpl-scale">
-          <div id="vgx-share" class="canvas" style="width:1080px;height:1920px;background:var(--c-chalk);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div id="vgx-share" class="canvas" style="width:1080px;height:1350px;background:var(--c-chalk);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <TemplateMonogram size={53} color="var(--c-ink)" />
               <TemplateGang gSize={60} rotate={-4} />
@@ -647,10 +679,10 @@ const initial = {
 
     <!-- STORY: SOS -->
     <div class="tpl">
-      <div class="tpl-cap">СТОРІЗ · SOS · 1080×1920</div>
-      <div class="tpl-preview" style="width:356px;height:633px;">
+      <div class="tpl-cap">СТОРІЗ · SOS · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;">
         <div class="tpl-scale">
-          <div id="vgx-sos" class="canvas" style="width:1080px;height:1920px;background:var(--c-pink);padding:100px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div id="vgx-sos" class="canvas" style="width:1080px;height:1350px;background:var(--c-pink);padding:100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:110px;line-height:0.98;color:var(--c-ink);">
               <div>ТЕРМІНОВО</div>
               <div style="color:transparent;-webkit-text-stroke:3px var(--c-ink);">ТЕРМІНОВО</div>
@@ -676,10 +708,10 @@ const initial = {
 
     <!-- STORY: CLOSED -->
     <div class="tpl">
-      <div class="tpl-cap">СТОРІЗ · ЗАКРИТО · 1080×1920</div>
-      <div class="tpl-preview" style="width:356px;height:633px;">
+      <div class="tpl-cap">СТОРІЗ · ЗАКРИТО · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;">
         <div class="tpl-scale">
-          <div id="vgx-closedstory" class="canvas" style="width:1080px;height:1920px;background:var(--c-acid);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div id="vgx-closedstory" class="canvas" style="width:1080px;height:1350px;background:var(--c-acid);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <TemplateMonogram size={53} color="var(--c-ink)" />
               <TemplateGang gSize={56} rotate={-4} />

@@ -17,6 +17,7 @@ interface State {
   goal: number;
   raised: number;
   photo: string | null;
+  gift: string | null;
   colors: Record<string, string>;
 }
 
@@ -39,12 +40,13 @@ const FALLBACK: State = {
   goal: 500000,
   raised: 341500,
   photo: null,
+  gift: null,
   colors: { ...DEFAULT_COLORS },
 };
 
 // Only these keys survive merging — drops stale fields (e.g. the retired
 // `no`/`jar`) from old localStorage payloads and from the JSON seed.
-const ALLOWED_KEYS: (keyof State)[] = ['day', 'titleMain', 'titleAccent', 'desc', 'goal', 'raised', 'photo', 'colors'];
+const ALLOWED_KEYS: (keyof State)[] = ['day', 'titleMain', 'titleAccent', 'desc', 'goal', 'raised', 'photo', 'gift', 'colors'];
 
 function pick(obj: Record<string, unknown>): Partial<State> {
   const out: Partial<State> = {};
@@ -126,12 +128,24 @@ function render(): void {
     el.style.display = hasPhoto ? 'none' : 'flex';
   });
 
+  // Goods/gift photo — its own image, used by the "new fundraiser" templates.
+  const hasGift = !!state.gift;
+  document.querySelectorAll<HTMLElement>('[data-gift]').forEach((el) => {
+    el.style.backgroundImage = hasGift ? `url("${state.gift}")` : 'none';
+    el.style.display = hasGift ? 'block' : 'none';
+  });
+  document.querySelectorAll<HTMLElement>('[data-nogift]').forEach((el) => {
+    el.style.display = hasGift ? 'none' : 'flex';
+  });
+
   updatePhotoControls();
 }
 
 function updatePhotoControls(): void {
   const clearBtn = document.getElementById('tpl-photo-clear');
   if (clearBtn) clearBtn.style.display = state.photo ? 'inline-block' : 'none';
+  const giftClear = document.getElementById('tpl-gift-clear');
+  if (giftClear) giftClear.style.display = state.gift ? 'inline-block' : 'none';
 }
 
 type FieldEl = HTMLInputElement | HTMLTextAreaElement;
@@ -184,14 +198,14 @@ function bindColors(): void {
   });
 }
 
-function bindPhoto(): void {
-  const fileInput = document.getElementById('tpl-photo') as HTMLInputElement | null;
+function bindImage(inputId: string, clearId: string, key: 'photo' | 'gift'): void {
+  const fileInput = document.getElementById(inputId) as HTMLInputElement | null;
   fileInput?.addEventListener('change', () => {
     const file = fileInput.files && fileInput.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      state.photo = String(reader.result);
+      state[key] = String(reader.result);
       persist();
       render();
     };
@@ -199,8 +213,8 @@ function bindPhoto(): void {
     fileInput.value = '';
   });
 
-  document.getElementById('tpl-photo-clear')?.addEventListener('click', () => {
-    state.photo = null;
+  document.getElementById(clearId)?.addEventListener('click', () => {
+    state[key] = null;
     persist();
     render();
   });
@@ -284,7 +298,8 @@ function init(): void {
   bindField('tpl-desc', 'desc');
   bindField('tpl-goal', 'goal', true);
   bindField('tpl-raised', 'raised', true);
-  bindPhoto();
+  bindImage('tpl-photo', 'tpl-photo-clear', 'photo');
+  bindImage('tpl-gift', 'tpl-gift-clear', 'gift');
   bindColors();
   bindActions();
   render();

@@ -544,6 +544,10 @@ textarea.input:focus { outline: 2px solid var(--pink); outline-offset: -1px; }
   .gallery { padding: 36px var(--pad-x) 72px; }
 }
 
+@media (max-width: 775.98px) {
+  .fund-stats { display: flex; flex-direction: column; }
+}
+
 @media (max-width: 560px) {
   :root { --pad-x: 18px; --gang-size: 60px; }
   .section { padding: 56px var(--pad-x); }
