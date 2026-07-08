@@ -517,6 +517,22 @@ textarea.input:focus { outline: 2px solid var(--pink); outline-offset: -1px; }
   .reveal { opacity: 1; transform: none; transition: none; }
 }
 
+/* ---------- on-mount entrance (above-the-fold hero) ----------
+   Pure CSS so it plays on first paint (no FOUC, no JS dependency).
+   Elements start hidden and rise into place on a staggered cadence. */
+@keyframes vg-rise {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
+}
+.mount { opacity: 0; animation: vg-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.mount-1 { animation-delay: 0.05s; }
+.mount-2 { animation-delay: 0.18s; }
+.mount-3 { animation-delay: 0.32s; }
+.mount-4 { animation-delay: 0.46s; }
+@media (prefers-reduced-motion: reduce) {
+  .mount { opacity: 1; animation: none; }
+}
+
 /* ============================================================
    Responsive — the page CHROME adapts; the 1080px export
    canvases stay fixed (only their scaled preview boxes flex).
