@@ -1,0 +1,17 @@
+brand:
+  word1: VOLUNTEER
+  word2: GANG
+tagline: 'Дівчата. Збори. Перемога.'
+since: '2022'
+region: UA
+footerTagline: 'ЗБИРАЄМО, ПОКИ НЕ ПЕРЕМОЖЕМО'
+cta:
+  label: 'Докинути в банку'
+  href: '/#zbir'
+nav:
+  - { label: 'ЗБІР', href: '/#zbir' }
+  - { label: 'УЧАСНИЦІ', href: '/#gang' }
+  - { label: 'ШАБЛОНИ', href: '/templates' }
+seo:
+  title: 'Volunteer Gang — Дівчата. Збори. Перемога.'
+  description: 'Volunteer Gang — команда з чотирьох дівчат, що закривають адресні збори для бригад і батальйонів ЗСУ за прямими запитами. Кожна гривня — у звіт з чеками та фото передачі.'

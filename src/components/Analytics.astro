@@ -1,0 +1,36 @@
+---
+// Google Analytics 4 (gtag.js) with Consent Mode v2. Renders nothing unless
+// PUBLIC_GA_ID is set, so local dev and un-configured deploys stay clean.
+const gaId = import.meta.env.PUBLIC_GA_ID;
+const debug = import.meta.env.PUBLIC_GA_DEBUG === '1';
+---
+
+{
+  gaId && (
+    <Fragment>
+      <script async is:inline src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
+      <script is:inline define:vars={{ gaId, debug }}>
+        {`
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){ dataLayer.push(arguments); }
+        window.gtag = gtag;
+        gtag('js', new Date());
+        // Consent denied by default until the visitor accepts (see ConsentBanner).
+        gtag('consent', 'default', {
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          analytics_storage: 'denied',
+          wait_for_update: 500,
+        });
+        try {
+          if (localStorage.getItem('vg-consent') === 'granted') {
+            gtag('consent', 'update', { analytics_storage: 'granted' });
+          }
+        } catch (e) {}
+        gtag('config', gaId, { anonymize_ip: true, debug_mode: debug });
+        `}
+      </script>
+    </Fragment>
+  )
+}

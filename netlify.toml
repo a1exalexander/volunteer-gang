@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# SPA fallback for Decap admin (single-page app routes).
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin/index.html"
+  status = 200

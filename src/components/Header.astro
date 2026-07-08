@@ -1,0 +1,53 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Logo from './brand/Logo.astro';
+
+interface Props {
+  active?: 'home' | 'templates';
+  settings: CollectionEntry<'site'>['data'];
+}
+
+const { active, settings } = Astro.props;
+---
+
+<header class="site-header">
+  <a href="/" class="logo" aria-label={`${settings.brand.word1} ${settings.brand.word2}`}>
+    <Logo
+      word1={settings.brand.word1}
+      word2={settings.brand.word2}
+      graffiti="layered"
+      layout="inline"
+      heart
+      size={18}
+      gangSize={22}
+      rotate={-4}
+    />
+  </a>
+
+  <nav class="site-nav">
+    {
+      active === 'templates' ? (
+        <Fragment>
+          <span class="nav-tag">ШАБЛОНИ INSTAGRAM</span>
+          <a href="/" class="nav-link">← НА ГОЛОВНУ</a>
+        </Fragment>
+      ) : (
+        <Fragment>
+          {settings.nav.map((n) => (
+            <a href={n.href} class="nav-link">
+              {n.label}
+            </a>
+          ))}
+          <a
+            href={settings.cta.href}
+            class="btn btn-primary btn--sm"
+            data-track="cta_click"
+            data-evt-cta-location="header"
+          >
+            {settings.cta.label}
+          </a>
+        </Fragment>
+      )
+    }
+  </nav>
+</header>

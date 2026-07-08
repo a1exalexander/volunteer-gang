@@ -1,0 +1,61 @@
+---
+// Layered graffiti "GANG" for the Instagram export canvases (brand book §01).
+//
+// NOTE: emits *inline* styles only (no scoped <style>), so its rasterised output
+// via html-to-image is byte-identical and independent of computed-style copying.
+// Colours are the live template palette vars (--c-*), so the sidebar colour
+// pickers recolour it. Four stacked layers reproduce the book lettering:
+//   acid halo (×2) → ink 3-D shadow → bubble fill with ink stroke.
+// Strokes/offsets are em-based, so one `gSize` scales the whole word — the same
+// ratios as <GangWord> (the site-chrome graffiti), keeping both in lock-step.
+interface Props {
+  /** GANG font-size (px). */
+  gSize: number;
+  /** Graffiti rotation (deg). */
+  rotate?: number;
+  /** Trailing heart. */
+  heart?: boolean;
+  /** Layer colours — template palette vars by default (recolourable). */
+  halo?: string;
+  shadow?: string;
+  fill?: string;
+  stroke?: string;
+  heartColor?: string;
+}
+const {
+  gSize,
+  rotate = -5,
+  heart = true,
+  halo = 'var(--c-acid)',
+  shadow = 'var(--c-ink)',
+  fill = 'var(--c-bubble)',
+  stroke = 'var(--c-ink)',
+  heartColor = 'var(--c-pink)',
+} = Astro.props;
+
+// Heart geometry — brand-book ratios (~0.42em glyph, offset ~0.2em / ~0.48em).
+const hSize = Math.round(gSize * 0.42);
+const hTop = -Math.round(gSize * 0.2);
+const hRight = -Math.round(gSize * 0.48);
+---
+
+<span style="position:relative;display:inline-block;">
+  <span
+    style={`position:relative;display:inline-block;font-family:'Sedgwick Ave Display',cursive;font-weight:400;font-size:${gSize}px;line-height:1;transform:rotate(${rotate}deg);`}
+  >
+    <span aria-hidden="true" style={`position:absolute;left:0;top:0;color:${halo};-webkit-text-stroke:0.182em ${halo};`}>GANG</span>
+    <span aria-hidden="true" style={`position:absolute;left:0.091em;top:0.121em;color:${halo};-webkit-text-stroke:0.182em ${halo};`}>GANG</span>
+    <span aria-hidden="true" style={`position:absolute;left:0.091em;top:0.121em;color:${shadow};-webkit-text-stroke:0.106em ${shadow};`}>GANG</span>
+    <span style={`position:relative;color:${fill};-webkit-text-stroke:0.068em ${stroke};paint-order:stroke fill;`}>GANG</span>
+  </span>
+  {
+    heart && (
+      <span
+        aria-hidden="true"
+        style={`position:absolute;top:${hTop}px;right:${hRight}px;font-size:${hSize}px;line-height:1;color:${heartColor};transform:rotate(18deg);`}
+      >
+        ♥
+      </span>
+    )
+  }
+</span>

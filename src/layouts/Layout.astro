@@ -1,0 +1,154 @@
+---
+import '../styles/vg.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Analytics from '../components/Analytics.astro';
+import ConsentBanner from '../components/ConsentBanner.astro';
+import { getEntry } from 'astro:content';
+import { siteGraph } from '../lib/schema';
+
+interface Props {
+  title: string;
+  description?: string;
+  active?: 'home' | 'templates';
+  ogId?: string;
+  noindex?: boolean;
+}
+
+const settingsEntry = await getEntry('site', 'settings');
+if (!settingsEntry) throw new Error('Missing content: site/settings');
+const settings = settingsEntry.data;
+
+const {
+  title,
+  description = settings.seo.description,
+  active,
+  ogId,
+  noindex = false,
+} = Astro.props;
+
+const brandName = `${settings.brand.word1} ${settings.brand.word2}`;
+
+const path = Astro.url.pathname.replace(/^\/+|\/+$/g, '');
+const id = ogId ?? (path === '' ? 'home' : path);
+const ogPath = `/og/${id}.png`;
+const ogImage = Astro.site ? new URL(ogPath, Astro.site).toString() : ogPath;
+const canonical = Astro.site
+  ? new URL(Astro.url.pathname, Astro.site).toString()
+  : Astro.url.pathname;
+
+const robots = noindex
+  ? 'noindex, nofollow'
+  : 'index, follow, max-image-preview:large, max-snippet:-1';
+
+const graph = siteGraph(Astro.site, {
+  name: brandName,
+  logo: '/icon-512.png',
+});
+const serializeJsonLd = (data: object) => JSON.stringify(data).replace(/</g, '\\u003c');
+---
+
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <Analytics />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#0d0c0c" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="robots" content={robots} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="uk" href={canonical} />
+    <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={brandName} />
+    <meta property="og:locale" content="uk_UA" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${brandName} · ${title}`} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800;900&family=Oswald:wght@500;600;700&family=Sedgwick+Ave+Display&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={serializeJsonLd({ '@context': 'https://schema.org', '@graph': graph })}
+    />
+  </head>
+
+  <body>
+    <Header active={active} settings={settings} />
+
+    <main>
+      <slot />
+    </main>
+
+    <Footer settings={settings} />
+    <ConsentBanner />
+
+    <script>
+      import { initAnalytics } from '../lib/analytics';
+      initAnalytics();
+
+      // Reveal-on-scroll for major blocks.
+      const els = document.querySelectorAll(
+        '.hero-intro, .fund-grid, .members, .teaser-copy'
+      );
+      els.forEach((el) => el.classList.add('reveal'));
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add('in');
+              io.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.12 }
+      );
+      els.forEach((el) => io.observe(el));
+
+      // Smooth scroll for same-page anchors (offset-aware via CSS scroll behavior).
+      document.querySelectorAll('a[href*="#"]').forEach((a) => {
+        a.addEventListener('click', (e) => {
+          const href = a.getAttribute('href') || '';
+          const hashIdx = href.indexOf('#');
+          if (hashIdx === -1) return;
+          const linkPath = href.slice(0, hashIdx);
+          const anchorId = href.slice(hashIdx + 1);
+          const samePage = linkPath === '' || linkPath === window.location.pathname;
+          if (!samePage || !anchorId) return;
+          const target = document.getElementById(anchorId);
+          if (!target) return;
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+    </script>
+  </body>
+</html>

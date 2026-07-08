@@ -1,0 +1,48 @@
+---
+// The brand ЗНАК — a rounded ink tile with a single layered graffiti letter
+// (default "G"). Same art as the favicon, in markup. Reuses <GangWord> so the
+// letter is byte-identical to the wordmark. `size` drives the tile; the glyph
+// scales from it (book ratio 92/132).
+import GangWord from './GangWord.astro';
+
+interface Props {
+  /** Tile edge in px. */
+  size?: number;
+  letter?: string;
+  /** Show the rounded ink tile behind the glyph. */
+  tile?: boolean;
+  /** Override the letter fill (maps to --gang-fill). */
+  fill?: string;
+  class?: string;
+}
+const { size = 132, letter = 'G', tile = true, fill, class: cls } = Astro.props;
+const radius = Math.round((size * 30) / 132);
+const glyph = Math.round((size * 92) / 132);
+---
+
+<span
+  class:list={['gang-monogram', { 'has-tile': tile }, cls]}
+  style={`--mono-size:${size}px; --mono-radius:${radius}px; --mono-glyph:${glyph}px`}
+>
+  <GangWord word={letter} fill={fill} class="mono-glyph" />
+</span>
+
+<style>
+  .gang-monogram {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .gang-monogram.has-tile {
+    width: var(--mono-size);
+    height: var(--mono-size);
+    border-radius: var(--mono-radius);
+    background: var(--ink);
+    border: 1px solid var(--border);
+  }
+  .gang-monogram :global(.mono-glyph) {
+    font-size: var(--mono-glyph);
+    line-height: 1;
+    transform: rotate(-5deg);
+  }
+</style>

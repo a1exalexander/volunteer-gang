@@ -1,0 +1,32 @@
+---
+// Sergeant-stripe chevrons — a secondary brand mark. Default is the brand
+// book's pink / acid / chalk trio. `size` scales the 26×20 base chevron;
+// pass palette-mapped colours (e.g. var(--c-pink)) inside a template canvas.
+interface Props {
+  colors?: string[];
+  /** Scale factor on the 26×20 base chevron. */
+  size?: number;
+  class?: string;
+}
+const {
+  colors = ['var(--pink)', 'var(--acid)', 'var(--chalk)'],
+  size = 1,
+  class: cls,
+} = Astro.props;
+---
+
+<span class:list={['vg-chevrons', cls]} style={`--chev-scale:${size}`} aria-hidden="true">
+  {colors.map((c) => <span class="vg-chevron" style={`background:${c}`} />)}
+</span>
+
+<style>
+  .vg-chevrons {
+    display: inline-flex;
+    gap: calc(6px * var(--chev-scale, 1));
+  }
+  .vg-chevron {
+    width: calc(26px * var(--chev-scale, 1));
+    height: calc(20px * var(--chev-scale, 1));
+    clip-path: polygon(50% 0, 100% 45%, 100% 100%, 50% 55%, 0 100%, 0 45%);
+  }
+</style>

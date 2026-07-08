@@ -1,0 +1,26 @@
+---
+// Standalone "VG" monogram for the Instagram export canvases — the brand-book
+// ШЕВРОН treatment: Oswald bold with an offset solid drop-shadow in the fuchsia
+// brand colour. Inline styles only + --c-* palette vars, so html-to-image
+// exports are byte-identical and the sidebar pickers recolour it.
+//
+// Only the *bare* "VG" mark gets this echo; labelled marks ("VG · ЗВІТ") stay
+// plain Oswald, matching the book.
+interface Props {
+  /** Font-size (px). */
+  size?: number;
+  /** Letter colour (a --c-* var). */
+  color?: string;
+  /** Drop-shadow colour (a --c-* var) — flip off the fuchsia on pink grounds. */
+  shadow?: string;
+}
+const { size = 53, color = 'var(--c-chalk)', shadow = 'var(--c-pink)' } = Astro.props;
+// Offset scales with size — book patch is 4px @ 52px (~0.075em).
+const off = Math.max(2, Math.round(size * 0.075));
+---
+
+<div
+  style={`font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:${size}px;line-height:1;color:${color};text-shadow:${off}px ${off}px 0 ${shadow};`}
+>
+  VG
+</div>

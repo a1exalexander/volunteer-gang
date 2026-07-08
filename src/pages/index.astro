@@ -1,0 +1,160 @@
+---
+import Layout from '../layouts/Layout.astro';
+import GangWord from '../components/brand/GangWord.astro';
+import GangUnderline from '../components/brand/GangUnderline.astro';
+import Chevrons from '../components/brand/Chevrons.astro';
+import { getEntry } from 'astro:content';
+import { fmtUAH } from '../lib/format';
+
+const [settingsEntry, homeEntry, jarEntry] = await Promise.all([
+  getEntry('site', 'settings'),
+  getEntry('pages', 'home'),
+  getEntry('activeJar', 'active'),
+]);
+if (!settingsEntry || !homeEntry || !jarEntry) {
+  throw new Error('Missing home content (site/settings, pages/home, activeJar/active)');
+}
+const settings = settingsEntry.data;
+const home = homeEntry.data;
+const jar = jarEntry.data;
+
+const goalFmt = fmtUAH(jar.goal);
+const jarHref = jar.jar.startsWith('http') ? jar.jar : `https://${jar.jar}`;
+const gang = settings.brand.word2;
+---
+
+<Layout title={home.seo.title} description={home.seo.description} active="home">
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="hero-top">
+      <div class="eyebrow">{home.hero.eyebrow}</div>
+      <div class="hero-since">
+        <div class="dot"></div>
+        <div class="eyebrow">{home.hero.sinceLabel}</div>
+      </div>
+    </div>
+
+    <h1>
+      <span class="hero-v">{settings.brand.word1}</span>
+      <span class="gang-wrap">
+        <span class="gang">
+          <GangWord word={gang} />
+          <span aria-hidden="true" class="drip drip1"></span>
+          <span aria-hidden="true" class="drip drip2"></span>
+        </span>
+        <span aria-hidden="true" class="gang-heart1">♥</span>
+        <span aria-hidden="true" class="gang-heart2">♥</span>
+        <GangUnderline class="gang-underline" />
+      </span>
+    </h1>
+
+    <div class="hero-tagline-row">
+      <Chevrons />
+      <p class="hero-tagline">{settings.tagline}</p>
+    </div>
+    <p class="hero-intro">{home.hero.intro}</p>
+  </section>
+
+  <!-- ============ ACTIVE FUNDRAISER ============ -->
+  <section class="section" id="zbir">
+    <div class="sec-head">
+      <span class="sec-num">{home.sections.fundraiser.num}</span>
+      <h2 class="sec-title">{home.sections.fundraiser.title}</h2>
+    </div>
+
+    <div class="fund-grid">
+      {
+        jar.isActive && (
+          <div class="fund-card">
+            <div class="fund-card-head">
+              <div class="fund-card-id">VG · ЗБІР №{jar.no}</div>
+              <div class="fund-badge">{jar.statusLabel}</div>
+            </div>
+            <div class="fund-title">{jar.cardTitle}</div>
+            <p class="fund-desc">{jar.cardBody}</p>
+            <div class="fund-target">
+              <div class="label">ЦІЛЬ ЗБОРУ</div>
+              <div class="val">{goalFmt}</div>
+            </div>
+            <a
+              class="btn btn-primary btn--lg fund-donate"
+              href={jarHref}
+              target="_blank"
+              rel="noopener"
+              data-track="cta_click"
+              data-evt-cta-location="home_jar"
+            >
+              {jar.jarLabel}
+            </a>
+          </div>
+        )
+      }
+
+      <div class="fund-side">
+        {jar.isActive && <p>{jar.overview}</p>}
+        <div class="fund-stats">
+          {
+            home.stats.map((s) => (
+              <div class="fund-stat">
+                <div class="k">{s.k}</div>
+                <div class={`v c-${s.color}`}>{s.v}</div>
+              </div>
+            ))
+          }
+        </div>
+        <div class="fund-proof">{home.proofLine}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MEMBERS ============ -->
+  <section class="section" id="gang">
+    <div class="sec-head">
+      <span class="sec-num">{home.sections.members.num}</span>
+      <h2 class="sec-title">{home.sections.members.title}</h2>
+    </div>
+
+    <div class="members">
+      {
+        home.members.map((m) => (
+          <div class="member">
+            <div class="member-photo">
+              {m.photo ? (
+                <img src={m.photo} alt={`Фото — ${m.name}`} loading="lazy" decoding="async" />
+              ) : (
+                <div class="member-ph">Фото {m.name}</div>
+              )}
+            </div>
+            <div class={`member-body a-${m.accent}`}>
+              <div class="member-id">VG · {m.idx}</div>
+              <div class="member-name">{m.name}</div>
+              <div class="member-role">{m.role}</div>
+              {m.instagram && (
+                <a class="member-ig" href={`https://instagram.com/${m.instagram}`} target="_blank" rel="noopener">@{m.instagram}</a>
+              )}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- ============ TEMPLATES TEASER ============ -->
+  <section class="section teaser">
+    <div class="teaser-copy">
+      <div class="teaser-head">
+        <span class="sec-num">{home.sections.templates.num}</span>
+        <h2 class="sec-title">{home.sections.templates.title}</h2>
+      </div>
+      <p class="teaser-body">{home.teaser.body}</p>
+    </div>
+    <a
+      href="/templates"
+      class="btn btn-primary btn--lg"
+      data-track="cta_click"
+      data-evt-cta-location="home_templates"
+    >
+      {home.teaser.cta}
+    </a>
+  </section>
+</Layout>

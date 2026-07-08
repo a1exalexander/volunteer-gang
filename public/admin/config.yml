@@ -1,0 +1,169 @@
+backend:
+  name: git-gateway
+  branch: main
+
+local_backend: true
+
+media_folder: public/uploads
+public_folder: /uploads
+
+publish_mode: simple
+locale: uk
+
+collections:
+  # ---------- SITE ----------
+  - name: site
+    label: 'Налаштування сайту'
+    files:
+      - name: settings
+        label: 'Загальні'
+        file: 'src/content/site/settings.yml'
+        extension: 'yml'
+        format: 'yml'
+        fields:
+          - name: brand
+            label: 'Бренд'
+            widget: object
+            fields:
+              - { name: word1, label: 'Слово 1', widget: string }
+              - { name: word2, label: 'Слово 2 (графіті)', widget: string }
+          - { name: tagline, label: 'Слоган', widget: string }
+          - { name: since, label: 'Діємо з (рік)', widget: string }
+          - { name: region, label: 'Регіон', widget: string }
+          - { name: footerTagline, label: 'Слоган у футері', widget: string }
+          - name: cta
+            label: 'Кнопка (CTA)'
+            widget: object
+            fields:
+              - { name: label, label: 'Текст', widget: string }
+              - { name: href, label: 'Посилання', widget: string }
+          - name: nav
+            label: 'Меню'
+            widget: list
+            fields:
+              - { name: label, label: 'Текст', widget: string }
+              - { name: href, label: 'Посилання', widget: string }
+          - name: seo
+            label: 'SEO'
+            widget: object
+            collapsed: true
+            fields:
+              - { name: title, label: 'Title', widget: string }
+              - { name: description, label: 'Description', widget: text }
+
+  # ---------- TEMPLATES DATA ----------
+  # Powers the initial state of the Instagram templates generator.
+  # (The home «Активний збір» section is driven by the Active Jar collection below.)
+  - name: fundraiser
+    label: 'Дані для шаблонів'
+    files:
+      - name: active
+        label: 'Дані для шаблонів'
+        file: 'src/content/fundraiser/active.yml'
+        extension: 'yml'
+        format: 'yml'
+        fields:
+          - { name: 'no', label: 'Збір №', widget: string }
+          - { name: statusLabel, label: 'Статус (бейдж)', widget: string, default: 'АКТИВНИЙ' }
+          - { name: cardTitle, label: 'Заголовок картки (головна)', widget: string }
+          - { name: cardBody, label: 'Опис картки (головна)', widget: text }
+          - { name: overview, label: 'Текст праворуч (головна)', widget: text }
+          - { name: day, label: 'День збору', widget: number, value_type: int, default: 1, min: 1 }
+          - { name: titleMain, label: 'Заголовок для шаблонів', widget: text, hint: 'Кожен рядок — з нового рядка' }
+          - { name: titleAccent, label: 'Акцентний рядок (бригада/підрозділ)', widget: string }
+          - { name: desc, label: 'Опис для шаблонів', widget: text }
+          - { name: goal, label: 'Ціль, ₴', widget: number, value_type: int, min: 1 }
+          - { name: raised, label: 'Зібрано, ₴', widget: number, value_type: int, min: 0 }
+          - { name: jar, label: 'Лінк на банку', widget: string }
+
+  # ---------- ACTIVE JAR (home «Активний збір» section) ----------
+  # Drives the home «Активний збір» section: toggle, target and donate button.
+  - name: activeJar
+    label: 'Активний збір'
+    files:
+      - name: active
+        label: 'Активний збір'
+        file: 'src/content/active-jar/active.yml'
+        extension: 'yml'
+        format: 'yml'
+        fields:
+          - { name: isActive, label: 'Показувати секцію', widget: boolean, default: true }
+          - { name: 'no', label: 'Збір №', widget: string }
+          - { name: statusLabel, label: 'Статус (бейдж)', widget: string, default: 'АКТИВНИЙ' }
+          - { name: cardTitle, label: 'Заголовок картки', widget: string }
+          - { name: cardBody, label: 'Опис картки', widget: text }
+          - { name: overview, label: 'Текст праворуч', widget: text }
+          - { name: goal, label: 'Ціль, ₴', widget: number, value_type: int, min: 1 }
+          - { name: jar, label: 'Лінк на банку', widget: string }
+          - { name: jarLabel, label: 'Текст кнопки', widget: string, default: 'Докинути в банку →' }
+
+  # ---------- PAGES ----------
+  - name: pages
+    label: 'Сторінки'
+    files:
+      - name: home
+        label: 'Головна'
+        file: 'src/content/pages/home.yml'
+        extension: 'yml'
+        format: 'yml'
+        fields:
+          - name: seo
+            label: 'SEO'
+            widget: object
+            collapsed: true
+            fields:
+              - { name: title, label: 'Title', widget: string }
+              - { name: description, label: 'Description', widget: text }
+          - name: hero
+            label: 'Hero'
+            widget: object
+            fields:
+              - { name: eyebrow, label: 'Надзаголовок', widget: string }
+              - { name: sinceLabel, label: 'Бейдж «діємо з»', widget: string }
+              - { name: intro, label: 'Вступний текст', widget: text }
+          - name: sections
+            label: 'Заголовки секцій'
+            widget: object
+            fields:
+              - name: fundraiser
+                label: 'Секція «Активний збір»'
+                widget: object
+                fields:
+                  - { name: num, label: 'Номер', widget: string }
+                  - { name: title, label: 'Заголовок', widget: string }
+              - name: members
+                label: 'Секція «Банда»'
+                widget: object
+                fields:
+                  - { name: num, label: 'Номер', widget: string }
+                  - { name: title, label: 'Заголовок', widget: string }
+              - name: templates
+                label: 'Секція «Шаблони»'
+                widget: object
+                fields:
+                  - { name: num, label: 'Номер', widget: string }
+                  - { name: title, label: 'Заголовок', widget: string }
+          - name: stats
+            label: 'Статистика (3)'
+            widget: list
+            fields:
+              - { name: k, label: 'Підпис', widget: string }
+              - { name: v, label: 'Значення', widget: string }
+              - { name: color, label: 'Колір', widget: select, options: ['pink', 'acid', 'chalk', 'bubble'], default: 'pink' }
+          - { name: proofLine, label: 'Рядок «докази»', widget: string }
+          - name: members
+            label: 'Учасниці'
+            widget: list
+            fields:
+              - { name: idx, label: 'Номер (01…)', widget: string }
+              - { name: name, label: 'Імʼя', widget: string }
+              - { name: role, label: 'Роль', widget: string }
+              - { name: photo, label: 'Фото', widget: image, required: false }
+              - { name: instagram, label: 'Instagram (хендл без @)', widget: string, required: false }
+              - { name: accent, label: 'Колір рамки', widget: select, options: ['pink', 'acid', 'bubble', 'chalk'], default: 'pink' }
+          - name: teaser
+            label: 'Тизер шаблонів'
+            widget: object
+            fields:
+              - { name: body, label: 'Текст', widget: text }
+              - { name: cta, label: 'Кнопка', widget: string }

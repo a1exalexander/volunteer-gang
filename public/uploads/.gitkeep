@@ -1,0 +1,2 @@
+# Decap CMS media folder (media_folder: public/uploads). Uploaded images are
+# committed here and served from /uploads.

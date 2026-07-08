@@ -1,0 +1,712 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { fmtUAH, percentOf, dayFmt } from '../lib/format';
+import TemplateLockup from './brand/TemplateLockup.astro';
+import TemplateGang from './brand/TemplateGang.astro';
+import TemplateMonogram from './brand/TemplateMonogram.astro';
+
+interface Props {
+  fund: CollectionEntry<'fundraiser'>['data'];
+}
+const { fund } = Astro.props;
+
+// Server-rendered initial values so the canvases look correct before the
+// client script hydrates. The client then merges any localStorage overrides.
+const percent = percentOf(fund.raised, fund.goal);
+const raisedFmt = fmtUAH(fund.raised);
+const goalFmt = fmtUAH(fund.goal);
+const remainingFmt = fmtUAH(Math.max(0, fund.goal - fund.raised));
+const dayFmtStr = dayFmt(fund.day);
+
+const initial = {
+  day: fund.day,
+  titleMain: fund.titleMain,
+  titleAccent: fund.titleAccent,
+  desc: fund.desc,
+  goal: fund.goal,
+  raised: fund.raised,
+  photo: null,
+};
+---
+
+<div class="studio">
+  <!-- ============ FIELDS PANEL ============ -->
+  <aside class="studio-panel" aria-label="Дані збору">
+    <div class="field">
+      <h1 class="panel-title">Дані збору</h1>
+      <p class="panel-intro">
+        Заповни один раз — оновляться всі шаблони. Потім «PNG» або «Копіювати» під потрібним.
+      </p>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="tpl-day">ДЕНЬ ЗБОРУ</label>
+      <input class="input" id="tpl-day" type="number" value={fund.day} />
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="tpl-titleMain">ЗАГОЛОВОК (рядки — з нового рядка)</label>
+      <textarea class="input" id="tpl-titleMain" rows="2">{fund.titleMain}</textarea>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="tpl-titleAccent">АКЦЕНТНИЙ РЯДОК (бригада / підрозділ)</label>
+      <input class="input input--accent" id="tpl-titleAccent" type="text" value={fund.titleAccent} />
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="tpl-desc">ОПИС</label>
+      <textarea class="input" id="tpl-desc" rows="3">{fund.desc}</textarea>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label" for="tpl-goal">ЦІЛЬ, ₴</label>
+        <input class="input" id="tpl-goal" type="number" value={fund.goal} />
+      </div>
+      <div class="field">
+        <label class="field-label" for="tpl-raised">ЗІБРАНО, ₴</label>
+        <input class="input" id="tpl-raised" type="number" value={fund.raised} />
+      </div>
+    </div>
+
+    <div class="panel-bar"><span data-bar style={`width:${percent}%`}></span></div>
+    <div class="panel-figures">
+      <span class="raised" data-bind="raisedFmt">{raisedFmt}</span>
+      <span><span data-bind="percent">{percent}</span>%</span>
+      <span data-bind="goalFmt">{goalFmt}</span>
+    </div>
+
+    <div class="panel-photo">
+      <span class="field-label">ФОТО (звіт і фото-шаблони)</span>
+      <div class="panel-photo-row">
+        <label class="file-btn">
+          Завантажити фото
+          <input id="tpl-photo" type="file" accept="image/*" style="display:none" />
+        </label>
+        <button type="button" id="tpl-photo-clear" class="ghost-btn" style="display:none">✕ Прибрати</button>
+      </div>
+    </div>
+
+    <div class="panel-colors">
+      <div class="panel-colors-head">
+        <span class="field-label">КОЛЬОРИ ШАБЛОНІВ</span>
+        <button type="button" id="tpl-colors-reset" class="ghost-btn ghost-btn--mini">↺ Скинути</button>
+      </div>
+      <div class="swatch-grid">
+        <label class="swatch"><input type="color" data-color="ink" value="#0d0c0c" /><span>Фон</span></label>
+        <label class="swatch"><input type="color" data-color="chalk" value="#f5f1ec" /><span>Світлий</span></label>
+        <label class="swatch"><input type="color" data-color="pink" value="#ff2e88" /><span>Основний</span></label>
+        <label class="swatch"><input type="color" data-color="acid" value="#c9e400" /><span>Акцент</span></label>
+        <label class="swatch"><input type="color" data-color="bubble" value="#f4a6e3" /><span>Бабл</span></label>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ GALLERY ============ -->
+  <main class="gallery">
+    <!-- POST: ANNOUNCE -->
+    <div class="tpl">
+      <div class="tpl-cap">ПОСТ · АНОНС ЗБОРУ · 1080×1080</div>
+      <div class="tpl-preview" style="width:356px;height:356px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-announce" class="canvas" style="width:1080px;height:1080px;background:var(--c-ink);padding:80px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;">
+            <div style="position:absolute;top:0;right:0;width:400px;height:400px;background:var(--c-pink);clip-path:polygon(100% 0,0 0,100% 100%);opacity:0.9;"></div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;">
+              <TemplateLockup layout="stack" color="var(--c-chalk)" vSize={30} gSize={34} rotate={-5} />
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--c-ink);font-weight:500;padding:12px 8px 0 0;">АКТИВНИЙ ЗБІР</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:36px;position:relative;">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:104px;line-height:1;color:var(--c-chalk);"><span style="white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</span><br /><span style="color:var(--c-pink);" data-bind="titleAccent">{fund.titleAccent}</span></div>
+              <p style="margin:0;font-size:32px;line-height:1.5;color:var(--c-dust);max-width:680px;" data-bind="desc">{fund.desc}</p>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;position:relative;">
+              <div style="background:var(--c-pink);color:var(--c-ink);font-family:'Unbounded',sans-serif;font-weight:800;font-size:34px;padding:28px 44px;">Ціль: <span data-bind="goalFmt">{goalFmt}</span></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--c-dust);">банка → лінк у біо</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="announce">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="announce">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="announce"></span>
+      </div>
+    </div>
+
+    <!-- STORY: PROGRESS -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · ПРОГРЕС · 1080×1920</div>
+      <div class="tpl-preview" style="width:356px;height:633px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-progress" class="canvas" style="width:1080px;height:1920px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateMonogram size={53} color="var(--c-chalk)" />
+              <div style="display:flex;gap:14px;">
+                <div style="width:50px;height:36px;background:var(--c-pink);clip-path:polygon(50% 0,100% 45%,100% 100%,50% 55%,0 100%,0 45%);"></div>
+                <div style="width:50px;height:36px;background:var(--c-pink);clip-path:polygon(50% 0,100% 45%,100% 100%,50% 55%,0 100%,0 45%);"></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:56px;">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:39px;letter-spacing:0.2em;color:var(--c-dust);">АКТИВНИЙ ЗБІР · ДЕНЬ <span data-bind="day">{fund.day}</span></div>
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:107px;line-height:1.05;color:var(--c-chalk);">Уже<br /><span data-bind="percent">{percent}</span>%</div>
+              <div style="height:50px;background:var(--c-line);position:relative;"><span data-bar style={`position:absolute;inset:0;background:var(--c-pink);width:${percent}%`}></span></div>
+              <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:43px;color:var(--c-dust);">
+                <span style="color:var(--c-pink);font-weight:500;" data-bind="raisedFmt">{raisedFmt}</span>
+                <span data-bind="goalFmt">{goalFmt}</span>
+              </div>
+              <div style="border:6px dashed rgba(245,241,236,0.45);border-radius:80px;padding:34px 40px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.1em;color:var(--c-dust);">🔗 МІСЦЕ ДЛЯ ЛІНК-СТІКЕРА</div>
+            </div>
+            <div style="background:var(--c-chalk);color:var(--c-ink);font-family:'Unbounded',sans-serif;font-weight:800;font-size:46px;text-align:center;padding:50px;">Докинути в банку ↑</div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="progress">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="progress">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="progress"></span>
+      </div>
+    </div>
+
+    <!-- POST: URGENT -->
+    <div class="tpl">
+      <div class="tpl-cap">ПОСТ · ТЕРМІНОВИЙ ЗБІР · 1080×1080</div>
+      <div class="tpl-preview" style="width:356px;height:356px;">
+        <div class="tpl-scale">
+          <div id="vgx-urgent" class="canvas" style="width:1080px;height:1080px;background:var(--c-ink);border:28px solid var(--c-pink);padding:72px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateLockup layout="inline" color="var(--c-chalk)" vSize={30} gSize={32} />
+              <div style="display:flex;gap:10px;">
+                <div style="width:36px;height:26px;background:var(--c-pink);clip-path:polygon(50% 0,100% 45%,100% 100%,50% 55%,0 100%,0 45%);"></div>
+                <div style="width:36px;height:26px;background:var(--c-pink);clip-path:polygon(50% 0,100% 45%,100% 100%,50% 55%,0 100%,0 45%);"></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:40px;">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:26px;letter-spacing:0.24em;color:var(--c-acid);">ТЕРМІНОВО · ЗБІР</div>
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:110px;line-height:0.98;color:var(--c-chalk);"><span style="white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</span><br /><span style="color:transparent;-webkit-text-stroke:3px var(--c-acid);" data-bind="titleAccent">{fund.titleAccent}</span></div>
+              <p style="margin:0;font-size:32px;line-height:1.5;color:var(--c-dust);max-width:720px;" data-bind="desc">{fund.desc}</p>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="background:var(--c-chalk);color:var(--c-ink);font-family:'Unbounded',sans-serif;font-weight:800;font-size:32px;padding:26px 40px;">Ціль: <span data-bind="goalFmt">{goalFmt}</span></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--c-dust);">банка → лінк у біо</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="urgent">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="urgent">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="urgent"></span>
+      </div>
+    </div>
+
+    <!-- STORY: LAST PUSH -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · ОСТАННІЙ РИВОК · 1080×1920</div>
+      <div class="tpl-preview" style="width:356px;height:633px;">
+        <div class="tpl-scale">
+          <div id="vgx-push" class="canvas" style="width:1080px;height:1920px;background:var(--c-pink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateMonogram size={53} color="var(--c-ink)" shadow="var(--c-chalk)" />
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:39px;letter-spacing:0.18em;color:var(--c-ink);">ДЕНЬ <span data-bind="day">{fund.day}</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:50px;">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:156px;line-height:0.98;color:var(--c-ink);">Останній<br />ривок</div>
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:107px;line-height:1;color:transparent;-webkit-text-stroke:4px var(--c-ink);">лишилось</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:92px;font-weight:500;color:var(--c-ink);" data-bind="remainingFmt">{remainingFmt}</div>
+              <div style="border:6px dashed rgba(13,12,12,0.5);border-radius:80px;padding:34px 40px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.1em;color:rgba(13,12,12,0.6);">🔗 МІСЦЕ ДЛЯ ЛІНК-СТІКЕРА</div>
+            </div>
+            <div style="background:var(--c-ink);color:var(--c-pink);font-family:'Unbounded',sans-serif;font-weight:800;font-size:46px;text-align:center;padding:50px;">Закриваємо сьогодні ↑</div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="push">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="push">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="push"></span>
+      </div>
+    </div>
+
+    <!-- POST: PHOTO REPORT -->
+    <div class="tpl">
+      <div class="tpl-cap">ПОСТ · ФОТОЗВІТ · 1080×1080</div>
+      <div class="tpl-preview" style="width:356px;height:356px;">
+        <div class="tpl-scale">
+          <div id="vgx-report" class="canvas" style="width:1080px;height:1080px;background:var(--c-bubble);padding:80px;display:flex;flex-direction:column;gap:48px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:30px;color:var(--c-ink);">VG · ЗВІТ</div>
+              <div style="background:var(--c-ink);color:var(--c-pink);font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;padding:12px 20px;letter-spacing:0.12em;">ЧЕКИ ✓ ФОТО ✓</div>
+            </div>
+            <div style="flex:1;position:relative;min-height:0;">
+              <div role="img" aria-label="Фото передачі" data-photo style="position:absolute;inset:0;background-size:cover;background-position:center;display:none;"></div>
+              <div data-nophoto style="position:absolute;inset:0;border:4px dashed rgba(13,12,12,0.55);background:repeating-linear-gradient(45deg,var(--c-bubble),var(--c-bubble) 24px,var(--c-bubble2) 24px,var(--c-bubble2) 48px);display:flex;align-items:center;justify-content:center;">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:26px;color:rgba(13,12,12,0.55);">фото передачі бригаді</span>
+              </div>
+              <div style="position:absolute;bottom:-28px;right:40px;background:var(--c-pink);color:var(--c-ink);font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:32px;padding:20px 32px;transform:rotate(-3deg);">ПЕРЕДАНО</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:40px;">
+              <div style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:46px;line-height:1.15;color:var(--c-ink);"><span style="white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</span> <span data-bind="titleAccent">{fund.titleAccent}</span></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:28px;color:var(--c-ink);text-align:right;line-height:1.5;"><span data-bind="goalFmt">{goalFmt}</span><br /><span style="color:var(--c-dust);">за <span data-bind="dayFmt">{dayFmtStr}</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="report">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="report">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="report"></span>
+      </div>
+    </div>
+
+    <!-- STORY: THANKS -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · ПОДЯКА · 1080×1920</div>
+      <div class="tpl-preview" style="width:356px;height:633px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-thanks" class="canvas" style="width:1080px;height:1920px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateMonogram size={53} color="var(--c-chalk)" />
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:39px;letter-spacing:0.18em;color:var(--c-dust);">ЗБІР ЗАКРИТО</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:70px;align-items:flex-start;">
+              <div style="background:var(--c-pink);color:var(--c-ink);font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:92px;padding:43px 64px;transform:rotate(-5deg);">ЗАКРИТО ✕</div>
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:114px;line-height:1.05;color:var(--c-chalk);">Дякуємо,<br /><span style="color:transparent;-webkit-text-stroke:4px var(--c-acid);">банда</span></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:46px;line-height:1.7;color:var(--c-dust);"><span data-bind="goalFmt">{goalFmt}</span> · за <span data-bind="dayFmt">{dayFmtStr}</span><br />звіт — уже скоро</div>
+            </div>
+            <div style="display:flex;gap:18px;">
+              <div style="width:64px;height:46px;background:var(--c-pink);clip-path:polygon(50% 0,100% 45%,100% 100%,50% 55%,0 100%,0 45%);"></div>
+              <div style="width:64px;height:46px;background:var(--c-pink);clip-path:polygon(50% 0,100% 45%,100% 100%,50% 55%,0 100%,0 45%);"></div>
+              <div style="width:64px;height:46px;background:var(--c-chalk);clip-path:polygon(50% 0,100% 45%,100% 100%,50% 55%,0 100%,0 45%);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="thanks">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="thanks">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="thanks"></span>
+      </div>
+    </div>
+
+    <!-- POST: CLOSED -->
+    <div class="tpl">
+      <div class="tpl-cap">ПОСТ · ЗБІР ЗАКРИТО · 1080×1080</div>
+      <div class="tpl-preview" style="width:356px;height:356px;">
+        <div class="tpl-scale">
+          <div id="vgx-closed" class="canvas" style="width:1080px;height:1080px;background:var(--c-pink);padding:96px;display:flex;flex-direction:column;justify-content:space-between;">
+            <TemplateLockup layout="inline" color="var(--c-ink)" vSize={46} gSize={50} heartColor="var(--c-ink)" />
+            <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:96px;line-height:1;color:var(--c-ink);transform:rotate(-6deg);border:14px solid var(--c-ink);padding:36px 54px;align-self:flex-start;">ЗАКРИТО</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:44px;color:var(--c-ink);">Зібрано <span data-bind="goalFmt">{goalFmt}</span> · дякуємо</div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="closed">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="closed">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="closed"></span>
+      </div>
+    </div>
+
+    <!-- STORY: MILESTONE -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · ВІХА · 1080×1920</div>
+      <div class="tpl-preview" style="width:356px;height:633px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-milestone" class="canvas" style="width:1080px;height:1920px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateMonogram size={53} color="var(--c-chalk)" />
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.22em;color:var(--c-acid);">ВЖЕ ЗІБРАНО</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:56px;">
+              <div style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:300px;line-height:0.9;color:var(--c-chalk);"><span data-bind="percent">{percent}</span><span style="color:var(--c-pink);">%</span></div>
+              <div style="height:50px;background:var(--c-line);position:relative;"><span data-bar style={`position:absolute;inset:0;background:var(--c-pink);width:${percent}%`}></span></div>
+              <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:43px;color:var(--c-dust);">
+                <span style="color:var(--c-pink);font-weight:500;" data-bind="raisedFmt">{raisedFmt}</span>
+                <span data-bind="goalFmt">{goalFmt}</span>
+              </div>
+              <div style="border:6px dashed rgba(245,241,236,0.45);border-radius:80px;padding:34px 40px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.1em;color:var(--c-dust);">🔗 МІСЦЕ ДЛЯ ЛІНК-СТІКЕРА</div>
+            </div>
+            <div style="background:var(--c-chalk);color:var(--c-ink);font-family:'Unbounded',sans-serif;font-weight:800;font-size:46px;text-align:center;padding:50px;">Докинути в банку ↑</div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="milestone">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="milestone">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="milestone"></span>
+      </div>
+    </div>
+
+    <!-- STORY: REMAINING -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · ЗАЛИШИЛОСЬ · 1080×1920</div>
+      <div class="tpl-preview" style="width:356px;height:633px;">
+        <div class="tpl-scale">
+          <div id="vgx-remaining" class="canvas" style="width:1080px;height:1920px;background:var(--c-acid);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateMonogram size={53} color="var(--c-ink)" />
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:39px;letter-spacing:0.2em;color:var(--c-ink);">ДЕНЬ <span data-bind="day">{fund.day}</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:44px;">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:120px;line-height:1;color:var(--c-ink);">До цілі<br /><span style="color:transparent;-webkit-text-stroke:4px var(--c-ink);">лишилось</span></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:100px;font-weight:500;color:var(--c-ink);" data-bind="remainingFmt">{remainingFmt}</div>
+              <div style="border:6px dashed rgba(13,12,12,0.5);border-radius:80px;padding:34px 40px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.1em;color:rgba(13,12,12,0.6);">🔗 МІСЦЕ ДЛЯ ЛІНК-СТІКЕРА</div>
+            </div>
+            <div style="background:var(--c-ink);color:var(--c-acid);font-family:'Unbounded',sans-serif;font-weight:800;font-size:46px;text-align:center;padding:50px;">Докинути в банку ↑</div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="remaining">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="remaining">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="remaining"></span>
+      </div>
+    </div>
+
+    <!-- STORY: THERMOMETER -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · ТЕРМОМЕТР · 1080×1920</div>
+      <div class="tpl-preview" style="width:356px;height:633px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-thermo" class="canvas" style="width:1080px;height:1920px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateMonogram size={53} color="var(--c-chalk)" />
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.22em;color:var(--c-acid);">ТЕРМОМЕТР ЗБОРУ</div>
+            </div>
+            <div style="display:flex;gap:70px;align-items:stretch;flex:1;min-height:0;padding:50px 0;">
+              <div style="position:relative;width:140px;background:var(--c-line);border-radius:70px;overflow:hidden;">
+                <span data-bar-v style={`position:absolute;left:0;right:0;bottom:0;background:var(--c-pink);height:${percent}%`}></span>
+              </div>
+              <div style="display:flex;flex-direction:column;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:32px;color:var(--c-acid);padding:4px 0;">
+                <span>100</span><span>75</span><span>50</span><span>25</span>
+              </div>
+              <div style="display:flex;flex-direction:column;justify-content:center;gap:40px;flex:1;">
+                <div style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:150px;line-height:0.9;color:var(--c-chalk);"><span data-bind="percent">{percent}</span><span style="color:var(--c-pink);">%</span></div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:38px;line-height:1.8;color:var(--c-dust);">
+                  <div style="color:var(--c-pink);font-weight:500;" data-bind="raisedFmt">{raisedFmt}</div>
+                  <div data-bind="goalFmt">{goalFmt}</div>
+                  <div>лишилось <span data-bind="remainingFmt">{remainingFmt}</span></div>
+                </div>
+              </div>
+            </div>
+            <div style="border:6px dashed rgba(245,241,236,0.45);border-radius:80px;padding:34px 40px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.1em;color:var(--c-dust);">🔗 МІСЦЕ ДЛЯ ЛІНК-СТІКЕРА</div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="thermo">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="thermo">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="thermo"></span>
+      </div>
+    </div>
+
+    <!-- POST: GOAL -->
+    <div class="tpl">
+      <div class="tpl-cap">ПОСТ · ЦІЛЬ · 1080×1080</div>
+      <div class="tpl-preview" style="width:356px;height:356px;">
+        <div class="tpl-scale">
+          <div id="vgx-goalpost" class="canvas" style="width:1080px;height:1080px;background:var(--c-pink);padding:80px;display:flex;flex-direction:column;justify-content:space-between;">
+            <TemplateLockup layout="inline" color="var(--c-ink)" vSize={30} gSize={34} heartColor="var(--c-ink)" />
+            <div style="display:flex;flex-direction:column;gap:24px;align-items:flex-start;">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.04em;font-size:200px;line-height:0.9;color:transparent;-webkit-text-stroke:6px var(--c-ink);">ЦІЛЬ</div>
+              <div style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:110px;line-height:1;color:var(--c-ink);" data-bind="goalFmt">{goalFmt}</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="background:var(--c-ink);color:var(--c-pink);font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:38px;padding:20px 32px;" data-bind="titleAccent">{fund.titleAccent}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--c-ink);">банка → лінк у біо</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="goalpost">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="goalpost">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="goalpost"></span>
+      </div>
+    </div>
+
+    <!-- POST: PHOTO + PROGRESS -->
+    <div class="tpl">
+      <div class="tpl-cap">ПОСТ · ФОТО + ПРОГРЕС · 1080×1080</div>
+      <div class="tpl-preview" style="width:356px;height:356px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-photopost" class="canvas" style="width:1080px;height:1080px;background:var(--c-panel2);overflow:hidden;">
+            <div role="img" aria-label="Фото передачі" data-photo style="position:absolute;inset:0;background-size:cover;background-position:center;display:none;"></div>
+            <div data-nophoto style="position:absolute;inset:0;border:4px dashed var(--c-dust);background:repeating-linear-gradient(45deg,var(--c-panel2),var(--c-panel2) 24px,var(--c-ink) 24px,var(--c-ink) 48px);display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:30px;color:var(--c-dust);">ФОТО НА ВЕСЬ ЕКРАН</span>
+            </div>
+            <div style="position:absolute;left:0;right:0;bottom:0;padding:80px;display:flex;flex-direction:column;gap:36px;background:linear-gradient(to top,rgba(13,12,12,0.92),rgba(13,12,12,0.55) 55%,transparent);">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:84px;line-height:1;color:var(--c-chalk);"><span style="white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</span> <span style="color:var(--c-pink);" data-bind="titleAccent">{fund.titleAccent}</span></div>
+              <div style="height:32px;background:rgba(245,241,236,0.25);position:relative;"><span data-bar style={`position:absolute;inset:0;background:var(--c-pink);width:${percent}%`}></span></div>
+              <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:34px;color:var(--c-chalk);">
+                <span style="color:var(--c-pink);font-weight:500;" data-bind="raisedFmt">{raisedFmt}</span>
+                <span><span data-bind="percent">{percent}</span>%</span>
+                <span data-bind="goalFmt">{goalFmt}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="photopost">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="photopost">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="photopost"></span>
+      </div>
+    </div>
+
+    <!-- STORY: PHOTO OF THE DAY -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · ФОТО ДНЯ · 1080×1920</div>
+      <div class="tpl-preview" style="width:356px;height:633px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-photostory" class="canvas" style="width:1080px;height:1920px;background:var(--c-ink);display:flex;flex-direction:column;">
+            <div style="position:relative;height:1150px;flex-shrink:0;">
+              <div role="img" aria-label="Фото дня" data-photo style="position:absolute;inset:0;background-size:cover;background-position:center;display:none;"></div>
+              <div data-nophoto style="position:absolute;inset:0;border-bottom:4px solid var(--c-line);background:repeating-linear-gradient(45deg,var(--c-panel2),var(--c-panel2) 24px,var(--c-ink) 24px,var(--c-ink) 48px);display:flex;align-items:center;justify-content:center;">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:30px;color:var(--c-dust);">ФОТО ДНЯ</span>
+              </div>
+            </div>
+            <div style="flex:1;padding:70px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+              <div style="display:flex;flex-direction:column;gap:40px;">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:39px;letter-spacing:0.2em;color:var(--c-acid);">ДЕНЬ <span data-bind="day">{fund.day}</span></div>
+                <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:90px;line-height:1;color:var(--c-chalk);"><span style="white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</span></div>
+                <div style="height:40px;background:var(--c-line);position:relative;"><span data-bar style={`position:absolute;inset:0;background:var(--c-pink);width:${percent}%`}></span></div>
+                <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:40px;color:var(--c-dust);">
+                  <span style="color:var(--c-pink);font-weight:500;" data-bind="raisedFmt">{raisedFmt}</span>
+                  <span data-bind="goalFmt">{goalFmt}</span>
+                </div>
+              </div>
+              <div style="border:6px dashed rgba(245,241,236,0.45);border-radius:80px;padding:34px 40px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.1em;color:var(--c-dust);">🔗 МІСЦЕ ДЛЯ ЛІНК-СТІКЕРА</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="photostory">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="photostory">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="photostory"></span>
+      </div>
+    </div>
+
+    <!-- POST: HALFWAY -->
+    <div class="tpl">
+      <div class="tpl-cap">ПОСТ · ЕКВАТОР · 1080×1080</div>
+      <div class="tpl-preview" style="width:356px;height:356px;">
+        <div class="tpl-scale">
+          <div id="vgx-halfway" class="canvas" style="width:1080px;height:1080px;background:var(--c-bubble);padding:80px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;">
+            <div style="background:var(--c-ink);color:var(--c-pink);font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.04em;font-size:40px;padding:20px 36px;transform:rotate(-4deg);">ЕКВАТОР ЗБОРУ</div>
+            <div style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:300px;line-height:0.9;color:var(--c-ink);"><span data-bind="percent">{percent}</span>%</div>
+            <div style="width:100%;display:flex;justify-content:space-between;align-items:flex-end;">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:34px;color:var(--c-ink);">зібрано<br /><span style="font-size:44px;font-weight:500;" data-bind="raisedFmt">{raisedFmt}</span></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:34px;color:var(--c-ink);text-align:right;">лишилось<br /><span style="font-size:44px;font-weight:500;" data-bind="remainingFmt">{remainingFmt}</span></div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--c-ink);">банка → лінк у біо</div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="halfway">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="halfway">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="halfway"></span>
+      </div>
+    </div>
+
+    <!-- STORY: DEADLINE -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · ДЕДЛАЙН · 1080×1920</div>
+      <div class="tpl-preview" style="width:356px;height:633px;">
+        <div class="tpl-scale">
+          <div id="vgx-deadline" class="canvas" style="width:1080px;height:1920px;background:var(--c-ink);border:28px solid var(--c-pink);padding:96px 80px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.22em;color:var(--c-acid);">ЗАКРИВАЄМО СЬОГОДНІ</div>
+            <div style="display:flex;flex-direction:column;gap:36px;">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:220px;line-height:0.85;color:var(--c-chalk);">ДЕНЬ <span data-bind="day">{fund.day}</span></div>
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:80px;line-height:1;color:transparent;-webkit-text-stroke:3px var(--c-chalk);">останній день збору</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:92px;font-weight:500;color:var(--c-pink);">лишилось <span data-bind="remainingFmt">{remainingFmt}</span></div>
+              <div style="border:6px dashed rgba(245,241,236,0.45);border-radius:80px;padding:34px 40px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.1em;color:var(--c-dust);">🔗 МІСЦЕ ДЛЯ ЛІНК-СТІКЕРА</div>
+            </div>
+            <div style="background:var(--c-chalk);color:var(--c-ink);font-family:'Unbounded',sans-serif;font-weight:800;font-size:46px;text-align:center;padding:50px;">Докинути в банку ↑</div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="deadline">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="deadline">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="deadline"></span>
+      </div>
+    </div>
+
+    <!-- STORY: SHARE -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · РЕПОСТ · 1080×1920</div>
+      <div class="tpl-preview" style="width:356px;height:633px;">
+        <div class="tpl-scale">
+          <div id="vgx-share" class="canvas" style="width:1080px;height:1920px;background:var(--c-chalk);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateMonogram size={53} color="var(--c-ink)" />
+              <TemplateGang gSize={60} rotate={-4} />
+            </div>
+            <div style="display:flex;flex-direction:column;gap:44px;">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:150px;line-height:0.95;color:var(--c-ink);">Репост<br />= донат</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:44px;color:var(--c-ink);">0 ₴ · 5 секунд · макс. розгін</div>
+              <div style="background:var(--c-pink);color:var(--c-ink);font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:44px;padding:20px 32px;align-self:flex-start;" data-bind="titleAccent">{fund.titleAccent}</div>
+              <div style="border:6px dashed rgba(13,12,12,0.5);border-radius:80px;padding:34px 40px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.1em;color:rgba(13,12,12,0.6);">🔗 МІСЦЕ ДЛЯ ЛІНК-СТІКЕРА</div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:34px;color:var(--c-ink);">твоя сторіз = ще один донат у банку</div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="share">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="share">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="share"></span>
+      </div>
+    </div>
+
+    <!-- POST: WEEKLY REPORT -->
+    <div class="tpl">
+      <div class="tpl-cap">ПОСТ · ЗВІТ ТИЖНЯ · 1080×1080</div>
+      <div class="tpl-preview" style="width:356px;height:356px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-weekly" class="canvas" style="width:1080px;height:1080px;background:var(--c-panel2);padding:80px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:34px;color:var(--c-chalk);">VG · ЗВІТ ТИЖНЯ</div>
+              <div style="background:var(--c-acid);color:var(--c-ink);font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:500;padding:12px 20px;letter-spacing:0.12em;">ЧЕКИ ✓</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--c-line);border:1px solid var(--c-line);">
+              <div style="background:var(--c-ink);padding:40px;display:flex;flex-direction:column;gap:14px;">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;letter-spacing:0.12em;color:var(--c-dust);">ЗІБРАНО</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:56px;font-weight:500;color:var(--c-pink);" data-bind="raisedFmt">{raisedFmt}</div>
+              </div>
+              <div style="background:var(--c-ink);padding:40px;display:flex;flex-direction:column;gap:14px;">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;letter-spacing:0.12em;color:var(--c-dust);">ЦІЛЬ</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:56px;font-weight:500;color:var(--c-chalk);" data-bind="goalFmt">{goalFmt}</div>
+              </div>
+              <div style="background:var(--c-ink);padding:40px;display:flex;flex-direction:column;gap:14px;">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;letter-spacing:0.12em;color:var(--c-dust);">МИНУЛО</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:56px;font-weight:500;color:var(--c-acid);" data-bind="dayFmt">{dayFmtStr}</div>
+              </div>
+            </div>
+            <div style="height:40px;background:var(--c-line);position:relative;"><span data-bar style={`position:absolute;inset:0;background:var(--c-pink);width:${percent}%`}></span></div>
+            <p style="margin:0;font-family:'IBM Plex Mono',monospace;font-size:30px;line-height:1.5;color:var(--c-dust);" data-bind="desc">{fund.desc}</p>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="weekly">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="weekly">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="weekly"></span>
+      </div>
+    </div>
+
+    <!-- POST: QUOTE -->
+    <div class="tpl">
+      <div class="tpl-cap">ПОСТ · СЛОВО ВІД НАС · 1080×1080</div>
+      <div class="tpl-preview" style="width:356px;height:356px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-quote" class="canvas" style="width:1080px;height:1080px;background:var(--c-ink);padding:80px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="font-family:'Sedgwick Ave Display',cursive;font-size:220px;line-height:0.7;color:var(--c-pink);">«</div>
+            <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.01em;font-size:72px;line-height:1.15;color:var(--c-chalk);max-width:820px;" data-bind="desc">{fund.desc}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:30px;color:var(--c-pink);letter-spacing:0.1em;" data-bind="titleAccent">{fund.titleAccent}</div>
+              <TemplateLockup layout="inline" color="var(--c-chalk)" vSize={30} gSize={34} />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="quote">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="quote">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="quote"></span>
+      </div>
+    </div>
+
+    <!-- POST: MINIMAL -->
+    <div class="tpl">
+      <div class="tpl-cap">ПОСТ · МІНІМАЛ · 1080×1080</div>
+      <div class="tpl-preview" style="width:356px;height:356px;">
+        <div class="tpl-scale">
+          <div id="vgx-minimal" class="canvas" style="width:1080px;height:1080px;background:var(--c-chalk);padding:80px;display:flex;flex-direction:column;justify-content:space-between;">
+            <TemplateLockup layout="inline" color="var(--c-ink)" vSize={30} gSize={34} />
+            <div style="display:flex;flex-direction:column;gap:28px;align-items:flex-start;">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:150px;line-height:0.95;color:var(--c-ink);white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</div>
+              <div style="background:var(--c-acid);color:var(--c-ink);font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:64px;padding:12px 28px;transform:rotate(-2deg);" data-bind="titleAccent">{fund.titleAccent}</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:28px;color:var(--c-ink);">
+              <span>Ціль: <span data-bind="goalFmt">{goalFmt}</span></span>
+              <span>банка → лінк у біо</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="minimal">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="minimal">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="minimal"></span>
+      </div>
+    </div>
+
+    <!-- STORY: SOS -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · SOS · 1080×1920</div>
+      <div class="tpl-preview" style="width:356px;height:633px;">
+        <div class="tpl-scale">
+          <div id="vgx-sos" class="canvas" style="width:1080px;height:1920px;background:var(--c-pink);padding:100px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:110px;line-height:0.98;color:var(--c-ink);">
+              <div>ТЕРМІНОВО</div>
+              <div style="color:transparent;-webkit-text-stroke:3px var(--c-ink);">ТЕРМІНОВО</div>
+              <div>ТЕРМІНОВО</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:40px;">
+              <div style="background:var(--c-ink);padding:56px;display:flex;flex-direction:column;gap:32px;">
+                <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:96px;line-height:1;color:var(--c-chalk);"><span style="white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</span></div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:52px;font-weight:500;color:var(--c-pink);">лишилось <span data-bind="remainingFmt">{remainingFmt}</span></div>
+              </div>
+              <div style="border:6px dashed rgba(13,12,12,0.5);border-radius:80px;padding:34px 40px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.1em;color:rgba(13,12,12,0.6);">🔗 МІСЦЕ ДЛЯ ЛІНК-СТІКЕРА</div>
+            </div>
+            <div style="background:var(--c-ink);color:var(--c-pink);font-family:'Unbounded',sans-serif;font-weight:800;font-size:46px;text-align:center;padding:50px;">Закриваємо зараз ↑</div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="sos">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="sos">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="sos"></span>
+      </div>
+    </div>
+
+    <!-- STORY: CLOSED -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · ЗАКРИТО · 1080×1920</div>
+      <div class="tpl-preview" style="width:356px;height:633px;">
+        <div class="tpl-scale">
+          <div id="vgx-closedstory" class="canvas" style="width:1080px;height:1920px;background:var(--c-acid);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateMonogram size={53} color="var(--c-ink)" />
+              <TemplateGang gSize={56} rotate={-4} />
+            </div>
+            <div style="display:flex;flex-direction:column;gap:70px;align-items:flex-start;">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:130px;line-height:1;color:var(--c-ink);transform:rotate(-6deg);border:14px solid var(--c-ink);padding:36px 54px;">ЗАКРИТО ✕</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:52px;line-height:1.6;color:var(--c-ink);">Зібрано <span data-bind="goalFmt">{goalFmt}</span> · за <span data-bind="dayFmt">{dayFmtStr}</span><br />звіт — уже скоро</div>
+            </div>
+            <div style="display:flex;gap:18px;">
+              <div style="width:64px;height:46px;background:var(--c-ink);clip-path:polygon(50% 0,100% 45%,100% 100%,50% 55%,0 100%,0 45%);"></div>
+              <div style="width:64px;height:46px;background:var(--c-ink);clip-path:polygon(50% 0,100% 45%,100% 100%,50% 55%,0 100%,0 45%);"></div>
+              <div style="width:64px;height:46px;background:var(--c-ink);clip-path:polygon(50% 0,100% 45%,100% 100%,50% 55%,0 100%,0 45%);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="closedstory">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="closedstory">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="closedstory"></span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script id="vg-tpl-initial" type="application/json" is:inline set:html={JSON.stringify(initial)}></script>
+<script is:inline async src="https://unpkg.com/html-to-image@1.11.13/dist/html-to-image.js"></script>
+<script>
+  import '../scripts/template-studio';
+</script>

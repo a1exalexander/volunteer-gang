@@ -1,0 +1,28 @@
+---
+// Hand-drawn swoosh + arrow that underlines the GANG wordmark (brand book hero).
+// Positioning is left to the caller via `class`; only the artwork lives here.
+interface Props {
+  /** Stroke colour — defaults to Крейда (--chalk). */
+  color?: string;
+  class?: string;
+}
+const { color = 'var(--chalk)', class: cls } = Astro.props;
+---
+
+<svg
+  class={cls}
+  width="360"
+  height="64"
+  viewBox="0 0 360 64"
+  fill="none"
+  aria-hidden="true"
+  style="overflow: visible"
+>
+  <path d="M8 46 C 100 66, 230 60, 330 22" stroke={color} stroke-width="6" stroke-linecap="round"></path>
+  <path
+    d="M306 14 L 336 20 L 318 44"
+    stroke={color}
+    stroke-width="6"
+    stroke-linecap="round"
+    stroke-linejoin="round"></path>
+</svg>

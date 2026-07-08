@@ -1,0 +1,50 @@
+---
+// VOLUNTEER + graffiti GANG lockup for the Instagram export canvases.
+//
+// The brand-book "two voices": "VOLUNTEER" is plain Oswald (discipline); "GANG"
+// is the layered graffiti <TemplateGang> (the band). Emits *inline* styles only
+// (no scoped <style>) so html-to-image exports are byte-identical, and uses the
+// live template palette vars (--c-*) so the sidebar colour pickers keep working.
+import TemplateGang from './TemplateGang.astro';
+
+interface Props {
+  layout?: 'stack' | 'inline';
+  /** VOLUNTEER colour (a --c-* var). */
+  color?: string;
+  /** VOLUNTEER font-size (px). In `inline`, VOLUNTEER + GANG sit on one row. */
+  vSize?: number;
+  /** GANG font-size (px). */
+  gSize: number;
+  /** Graffiti rotation (deg). */
+  rotate?: number;
+  heart?: boolean;
+  /** Heart colour — flip to --c-ink on pink grounds so it stays visible. */
+  heartColor?: string;
+}
+const {
+  layout = 'inline',
+  color = 'var(--c-chalk)',
+  vSize = 30,
+  gSize,
+  rotate = -5,
+  heart = true,
+  heartColor = 'var(--c-pink)',
+} = Astro.props;
+
+const vStyle = `font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:${vSize}px;color:${color};`;
+const gap = Math.round(vSize * 0.45);
+---
+
+{
+  layout === 'stack' ? (
+    <div style="line-height:1.05;">
+      <span style={`display:block;${vStyle}`}>VOLUNTEER</span>
+      <TemplateGang gSize={gSize} rotate={rotate} heart={heart} heartColor={heartColor} />
+    </div>
+  ) : (
+    <div style={`display:flex;align-items:center;gap:${gap}px;`}>
+      <span style={`line-height:1;${vStyle}`}>VOLUNTEER</span>
+      <TemplateGang gSize={gSize} rotate={rotate} heart={heart} heartColor={heartColor} />
+    </div>
+  )
+}

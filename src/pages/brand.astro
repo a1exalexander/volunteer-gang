@@ -1,0 +1,229 @@
+---
+// Living brand reference — renders the brand book (logo lockups, marks, colour,
+// type) from the reusable components in src/components/brand/. noindex; not in
+// the site nav. Doubles as a visual regression surface for the components.
+import Layout from '../layouts/Layout.astro';
+import Logo from '../components/brand/Logo.astro';
+import GangMonogram from '../components/brand/GangMonogram.astro';
+import VgPatch from '../components/brand/VgPatch.astro';
+import Chevrons from '../components/brand/Chevrons.astro';
+import { getEntry } from 'astro:content';
+
+const settingsEntry = await getEntry('site', 'settings');
+if (!settingsEntry) throw new Error('Missing content: site/settings');
+const settings = settingsEntry.data;
+const { word1, word2 } = settings.brand;
+
+const palette = [
+  { name: 'Фуксія-91', hex: '#FF2E88', use: 'головний · дія', fg: '#0D0C0C', span: true },
+  { name: 'Бабл', hex: '#F4A6E3', use: 'заливка літер', fg: '#0D0C0C' },
+  { name: 'Кислота', hex: '#C9E400', use: 'кант і акценти', fg: '#0D0C0C' },
+  { name: 'Балаклава', hex: '#0D0C0C', use: 'фон і контур', fg: '#F5F1EC', border: true },
+  { name: 'Крейда', hex: '#F5F1EC', use: 'текст', fg: '#0D0C0C' },
+  { name: 'Пил', hex: '#8A8580', use: 'другорядне', fg: '#0D0C0C' },
+];
+
+const faviconSizes = [48, 32, 16];
+---
+
+<Layout title="Volunteer Gang — Бренд-бук" description="Логотип, кольори та типографіка Volunteer Gang." ogId="home" noindex>
+  <!-- HERO -->
+  <section class="section brand-hero">
+    <div class="eyebrow">БРЕНД-БУК · V 1.0 · 2026</div>
+    <h1 class="brand-h1">
+      <Logo word1={word1} word2={word2} graffiti="layered" layout="stack" size={72} gangSize={92} rotate={-5} heart />
+    </h1>
+    <p class="brand-lede">{settings.tagline}</p>
+  </section>
+
+  <!-- 01 · LOGO -->
+  <section class="section">
+    <div class="sec-head"><span class="sec-num">01</span><h2 class="sec-title">Логотип</h2></div>
+    <div class="brand-grid brand-grid--3">
+      <div class="brand-cell">
+        <div class="brand-frame">
+          <Logo word1={word1} word2={word2} graffiti="layered" layout="stack" size={30} gangSize={38} rotate={-5} heart />
+        </div>
+        <div class="brand-cap">ОСНОВНИЙ · на чорному</div>
+      </div>
+      <div class="brand-cell">
+        <div class="brand-frame brand-frame--pink">
+          <Logo word1={word1} word2={word2} graffiti="layered" layout="stack" size={24} gangSize={30} rotate={-5} heart inverse />
+        </div>
+        <div class="brand-cap">ІНВЕРСІЯ · на рожевому</div>
+      </div>
+      <div class="brand-cell">
+        <div class="brand-frame">
+          <VgPatch since={settings.since} region={settings.region} />
+        </div>
+        <div class="brand-cap">ШЕВРОН · монограма VG</div>
+      </div>
+    </div>
+
+    <!-- mark / favicon / horizontal -->
+    <div class="brand-sub">ЗНАК · ФАВІКОН · ЛОГОТИП З ТЕКСТОМ</div>
+    <div class="brand-grid brand-grid--3">
+      <div class="brand-cell">
+        <div class="brand-frame"><GangMonogram size={132} /></div>
+        <div class="brand-cap">ЗНАК · іконка застосунку</div>
+      </div>
+      <div class="brand-cell">
+        <div class="brand-frame brand-favicons">
+          {faviconSizes.map((s) => (
+            <div class="brand-fav">
+              <img src="/favicon.svg" width={s} height={s} alt={`Фавікон ${s}px`} />
+              <span class="brand-fav-n">{s}</span>
+            </div>
+          ))}
+        </div>
+        <div class="brand-cap">ФАВІКОН · 16 / 32 / 48 px</div>
+      </div>
+      <div class="brand-cell">
+        <div class="brand-frame brand-frame--row">
+          <GangMonogram size={84} />
+          <Logo word1={word1} word2={word2} graffiti="layered" layout="stack" size={26} gangSize={32} rotate={-5} heart />
+        </div>
+        <div class="brand-cap">ЛОГОТИП З ТЕКСТОМ · горизонтальний лок-ап</div>
+      </div>
+    </div>
+
+    <!-- text-only lockups -->
+    <div class="brand-grid brand-grid--2">
+      <div class="brand-cell">
+        <div class="brand-frame">
+          <Logo word1={word1} word2={word2} graffiti="layered" layout="stack" size={40} gangSize={50} rotate={-5} heart />
+        </div>
+        <div class="brand-cap">ЛОГОТИП ТЕКСТОМ · без знака</div>
+      </div>
+      <div class="brand-cell">
+        <div class="brand-frame">
+          <Logo word1={word1} word2={word2} graffiti="layered" layout="inline" size={44} gangSize={52} rotate={-5} heart />
+        </div>
+        <div class="brand-cap">ЛОГОТИП ТЕКСТОМ · без знака — горизонтальний</div>
+      </div>
+    </div>
+
+    <div class="brand-rules">
+      <p><strong>Правило двох голосів.</strong> «VOLUNTEER» — просте біле накреслення без ефектів: дисципліна і звітність. «GANG» — графіті-леттеринг: рожева заливка, чорний контур і обʼємна тінь, салатовий кант.</p>
+      <p><strong>Охоронне поле.</strong> Мінімальний відступ навколо логотипа — висота літери «G». Мінімальна ширина — 120 px.</p>
+    </div>
+  </section>
+
+  <!-- 02 · COLORS -->
+  <section class="section">
+    <div class="sec-head"><span class="sec-num">02</span><h2 class="sec-title">Кольори</h2></div>
+    <div class="brand-swatches">
+      {palette.map((c) => (
+        <div
+          class:list={['brand-swatch', { 'is-wide': c.span, 'is-bordered': c.border }]}
+          style={`background:${c.hex}; color:${c.fg}`}
+        >
+          <div class="brand-swatch-name">{c.name}</div>
+          <div class="brand-swatch-hex mono">{c.hex} · {c.use}</div>
+        </div>
+      ))}
+    </div>
+    <div class="brand-chevrons-row">
+      <Chevrons />
+      <span class="mono brand-cap">← вторинний знак · шеврони</span>
+    </div>
+  </section>
+
+  <!-- 03 · TYPE -->
+  <section class="section">
+    <div class="sec-head"><span class="sec-num">03</span><h2 class="sec-title">Типографіка</h2></div>
+    <div class="brand-grid brand-grid--3">
+      <div class="brand-frame brand-type">
+        <div class="mono brand-type-k">ЗАГОЛОВКИ · OSWALD</div>
+        <div class="brand-type-head">Збір закрито за 6 годин</div>
+      </div>
+      <div class="brand-frame brand-type">
+        <div class="mono brand-type-k">ТЕКСТ · IBM PLEX SANS</div>
+        <p class="brand-type-body">Купуємо тепловізори для 92-ї ОШБр за прямим запитом бійців. Кожна гривня йде у звіт.</p>
+      </div>
+      <div class="brand-frame brand-type">
+        <div class="mono brand-type-k">ЦИФРИ · IBM PLEX MONO</div>
+        <div class="brand-type-num mono">₴ 341 500</div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .brand-hero { display: flex; flex-direction: column; gap: 28px; }
+  .brand-h1 { margin: 0; }
+  .brand-lede { font-size: 22px; font-weight: 500; color: var(--chalk); }
+
+  .brand-sub {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--acid);
+    margin: 56px 0 24px;
+  }
+  .brand-grid { display: grid; gap: 20px; margin-bottom: 20px; }
+  .brand-grid--3 { grid-template-columns: repeat(3, 1fr); }
+  .brand-grid--2 { grid-template-columns: repeat(2, 1fr); }
+  .brand-cell { display: flex; flex-direction: column; gap: 12px; }
+  .brand-frame {
+    background: var(--card);
+    border: 1px solid var(--border);
+    min-height: 260px;
+    padding: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+  }
+  .brand-frame--pink { background: var(--pink); border-color: var(--pink); }
+  .brand-frame--row { flex-direction: row; }
+  .brand-cap {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--dust);
+    letter-spacing: 0.08em;
+  }
+
+  .brand-favicons { gap: 24px; align-items: flex-end; }
+  .brand-fav { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .brand-fav-n { font-family: var(--font-mono); font-size: 10px; color: var(--dust); }
+
+  .brand-rules { display: flex; gap: 40px; margin-top: 32px; max-width: 900px; flex-wrap: wrap; }
+  .brand-rules p { flex: 1; min-width: 260px; font-size: 14px; line-height: 1.6; color: var(--dust); }
+  .brand-rules strong { color: var(--chalk); font-weight: 600; }
+
+  .brand-swatches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .brand-swatch {
+    min-height: 180px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .brand-swatch.is-wide { grid-column: span 1; }
+  .brand-swatch.is-bordered { border: 1px solid var(--border); }
+  .brand-swatch-name { font-family: var(--font-head); font-weight: 700; font-size: 22px; }
+  .brand-swatch-hex { font-size: 13px; }
+  .brand-chevrons-row { display: flex; align-items: center; gap: 16px; margin-top: 28px; }
+
+  .brand-type { flex-direction: column; align-items: flex-start; gap: 18px; min-height: 0; }
+  .brand-type-k { font-size: 12px; letter-spacing: 0.08em; color: var(--acid); }
+  .brand-type-head {
+    font-family: var(--font-head);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    font-size: 34px;
+    line-height: 1.05;
+    text-shadow: 3px 3px 0 var(--pink);
+  }
+  .brand-type-body { font-size: 16px; line-height: 1.6; }
+  .brand-type-num { font-size: 34px; font-weight: 500; color: var(--pink); }
+
+  @media (max-width: 900px) {
+    .brand-grid--3, .brand-grid--2, .brand-swatches { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 560px) {
+    .brand-grid--3, .brand-grid--2, .brand-swatches { grid-template-columns: 1fr; }
+    .brand-frame--row { flex-direction: column; }
+  }
+</style>

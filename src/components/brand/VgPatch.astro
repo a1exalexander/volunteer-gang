@@ -1,0 +1,47 @@
+---
+// The ШЕВРОН — dashed-pink-border patch with the VG monogram (brand book).
+// Chevron stripes + "VG" (Oswald, pink drop shadow) + "EST. 2022 · UA".
+import Chevrons from './Chevrons.astro';
+
+interface Props {
+  since?: string;
+  region?: string;
+  class?: string;
+}
+const { since = '2022', region = 'UA', class: cls } = Astro.props;
+---
+
+<div class:list={['vg-patch', cls]}>
+  <Chevrons colors={['var(--pink)', 'var(--chalk)']} size={0.6} />
+  <div class="vg-patch-mono">VG</div>
+  <div class="vg-patch-est">EST. {since} · {region}</div>
+</div>
+
+<style>
+  .vg-patch {
+    width: 170px;
+    background: var(--ink);
+    border: 2px dashed var(--pink);
+    border-radius: 14px;
+    padding: 22px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .vg-patch-mono {
+    font-family: var(--font-head);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    font-size: 52px;
+    color: var(--chalk);
+    line-height: 1;
+    text-shadow: 4px 4px 0 var(--pink);
+  }
+  .vg-patch-est {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    color: var(--acid);
+  }
+</style>

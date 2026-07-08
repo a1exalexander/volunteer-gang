@@ -1,0 +1,117 @@
+---
+// Composite brand lockup: "VOLUNTEER" (Oswald) + "GANG" (graffiti) + optional
+// heart / underline. One component for the header, footer, hero-style and the
+// Instagram-template lockups.
+//
+// Two graffiti treatments:
+//   layered — the full 4-layer <GangWord> (hero / header)
+//   flat    — single-colour Sedgwick text (footer / templates)
+//
+// Colours flow through overridable vars so a template canvas can remap them to
+// its live palette without the component knowing about templates:
+//   --logo-fg        VOLUNTEER + flat-gang default        (default --chalk)
+//   --gang-flat      flat-gang colour                     (default --pink)
+//   --gang-fill      layered-gang letter fill             (default --bubble)
+//   --logo-heart     heart colour                         (default --pink)
+// `inverse` flips foreground/heart to ink for light backgrounds.
+import GangWord from './GangWord.astro';
+
+interface Props {
+  word1: string;
+  word2: string;
+  graffiti?: 'layered' | 'flat';
+  layout?: 'stack' | 'inline';
+  heart?: boolean;
+  inverse?: boolean;
+  /** VOLUNTEER font-size in px. */
+  size?: number;
+  /** GANG font-size in px (default size × 1.2). */
+  gangSize?: number;
+  /** Graffiti rotation in deg. */
+  rotate?: number;
+  class?: string;
+}
+const {
+  word1,
+  word2,
+  graffiti = 'layered',
+  layout = 'inline',
+  heart = false,
+  inverse = false,
+  size = 18,
+  gangSize,
+  rotate = -4,
+  class: cls,
+} = Astro.props;
+
+const gSize = gangSize ?? Math.round(size * 1.2);
+const style = [
+  `--logo-v-size:${size}px`,
+  `--logo-g-size:${gSize}px`,
+  `--logo-rotate:${rotate}deg`,
+].join('; ');
+---
+
+<span
+  class:list={['vg-logo', `is-${layout}`, `is-${graffiti}`, { 'is-inverse': inverse }, cls]}
+  style={style}
+  aria-label={`${word1} ${word2}`}
+>
+  <span class="vg-logo-v">{word1}</span>
+  <span class="vg-logo-g">
+    {
+      graffiti === 'layered' ? (
+        <GangWord word={word2} />
+      ) : (
+        <span class="vg-logo-flat">{word2}</span>
+      )
+    }
+    {heart && <span class="vg-logo-heart" aria-hidden="true">♥</span>}
+  </span>
+</span>
+
+<style>
+  .vg-logo {
+    display: inline-flex;
+    color: var(--logo-fg, var(--chalk));
+    line-height: 1;
+  }
+  .vg-logo.is-inline {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .vg-logo.is-stack {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .vg-logo-v {
+    font-family: var(--font-head);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    font-size: var(--logo-v-size);
+    color: var(--logo-fg, var(--chalk));
+  }
+  .vg-logo-g {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--logo-g-size);
+    transform: rotate(var(--logo-rotate));
+  }
+  .vg-logo-flat {
+    font-family: var(--font-graffiti);
+    color: var(--gang-flat, var(--pink));
+  }
+  .vg-logo-heart {
+    color: var(--logo-heart, var(--pink));
+    font-size: 0.8em;
+    line-height: 1;
+  }
+  /* inverse: dark foreground for light backgrounds */
+  .vg-logo.is-inverse {
+    --logo-fg: var(--ink);
+    --gang-flat: var(--ink);
+    --logo-heart: var(--ink);
+  }
+</style>

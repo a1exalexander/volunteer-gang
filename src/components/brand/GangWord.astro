@@ -1,0 +1,66 @@
+---
+// Layered graffiti word (acid halo → ink shadow → bubble fill with ink stroke).
+// Sized purely by the inherited font-size, so the hero, header logo, monogram
+// and any lockup reuse the same markup at any size. Decorations (drips, hearts,
+// underline) stay with the caller / <Logo>.
+//
+// Colours come from brand tokens through overridable CSS vars so a template
+// canvas can remap the fill to its live palette (--gang-fill) without changing
+// the component. Defaults: fill = Бабл (--bubble).
+interface Props {
+  word: string;
+  /** Override the letter fill (maps to --gang-fill). */
+  fill?: string;
+  class?: string;
+}
+const { word, fill, class: cls } = Astro.props;
+const style = fill ? `--gang-fill:${fill}` : undefined;
+---
+
+<span class:list={['gang-word', cls]} style={style}>
+  <span aria-hidden="true" class="gw gw1">{word}</span>
+  <span aria-hidden="true" class="gw gw2">{word}</span>
+  <span aria-hidden="true" class="gw gw3">{word}</span>
+  <span class="gw gw4">{word}</span>
+</span>
+
+<style>
+  /* em-based strokes/offsets scale with the inherited font-size, so one
+     component serves every size (hero 132px … favicon-scale monogram). */
+  .gang-word {
+    position: relative;
+    display: inline-block;
+    font-family: var(--font-graffiti);
+    font-weight: 400;
+  }
+  .gang-word .gw {
+    font: inherit;
+  }
+  .gang-word .gw1 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--acid);
+    -webkit-text-stroke: 0.182em var(--acid);
+  }
+  .gang-word .gw2 {
+    position: absolute;
+    left: 0.091em;
+    top: 0.121em;
+    color: var(--acid);
+    -webkit-text-stroke: 0.182em var(--acid);
+  }
+  .gang-word .gw3 {
+    position: absolute;
+    left: 0.091em;
+    top: 0.121em;
+    color: var(--ink);
+    -webkit-text-stroke: 0.106em var(--ink);
+  }
+  .gang-word .gw4 {
+    position: relative;
+    color: var(--gang-fill, var(--bubble));
+    -webkit-text-stroke: 0.068em var(--ink);
+    paint-order: stroke fill;
+  }
+</style>
