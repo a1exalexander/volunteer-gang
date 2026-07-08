@@ -13,30 +13,20 @@ interface Props {
   gSize: number;
   /** Graffiti rotation (deg). */
   rotate?: number;
-  /** Trailing heart. */
-  heart?: boolean;
   /** Layer colours — template palette vars by default (recolourable). */
   halo?: string;
   shadow?: string;
   fill?: string;
   stroke?: string;
-  heartColor?: string;
 }
 const {
   gSize,
   rotate = -5,
-  heart = true,
   halo = 'var(--c-acid)',
   shadow = 'var(--c-ink)',
   fill = 'var(--c-bubble)',
   stroke = 'var(--c-ink)',
-  heartColor = 'var(--c-pink)',
 } = Astro.props;
-
-// Heart geometry — brand-book ratios (~0.42em glyph, offset ~0.2em / ~0.48em).
-const hSize = Math.round(gSize * 0.42);
-const hTop = -Math.round(gSize * 0.2);
-const hRight = -Math.round(gSize * 0.48);
 ---
 
 <span style="position:relative;display:inline-block;">
@@ -48,14 +38,4 @@ const hRight = -Math.round(gSize * 0.48);
     <span aria-hidden="true" style={`position:absolute;left:0.091em;top:0.121em;color:${shadow};-webkit-text-stroke:0.106em ${shadow};`}>GANG</span>
     <span style={`position:relative;color:${fill};-webkit-text-stroke:0.068em ${stroke};paint-order:stroke fill;`}>GANG</span>
   </span>
-  {
-    heart && (
-      <span
-        aria-hidden="true"
-        style={`position:absolute;top:${hTop}px;right:${hRight}px;font-size:${hSize}px;line-height:1;color:${heartColor};transform:rotate(18deg);`}
-      >
-        ♥
-      </span>
-    )
-  }
 </span>

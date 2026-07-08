@@ -1,6 +1,6 @@
 ---
 // Composite brand lockup: "VOLUNTEER" (Oswald) + "GANG" (graffiti) + optional
-// heart / underline. One component for the header, footer, hero-style and the
+// underline. One component for the header, footer, hero-style and the
 // Instagram-template lockups.
 //
 // Two graffiti treatments:
@@ -12,8 +12,7 @@
 //   --logo-fg        VOLUNTEER + flat-gang default        (default --chalk)
 //   --gang-flat      flat-gang colour                     (default --pink)
 //   --gang-fill      layered-gang letter fill             (default --bubble)
-//   --logo-heart     heart colour                         (default --pink)
-// `inverse` flips foreground/heart to ink for light backgrounds.
+// `inverse` flips foreground to ink for light backgrounds.
 import GangWord from './GangWord.astro';
 
 interface Props {
@@ -21,7 +20,6 @@ interface Props {
   word2: string;
   graffiti?: 'layered' | 'flat';
   layout?: 'stack' | 'inline';
-  heart?: boolean;
   inverse?: boolean;
   /** VOLUNTEER font-size in px. */
   size?: number;
@@ -36,7 +34,6 @@ const {
   word2,
   graffiti = 'layered',
   layout = 'inline',
-  heart = false,
   inverse = false,
   size = 18,
   gangSize,
@@ -66,7 +63,6 @@ const style = [
         <span class="vg-logo-flat">{word2}</span>
       )
     }
-    {heart && <span class="vg-logo-heart" aria-hidden="true">♥</span>}
   </span>
 </span>
 
@@ -103,15 +99,9 @@ const style = [
     font-family: var(--font-graffiti);
     color: var(--gang-flat, var(--pink));
   }
-  .vg-logo-heart {
-    color: var(--logo-heart, var(--pink));
-    font-size: 0.8em;
-    line-height: 1;
-  }
   /* inverse: dark foreground for light backgrounds */
   .vg-logo.is-inverse {
     --logo-fg: var(--ink);
     --gang-flat: var(--ink);
-    --logo-heart: var(--ink);
   }
 </style>
