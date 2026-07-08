@@ -118,9 +118,10 @@ const serializeJsonLd = (data: object) => JSON.stringify(data).replace(/</g, '\\
       import { initAnalytics } from '../lib/analytics';
       initAnalytics();
 
-      // Reveal-on-scroll for major blocks.
+      // Reveal-on-scroll for below-the-fold blocks. The hero animates on
+      // mount instead (see `.mount` in vg.css), so it is not listed here.
       const els = document.querySelectorAll(
-        '.hero-intro, .fund-grid, .members, .teaser-copy'
+        '.fund-grid, .members, .teaser-copy'
       );
       els.forEach((el) => el.classList.add('reveal'));
       const io = new IntersectionObserver(
