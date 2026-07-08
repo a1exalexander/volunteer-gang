@@ -236,8 +236,6 @@ p {
 .gang .drip { position: absolute; background: var(--ink); }
 .gang .drip1 { left: 150px; bottom: -34px; width: 10px; height: 46px; border-radius: 0 0 6px 6px; }
 .gang .drip2 { left: 320px; bottom: -22px; width: 8px; height: 32px; border-radius: 0 0 5px 5px; }
-.gang-heart1 { position: absolute; top: 34px; right: -64px; font-size: 48px; color: var(--pink); transform: rotate(18deg); }
-.gang-heart2 { position: absolute; top: 96px; right: -100px; font-size: 28px; color: var(--chalk); transform: rotate(-12deg); }
 .gang-underline { position: absolute; left: -8px; bottom: -50px; overflow: visible; }
 
 /* ---------- active fundraiser ---------- */
@@ -449,15 +447,18 @@ textarea.input:focus { outline: 2px solid var(--pink); outline-offset: -1px; }
 .swatch-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .swatch { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
 .swatch input[type='color'] {
-  width: 100%;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
   padding: 0;
   border: 1px solid var(--border);
+  border-radius: 50%;
   background: none;
   cursor: pointer;
 }
-.swatch input[type='color']::-webkit-color-swatch-wrapper { padding: 3px; }
-.swatch input[type='color']::-webkit-color-swatch { border: none; }
+.swatch input[type='color']::-webkit-color-swatch-wrapper { padding: 2px; }
+.swatch input[type='color']::-webkit-color-swatch { border: none; border-radius: 50%; }
+.swatch input[type='color']::-moz-color-swatch { border: none; border-radius: 50%; }
 .swatch span { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; color: var(--dust); text-transform: uppercase; }
 
 .gallery {
@@ -541,7 +542,7 @@ textarea.input:focus { outline: 2px solid var(--pink); outline-offset: -1px; }
     border-right: none;
     border-bottom: 1px solid var(--border);
   }
-  .gallery { padding: 36px var(--pad-x) 72px; }
+  .gallery { padding: 36px var(--pad-x) 72px; justify-content: center; align-items: center; }
 }
 
 @media (max-width: 775.98px) {
