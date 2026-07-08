@@ -19,6 +19,9 @@ const settingsEntry = await getEntry('site', 'settings');
 if (!settingsEntry) throw new Error('Missing content: site/settings');
 const settings = settingsEntry.data;
 
+const jarEntry = await getEntry('activeJar', 'active');
+const jarActive = jarEntry?.data.isActive ?? false;
+
 const {
   title,
   description = settings.seo.description,
@@ -102,7 +105,7 @@ const serializeJsonLd = (data: object) => JSON.stringify(data).replace(/</g, '\\
   </head>
 
   <body>
-    <Header active={active} settings={settings} />
+    <Header active={active} settings={settings} jarActive={jarActive} />
 
     <main>
       <slot />

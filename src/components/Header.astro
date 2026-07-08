@@ -5,9 +5,10 @@ import Logo from './brand/Logo.astro';
 interface Props {
   active?: 'home' | 'templates';
   settings: CollectionEntry<'site'>['data'];
+  jarActive?: boolean;
 }
 
-const { active, settings } = Astro.props;
+const { active, settings, jarActive = false } = Astro.props;
 ---
 
 <header class="site-header">
@@ -38,14 +39,16 @@ const { active, settings } = Astro.props;
               {n.label}
             </a>
           ))}
-          <a
-            href={settings.cta.href}
-            class="btn btn-primary btn--sm"
-            data-track="cta_click"
-            data-evt-cta-location="header"
-          >
-            {settings.cta.label}
-          </a>
+          {jarActive && (
+            <a
+              href={settings.cta.href}
+              class="btn btn-primary btn--sm"
+              data-track="cta_click"
+              data-evt-cta-location="header"
+            >
+              {settings.cta.label}
+            </a>
+          )}
         </Fragment>
       )
     }

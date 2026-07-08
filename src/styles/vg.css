@@ -354,6 +354,15 @@ p {
 .footer-logo { display: inline-flex; }
 .footer-right { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; }
 .footer-tag { font-family: var(--font-mono); font-size: 12px; color: var(--dust); letter-spacing: 0.15em; }
+.footer-link {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--dust);
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.footer-link:hover { color: var(--chalk); }
 
 /* ============================================================
    Instagram template studio (/templates)
