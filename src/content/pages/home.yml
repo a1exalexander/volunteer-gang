@@ -1,24 +1,61 @@
 seo:
-  title: 'Volunteer Gang — Дівчата. Збори. Перемога.'
-  description: 'Адресні збори для бригад і батальйонів ЗСУ за прямими запитами. Активний збір, банда з чотирьох дівчат і шаблони для Instagram — усе в одному місці.'
+  title: Volunteer Gang — Дівчата. Збори. Перемога.
+  description: Адресні збори для бригад і батальйонів ЗСУ за прямими запитами.
+    Активний збір, банда з чотирьох дівчат і шаблони для Instagram — усе в
+    одному місці.
 hero:
-  eyebrow: 'ВОЛОНТЕРСЬКА КОМАНДА · UA'
-  sinceLabel: 'ДІЄМО З 2022'
-  intro: 'Ми — четверо дівчат, що закривають адресні збори для бригад і батальйонів ЗСУ за їхніми прямими запитами. Кожна гривня йде у звіт — з чеками та фото передачі.'
+  eyebrow: ВОЛОНТЕРСЬКА КОМАНДА · UA
+  sinceLabel: ЗБИРАЄМО, ПОКИ НЕ ПЕРЕМОЖЕМО
+  intro: Ми — четверо дівчат, що закривають адресні збори для бригад і батальйонів
+    ЗСУ за їхніми прямими запитами. Кожна гривня йде у звіт — з чеками та фото
+    передачі.
 sections:
-  fundraiser: { num: '01', title: 'Активний збір' }
-  members: { num: '02', title: 'Банда' }
-  templates: { num: '03', title: 'Шаблони для Instagram' }
+  fundraiser:
+    num: "01"
+    title: Активний збір
+  members:
+    num: "02"
+    title: Банда
+  templates:
+    num: "03"
+    title: Шаблони для Instagram
 stats:
-  - { k: 'ЗБОРІВ ЗАКРИТО', v: '46', color: pink }
-  - { k: 'ЗІБРАНО ВСЬОГО', v: '₴ 9.4 млн', color: chalk }
-  - { k: 'ЗВІТІВ', v: '46/46', color: acid }
-proofLine: 'ЧЕКИ ✓ ФОТО ПЕРЕДАЧІ ✓ НАКЛАДНІ ✓'
+  - k: ЗБОРІВ ЗАКРИТО
+    v: "46"
+    color: pink
+  - k: ЗІБРАНО ВСЬОГО
+    v: ₴ 9.4 млн
+    color: chalk
+  - k: ЗВІТІВ
+    v: 46/46
+    color: acid
+proofLine: ЧЕКИ ✓ ФОТО ПЕРЕДАЧІ ✓ НАКЛАДНІ ✓
 members:
-  - { idx: '01', name: 'Аліна', role: 'Збори та комунікація з підрозділами', accent: pink }
-  - { idx: '02', name: 'Ксюша', role: 'Закупівлі та логістика', accent: acid }
-  - { idx: '03', name: 'Ніка', role: 'Контент та Instagram', accent: bubble }
-  - { idx: '04', name: 'Лося', role: 'Звіти та фінанси', accent: chalk }
+  - idx: "01"
+    name: Аліна
+    role: Волонтер
+    accent: pink
+    photo: /uploads/alina_01.jpg
+    instagram: a.lina_belko
+  - idx: "02"
+    name: Ксюша
+    role: Волонтер
+    accent: acid
+    photo: /uploads/ksyusha_01.jpg
+    instagram: aleksenny
+  - idx: "03"
+    name: Ніка
+    role: Волонтер
+    accent: bubble
+    photo: /uploads/nika_01.jpg
+    instagram: nikashtefan
+  - idx: "04"
+    name: Ілона
+    role: Волонтер
+    accent: chalk
+    photo: /uploads/losyanich_01.jpg
+    instagram: losyanich
 teaser:
-  body: 'Пости та сторіз у фірмовому стилі. Заповни день, суми й опис збору — і забери готову картинку одним кліком.'
-  cta: 'Відкрити шаблони →'
+  body: Пости та сторіз у фірмовому стилі. Заповни день, суми й опис збору — і
+    забери готову картинку одним кліком.
+  cta: Відкрити шаблони →
