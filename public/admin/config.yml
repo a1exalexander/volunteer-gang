@@ -68,7 +68,6 @@ collections:
           - { name: cardTitle, label: 'Заголовок картки (головна)', widget: string }
           - { name: cardBody, label: 'Опис картки (головна)', widget: text }
           - { name: overview, label: 'Текст праворуч (головна)', widget: text }
-          - { name: day, label: 'День збору', widget: number, value_type: int, default: 1, min: 1 }
           - { name: titleMain, label: 'Заголовок для шаблонів', widget: text, hint: 'Кожен рядок — з нового рядка' }
           - { name: titleAccent, label: 'Акцентний рядок (бригада/підрозділ)', widget: string }
           - { name: desc, label: 'Опис для шаблонів', widget: text }

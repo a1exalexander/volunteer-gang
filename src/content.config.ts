@@ -35,7 +35,6 @@ const fundraiser = defineCollection({
       cardTitle: z.string(),
       cardBody: z.string(),
       overview: z.string(),
-      day: z.number().int(),
       titleMain: z.string(), // multiline; newline = line break
       titleAccent: z.string(),
       desc: z.string(),
