@@ -7,6 +7,7 @@
 import { fmtUAH, percentOf, dayFmt } from '../lib/format';
 
 const STORAGE_KEY = 'vg-tpl-state-v1';
+const LAYOUT_STORAGE_KEY = 'vg-tpl-layout-v1';
 const CANVAS_IDS = ['announce', 'progress', 'urgent', 'push', 'report', 'thanks', 'closed', 'milestone', 'remaining', 'thermo', 'goalpost', 'photopost', 'photostory', 'halfway', 'deadline', 'share', 'weekly', 'quote', 'minimal', 'sos', 'closedstory'];
 
 interface State {
@@ -19,6 +20,31 @@ interface State {
   /** the single uploaded photo, shared by every template's photo slot */
   photo: string | null;
   colors: Record<string, string>;
+}
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+type CardLayout = Record<string, Point>;
+type LayoutStore = Record<string, CardLayout>;
+
+interface CardEditor {
+  canvas: HTMLElement;
+  button: HTMLButtonElement;
+}
+
+interface DragState {
+  cardId: string;
+  key: string;
+  node: HTMLElement;
+  pointerId: number;
+  startX: number;
+  startY: number;
+  originX: number;
+  originY: number;
+  scale: number;
 }
 
 // User-mixable template palette roles → the `--c-*` custom properties the
@@ -77,12 +103,56 @@ function readInitial(): State {
 }
 
 let state = readInitial();
+let editLayouts = readLayouts();
+const cardEditors = new Map<string, CardEditor>();
+let activeCardId: string | null = null;
+let dragState: DragState | null = null;
 
 function persist(): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
     /* storage may be unavailable (private mode) — degrade silently */
+  }
+}
+
+function isPoint(value: unknown): value is Point {
+  if (!value || typeof value !== 'object') return false;
+  const point = value as Partial<Point>;
+  return typeof point.x === 'number' && Number.isFinite(point.x) && typeof point.y === 'number' && Number.isFinite(point.y);
+}
+
+function readLayouts(): LayoutStore {
+  try {
+    const raw = localStorage.getItem(LAYOUT_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return {};
+
+    const layouts: LayoutStore = {};
+    for (const [cardId, cardLayout] of Object.entries(parsed as Record<string, unknown>)) {
+      if (!cardLayout || typeof cardLayout !== 'object') continue;
+
+      const nodes: CardLayout = {};
+      for (const [nodeKey, point] of Object.entries(cardLayout as Record<string, unknown>)) {
+        if (isPoint(point)) nodes[nodeKey] = point;
+      }
+
+      if (Object.keys(nodes).length > 0) layouts[cardId] = nodes;
+    }
+
+    return layouts;
+  } catch (error) {
+    console.error('Could not read template layout edits.', error);
+    return {};
+  }
+}
+
+function persistLayouts(): void {
+  try {
+    localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(editLayouts));
+  } catch (error) {
+    console.error('Could not persist template layout edits.', error);
   }
 }
 
@@ -209,6 +279,206 @@ function bindImage(inputId: string, clearId: string): void {
   });
 }
 
+function hasOwnText(el: HTMLElement): boolean {
+  return Array.from(el.childNodes).some((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim());
+}
+
+function hasVisualStyle(style: CSSStyleDeclaration): boolean {
+  return (
+    style.backgroundColor !== 'rgba(0, 0, 0, 0)' ||
+    style.backgroundImage !== 'none' ||
+    style.borderTopWidth !== '0px' ||
+    style.borderRightWidth !== '0px' ||
+    style.borderBottomWidth !== '0px' ||
+    style.borderLeftWidth !== '0px' ||
+    style.clipPath !== 'none'
+  );
+}
+
+function hasInlineChildrenOnly(el: HTMLElement): boolean {
+  return Array.from(el.children).every((child) => child.tagName === 'BR' || child.tagName === 'SPAN');
+}
+
+function isEditableCandidate(el: HTMLElement, canvas: HTMLElement): boolean {
+  if (el === canvas) return false;
+
+  const style = getComputedStyle(el);
+  const directChild = el.parentElement === canvas;
+  const bound = !!(el.dataset.bind || el.dataset.bar || el.dataset.barV || el.dataset.photo || el.dataset.nophoto || el.dataset.exportOptional);
+  const hasText = hasOwnText(el) || (el.children.length === 0 && !!el.textContent?.trim());
+  const leafTextBlock = hasText && hasInlineChildrenOnly(el);
+  const positioned = style.position === 'absolute';
+  const visual = hasVisualStyle(style);
+
+  if (bound) return true;
+  if (directChild) return true;
+  if (positioned) return true;
+  if (leafTextBlock && style.display !== 'inline') return true;
+  if (visual && (hasText || el.children.length <= 1)) return true;
+  return false;
+}
+
+function nodePath(canvas: HTMLElement, el: HTMLElement): string {
+  const segments: number[] = [];
+  let current: HTMLElement | null = el;
+
+  while (current && current !== canvas) {
+    const parentNode = current.parentNode;
+    if (!(parentNode instanceof HTMLElement)) break;
+    const parentEl: HTMLElement = parentNode;
+    segments.unshift(Array.prototype.indexOf.call(parentEl.children, current));
+    current = parentEl;
+  }
+
+  return segments.join('-');
+}
+
+function getOffset(cardId: string, key: string): Point {
+  return editLayouts[cardId]?.[key] ?? { x: 0, y: 0 };
+}
+
+function setOffset(cardId: string, key: string, point: Point): void {
+  editLayouts = {
+    ...editLayouts,
+    [cardId]: {
+      ...(editLayouts[cardId] ?? {}),
+      [key]: point,
+    },
+  };
+}
+
+function formatTransform(base: string, point: Point): string {
+  const move = point.x === 0 && point.y === 0 ? '' : `translate(${point.x.toFixed(1)}px, ${point.y.toFixed(1)}px)`;
+  return [move, base].filter(Boolean).join(' ').trim();
+}
+
+function applyOffset(cardId: string, node: HTMLElement): void {
+  const key = node.dataset.tplEditNode;
+  if (!key) return;
+
+  const base = node.dataset.tplEditBaseTransform ?? '';
+  node.style.transform = formatTransform(base, getOffset(cardId, key));
+}
+
+function registerEditableNodes(cardId: string, canvas: HTMLElement): void {
+  const walker = document.createTreeWalker(canvas, NodeFilter.SHOW_ELEMENT);
+
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    if (!(node instanceof HTMLElement)) continue;
+    if (!isEditableCandidate(node, canvas)) continue;
+
+    node.dataset.tplEditNode = nodePath(canvas, node);
+    node.dataset.tplEditBaseTransform = node.style.transform;
+    applyOffset(cardId, node);
+  }
+}
+
+function getCanvasScale(canvas: HTMLElement): number {
+  const rect = canvas.getBoundingClientRect();
+  if (!rect.width || !canvas.offsetWidth) return 1;
+  return rect.width / canvas.offsetWidth;
+}
+
+function setCardEditing(cardId: string, editing: boolean): void {
+  const editor = cardEditors.get(cardId);
+  if (!editor) return;
+
+  if (editing && activeCardId && activeCardId !== cardId) setCardEditing(activeCardId, false);
+  if (!editing && dragState?.cardId === cardId) finishDragging();
+
+  editor.canvas.classList.toggle('canvas--editing', editing);
+  editor.button.classList.toggle('is-active', editing);
+  editor.button.textContent = editing ? '✓ Готово' : '✎ Редагувати';
+  editor.button.setAttribute('aria-pressed', String(editing));
+  activeCardId = editing ? cardId : activeCardId === cardId ? null : activeCardId;
+}
+
+function finishDragging(): void {
+  if (!dragState) return;
+  dragState.node.classList.remove('is-dragging');
+  if (dragState.node.hasPointerCapture(dragState.pointerId)) {
+    dragState.node.releasePointerCapture(dragState.pointerId);
+  }
+  persistLayouts();
+  dragState = null;
+}
+
+function bindCardEditors(): void {
+  document.querySelectorAll<HTMLElement>('.tpl').forEach((card) => {
+    const actions = card.querySelector<HTMLElement>('.tpl-actions');
+    const canvas = card.querySelector<HTMLElement>('.canvas');
+    const exportBtn = actions?.querySelector<HTMLElement>('[data-dl]');
+    const cardId = exportBtn?.dataset.dl;
+    if (!actions || !canvas || !cardId || !CANVAS_IDS.includes(cardId)) return;
+
+    registerEditableNodes(cardId, canvas);
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'cp-btn tpl-edit-btn';
+    button.dataset.editCard = cardId;
+    button.setAttribute('aria-pressed', 'false');
+    button.textContent = '✎ Редагувати';
+    button.addEventListener('click', () => setCardEditing(cardId, activeCardId !== cardId));
+
+    const status = actions.querySelector('.tpl-status');
+    if (status) {
+      actions.insertBefore(button, status);
+    } else {
+      actions.append(button);
+    }
+
+    canvas.addEventListener('pointerdown', (event) => {
+      if (activeCardId !== cardId) return;
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+
+      const node = target.closest<HTMLElement>('[data-tpl-edit-node]');
+      if (!node || !canvas.contains(node)) return;
+
+      const key = node.dataset.tplEditNode;
+      if (!key) return;
+
+      const point = getOffset(cardId, key);
+      dragState = {
+        cardId,
+        key,
+        node,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        originX: point.x,
+        originY: point.y,
+        scale: getCanvasScale(canvas),
+      };
+
+      node.classList.add('is-dragging');
+      node.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    });
+
+    cardEditors.set(cardId, { canvas, button });
+  });
+
+  document.addEventListener('pointermove', (event) => {
+    if (!dragState || event.pointerId !== dragState.pointerId) return;
+
+    const dx = (event.clientX - dragState.startX) / dragState.scale;
+    const dy = (event.clientY - dragState.startY) / dragState.scale;
+    const point = { x: dragState.originX + dx, y: dragState.originY + dy };
+    setOffset(dragState.cardId, dragState.key, point);
+    applyOffset(dragState.cardId, dragState.node);
+  });
+
+  document.addEventListener('pointerup', (event) => {
+    if (dragState && event.pointerId === dragState.pointerId) finishDragging();
+  });
+  document.addEventListener('pointercancel', (event) => {
+    if (dragState && event.pointerId === dragState.pointerId) finishDragging();
+  });
+}
+
 // ---------- export (PNG download / clipboard copy) ----------
 type HtmlToImage = { toBlob: (node: HTMLElement, opts?: Record<string, unknown>) => Promise<Blob | null> };
 
@@ -244,9 +514,14 @@ async function makeBlob(id: string): Promise<Blob> {
   if (!htmlToImage) throw new Error('html-to-image not loaded');
   const node = document.getElementById('vgx-' + id);
   if (!node) throw new Error('missing canvas: ' + id);
-  const blob = await htmlToImage.toBlob(node, { pixelRatio: 1, filter: exportFilter });
-  if (!blob) throw new Error('empty blob');
-  return blob;
+  node.classList.add('canvas--exporting');
+  try {
+    const blob = await htmlToImage.toBlob(node, { pixelRatio: 1, filter: exportFilter });
+    if (!blob) throw new Error('empty blob');
+    return blob;
+  } finally {
+    node.classList.remove('canvas--exporting');
+  }
 }
 
 async function download(id: string): Promise<void> {
@@ -331,6 +606,7 @@ function init(): void {
   bindImage('tpl-photo', 'tpl-photo-clear');
   bindColors();
   bindActions();
+  bindCardEditors();
   bindDrawer();
   render();
   applyColors();
