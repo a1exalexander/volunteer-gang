@@ -16,8 +16,8 @@ interface State {
   desc: string;
   goal: number;
   raised: number;
+  /** the single uploaded photo, shared by every template's photo slot */
   photo: string | null;
-  gift: string | null;
   colors: Record<string, string>;
 }
 
@@ -40,13 +40,12 @@ const FALLBACK: State = {
   goal: 500000,
   raised: 341500,
   photo: null,
-  gift: null,
   colors: { ...DEFAULT_COLORS },
 };
 
 // Only these keys survive merging — drops stale fields (e.g. the retired
-// `no`/`jar`) from old localStorage payloads and from the JSON seed.
-const ALLOWED_KEYS: (keyof State)[] = ['day', 'titleMain', 'titleAccent', 'desc', 'goal', 'raised', 'photo', 'gift', 'colors'];
+// `no`/`jar`/`gift`) from old localStorage payloads and from the JSON seed.
+const ALLOWED_KEYS: (keyof State)[] = ['day', 'titleMain', 'titleAccent', 'desc', 'goal', 'raised', 'photo', 'colors'];
 
 function pick(obj: Record<string, unknown>): Partial<State> {
   const out: Partial<State> = {};
@@ -69,6 +68,8 @@ function readInitial(): State {
     /* ignore */
   }
   const merged = { ...base, ...pick(saved) };
+  // Migration: the retired separate goods photo (`gift`) becomes the shared one.
+  if (!merged.photo && typeof saved.gift === 'string') merged.photo = saved.gift;
   // Deep-merge colours so a partial/stale saved object can't drop roles.
   const savedColors = merged.colors && typeof merged.colors === 'object' ? merged.colors : {};
   merged.colors = { ...DEFAULT_COLORS, ...savedColors };
@@ -128,24 +129,12 @@ function render(): void {
     el.style.display = hasPhoto ? 'none' : 'flex';
   });
 
-  // Goods/gift photo — its own image, used by the "new fundraiser" templates.
-  const hasGift = !!state.gift;
-  document.querySelectorAll<HTMLElement>('[data-gift]').forEach((el) => {
-    el.style.backgroundImage = hasGift ? `url("${state.gift}")` : 'none';
-    el.style.display = hasGift ? 'block' : 'none';
-  });
-  document.querySelectorAll<HTMLElement>('[data-nogift]').forEach((el) => {
-    el.style.display = hasGift ? 'none' : 'flex';
-  });
-
   updatePhotoControls();
 }
 
 function updatePhotoControls(): void {
   const clearBtn = document.getElementById('tpl-photo-clear');
   if (clearBtn) clearBtn.style.display = state.photo ? 'inline-block' : 'none';
-  const giftClear = document.getElementById('tpl-gift-clear');
-  if (giftClear) giftClear.style.display = state.gift ? 'inline-block' : 'none';
 }
 
 type FieldEl = HTMLInputElement | HTMLTextAreaElement;
@@ -198,14 +187,14 @@ function bindColors(): void {
   });
 }
 
-function bindImage(inputId: string, clearId: string, key: 'photo' | 'gift'): void {
+function bindImage(inputId: string, clearId: string): void {
   const fileInput = document.getElementById(inputId) as HTMLInputElement | null;
   fileInput?.addEventListener('change', () => {
     const file = fileInput.files && fileInput.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      state[key] = String(reader.result);
+      state.photo = String(reader.result);
       persist();
       render();
     };
@@ -214,7 +203,7 @@ function bindImage(inputId: string, clearId: string, key: 'photo' | 'gift'): voi
   });
 
   document.getElementById(clearId)?.addEventListener('click', () => {
-    state[key] = null;
+    state.photo = null;
     persist();
     render();
   });
@@ -223,15 +212,13 @@ function bindImage(inputId: string, clearId: string, key: 'photo' | 'gift'): voi
 // ---------- export (PNG download / clipboard copy) ----------
 type HtmlToImage = { toBlob: (node: HTMLElement, opts?: Record<string, unknown>) => Promise<Blob | null> };
 
-// Photo slots are optional: elements marked data-export-optional="photo|gift"
-// are placeholder-hints for the preview only. When the matching image was
-// never uploaded they are dropped from the export clone, so the downloaded
-// or copied PNG comes out without the placeholder (see the alert on /templates).
+// Photo slots are optional: elements marked data-export-optional="photo"
+// are placeholder-hints for the preview only. When no photo was uploaded
+// they are dropped from the export clone, so the downloaded or copied PNG
+// comes out without the placeholder (see the alert on /templates).
 function exportFilter(node: Node): boolean {
   if (!(node instanceof HTMLElement)) return true;
-  const optional = node.dataset.exportOptional;
-  if (optional === 'photo') return !!state.photo;
-  if (optional === 'gift') return !!state.gift;
+  if (node.dataset.exportOptional === 'photo') return !!state.photo;
   return true;
 }
 
@@ -310,8 +297,7 @@ function init(): void {
   bindField('tpl-desc', 'desc');
   bindField('tpl-goal', 'goal', true);
   bindField('tpl-raised', 'raised', true);
-  bindImage('tpl-photo', 'tpl-photo-clear', 'photo');
-  bindImage('tpl-gift', 'tpl-gift-clear', 'gift');
+  bindImage('tpl-photo', 'tpl-photo-clear');
   bindColors();
   bindActions();
   render();

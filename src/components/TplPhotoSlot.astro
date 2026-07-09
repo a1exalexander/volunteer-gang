@@ -1,12 +1,10 @@
 ---
 // Optional photo slot overlaid on an export canvas (/templates studio).
 // The dashed placeholder is a preview-only hint: template-studio.ts fills the
-// slot when the matching image is uploaded, and its export filter drops the
-// whole slot (via data-export-optional) when the image is missing, so the
-// downloaded/copied PNG never contains the placeholder.
+// slot with the single shared photo when one is uploaded, and its export
+// filter drops the whole slot (via data-export-optional) when the photo is
+// missing, so the downloaded/copied PNG never contains the placeholder.
 interface Props {
-  /** which uploaded image fills the slot */
-  kind?: 'photo' | 'gift';
   /** absolute-position fragment, e.g. "top:300px;right:100px;" */
   pos: string;
   /** square side in px (or set width/height separately) */
@@ -18,22 +16,20 @@ interface Props {
   frame: string;
   label?: string;
 }
-const { kind = 'photo', pos, size = 280, width, height, rotate = 0, frame, label = 'ФОТО · ЗА БАЖАННЯМ' } = Astro.props;
+const { pos, size = 280, width, height, rotate = 0, frame, label = 'ФОТО · ЗА БАЖАННЯМ' } = Astro.props;
 const w = width ?? size;
 const h = height ?? size;
-const imgAttr = kind === 'gift' ? { 'data-gift': true } : { 'data-photo': true };
-const noAttr = kind === 'gift' ? { 'data-nogift': true } : { 'data-nophoto': true };
 ---
 
-<div data-export-optional={kind} style={`position:absolute;${pos}width:${w}px;height:${h}px;transform:rotate(${rotate}deg);`}>
+<div data-export-optional="photo" style={`position:absolute;${pos}width:${w}px;height:${h}px;transform:rotate(${rotate}deg);`}>
   <div
     role="img"
     aria-label="Фото"
-    {...imgAttr}
+    data-photo
     style={`position:absolute;inset:0;border:8px solid ${frame};background-size:contain;background-position:center;background-repeat:no-repeat;display:none;`}
   >
   </div>
-  <div {...noAttr} style={`position:absolute;inset:0;border:4px dashed ${frame};opacity:0.6;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;`}>
+  <div data-nophoto style={`position:absolute;inset:0;border:4px dashed ${frame};opacity:0.6;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;`}>
     <span style={`font-family:'IBM Plex Mono',monospace;font-size:22px;letter-spacing:0.08em;line-height:1.6;color:${frame};`} set:html={label} />
   </div>
 </div>

@@ -25,7 +25,6 @@ const initial = {
   goal: fund.goal,
   raised: fund.raised,
   photo: null,
-  gift: null,
 };
 ---
 
@@ -78,24 +77,13 @@ const initial = {
     </div>
 
     <div class="panel-photo">
-      <span class="field-label">ФОТО (звіт і фото-шаблони)</span>
+      <span class="field-label">ФОТО · ОДНЕ ДЛЯ ВСІХ ШАБЛОНІВ (за бажанням)</span>
       <div class="panel-photo-row">
         <label class="file-btn">
           Завантажити фото
           <input id="tpl-photo" type="file" accept="image/*" style="display:none" />
         </label>
         <button type="button" id="tpl-photo-clear" class="ghost-btn" style="display:none">✕ Прибрати</button>
-      </div>
-    </div>
-
-    <div class="panel-photo">
-      <span class="field-label">ФОТО ТОВАРУ · ЩО КУПУЄМО (анонси)</span>
-      <div class="panel-photo-row">
-        <label class="file-btn">
-          Завантажити товар
-          <input id="tpl-gift" type="file" accept="image/*" style="display:none" />
-        </label>
-        <button type="button" id="tpl-gift-clear" class="ghost-btn" style="display:none">✕ Прибрати</button>
       </div>
     </div>
 
@@ -140,9 +128,9 @@ const initial = {
                 <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:80px;line-height:1;color:var(--c-chalk);"><span style="white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</span><br /><span style="color:var(--c-pink);" data-bind="titleAccent">{fund.titleAccent}</span></div>
                 <p style="margin:0;font-size:30px;line-height:1.5;color:var(--c-dust);" data-bind="desc">{fund.desc}</p>
               </div>
-              <div data-export-optional="gift" style="width:360px;flex-shrink:0;position:relative;border:8px solid var(--c-pink);overflow:hidden;">
-                <div role="img" aria-label="Фото товару" data-gift style="position:absolute;inset:0;background-size:contain;background-position:center;background-repeat:no-repeat;display:none;"></div>
-                <div data-nogift style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,var(--c-panel2),var(--c-panel2) 20px,var(--c-ink) 20px,var(--c-ink) 40px);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;">
+              <div data-export-optional="photo" style="width:360px;flex-shrink:0;position:relative;border:8px solid var(--c-pink);overflow:hidden;">
+                <div role="img" aria-label="Фото товару" data-photo style="position:absolute;inset:0;background-size:contain;background-position:center;background-repeat:no-repeat;display:none;"></div>
+                <div data-nophoto style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,var(--c-panel2),var(--c-panel2) 20px,var(--c-ink) 20px,var(--c-ink) 40px);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;">
                   <span style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--c-dust);line-height:1.5;">ФОТО<br />ЩО КУПУЄМО<br /><span style="font-size:18px;">· за бажанням ·</span></span>
                 </div>
                 <div style="position:absolute;left:0;bottom:0;background:var(--c-pink);color:var(--c-ink);font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;padding:10px 18px;letter-spacing:0.08em;">ЗБІР НА ↓</div>
@@ -217,9 +205,9 @@ const initial = {
                   <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:88px;line-height:0.98;color:var(--c-chalk);"><span style="white-space:pre-line;" data-bind="titleMain">{fund.titleMain}</span><br /><span style="color:transparent;-webkit-text-stroke:3px var(--c-acid);" data-bind="titleAccent">{fund.titleAccent}</span></div>
                   <p style="margin:0;font-size:30px;line-height:1.5;color:var(--c-dust);" data-bind="desc">{fund.desc}</p>
                 </div>
-                <div data-export-optional="gift" style="width:320px;flex-shrink:0;position:relative;border:8px solid var(--c-acid);overflow:hidden;">
-                  <div role="img" aria-label="Фото товару" data-gift style="position:absolute;inset:0;background-size:contain;background-position:center;background-repeat:no-repeat;display:none;"></div>
-                  <div data-nogift style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,var(--c-panel2),var(--c-panel2) 20px,var(--c-ink) 20px,var(--c-ink) 40px);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;">
+                <div data-export-optional="photo" style="width:320px;flex-shrink:0;position:relative;border:8px solid var(--c-acid);overflow:hidden;">
+                  <div role="img" aria-label="Фото товару" data-photo style="position:absolute;inset:0;background-size:contain;background-position:center;background-repeat:no-repeat;display:none;"></div>
+                  <div data-nophoto style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,var(--c-panel2),var(--c-panel2) 20px,var(--c-ink) 20px,var(--c-ink) 40px);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;">
                     <span style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--c-dust);line-height:1.5;">ФОТО<br />ЩО КУПУЄМО<br /><span style="font-size:18px;">· за бажанням ·</span></span>
                   </div>
                   <div style="position:absolute;left:0;bottom:0;background:var(--c-acid);color:var(--c-ink);font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;padding:10px 18px;letter-spacing:0.08em;">ЗБІР НА ↓</div>
