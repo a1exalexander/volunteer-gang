@@ -12,44 +12,46 @@ const { active, settings, jarActive = false } = Astro.props;
 ---
 
 <header class="site-header">
-  <a href="/" class="logo" aria-label={`${settings.brand.word1} ${settings.brand.word2}`}>
-    <Logo
-      word1={settings.brand.word1}
-      word2={settings.brand.word2}
-      graffiti="layered"
-      layout="inline"
-      size={18}
-      gangSize={22}
-      rotate={-4}
-    />
-  </a>
+  <div class="container site-header-inner">
+    <a href="/" class="logo" aria-label={`${settings.brand.word1} ${settings.brand.word2}`}>
+      <Logo
+        word1={settings.brand.word1}
+        word2={settings.brand.word2}
+        graffiti="layered"
+        layout="inline"
+        size={18}
+        gangSize={22}
+        rotate={-4}
+      />
+    </a>
 
-  <nav class="site-nav">
-    {
-      active === 'templates' ? (
-        <Fragment>
-          <span class="nav-tag">ШАБЛОНИ INSTAGRAM</span>
-          <a href="/" class="nav-link">← НА ГОЛОВНУ</a>
-        </Fragment>
-      ) : (
-        <Fragment>
-          {settings.nav.map((n) => (
-            <a href={n.href} class="nav-link">
-              {n.label}
-            </a>
-          ))}
-          {jarActive && (
-            <a
-              href={settings.cta.href}
-              class="btn btn-primary btn--sm"
-              data-track="cta_click"
-              data-evt-cta-location="header"
-            >
-              {settings.cta.label}
-            </a>
-          )}
-        </Fragment>
-      )
-    }
-  </nav>
+    <nav class="site-nav">
+      {
+        active === 'templates' ? (
+          <Fragment>
+            <span class="nav-tag">ШАБЛОНИ INSTAGRAM</span>
+            <a href="/" class="nav-link">← НА ГОЛОВНУ</a>
+          </Fragment>
+        ) : (
+          <Fragment>
+            {settings.nav.map((n) => (
+              <a href={n.href} class="nav-link">
+                {n.label}
+              </a>
+            ))}
+            {jarActive && (
+              <a
+                href={settings.cta.href}
+                class="btn btn-primary btn--sm"
+                data-track="cta_click"
+                data-evt-cta-location="header"
+              >
+                {settings.cta.label}
+              </a>
+            )}
+          </Fragment>
+        )
+      }
+    </nav>
+  </div>
 </header>
