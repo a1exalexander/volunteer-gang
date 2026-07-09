@@ -1,6 +1,6 @@
 // Client logic for the Instagram template studio (/templates).
 // Ported from the Claude Design DCLogic prototype: one shared fundraiser
-// state drives 21 fixed-size (1080px) export canvases; each can be downloaded
+// state drives 25 fixed-size (1080px) export canvases; each can be downloaded
 // as PNG or copied to the clipboard via html-to-image. State persists to
 // localStorage and is seeded from the CMS "active fundraiser" on first visit.
 
@@ -10,7 +10,7 @@ const STORAGE_KEY = 'vg-tpl-state-v1';
 const LAYOUT_STORAGE_KEY = 'vg-tpl-layout-v1';
 const REMOVED_STORAGE_KEY = 'vg-tpl-removed-v1';
 const FORMAT_STORAGE_KEY = 'vg-tpl-format-v1';
-const CANVAS_IDS = ['announce', 'progress', 'urgent', 'push', 'report', 'thanks', 'closed', 'milestone', 'remaining', 'thermo', 'goalpost', 'photopost', 'photostory', 'halfway', 'deadline', 'share', 'weekly', 'quote', 'minimal', 'sos', 'closedstory'];
+const CANVAS_IDS = ['announce', 'progress', 'urgent', 'push', 'report', 'thanks', 'closed', 'milestone', 'remaining', 'thermo', 'goalpost', 'photopost', 'photostory', 'halfway', 'deadline', 'share', 'weekly', 'quote', 'minimal', 'sos', 'closedstory', 'giftpost', 'giftstory', 'giftgrid', 'giftcountdown'];
 
 interface State {
   titleMain: string;
@@ -116,6 +116,16 @@ const DEFAULT_LABELS: Record<string, string> = {
   deadline: 'ЗАКРИВАЄМО СЬОГОДНІ',
   lastDay: 'останній день збору',
   checksWeekly: 'ЧЕКИ ✓',
+  giftKicker: 'ПОДАРУНКИ ЗА ДОНАТИ',
+  giftHeadline: 'Які подарунки',
+  giftPreview: 'ПРЕВʼЮ ПОДАРУНКІВ',
+  giftList: 'СПИСОК ПОДАРУНКІВ',
+  giftItem1: 'ПОЗИЦІЯ 01',
+  giftItem2: 'ПОЗИЦІЯ 02',
+  giftItem3: 'ПОЗИЦІЯ 03',
+  giftItem4: 'ПОЗИЦІЯ 04',
+  giftFor: 'Подарунки для',
+  giftBrigade: 'ПОДАРУНКИ ДЛЯ БРИГАДИ',
 };
 const LABEL_ROLES = Object.keys(DEFAULT_LABELS);
 

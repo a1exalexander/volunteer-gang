@@ -203,6 +203,46 @@ const actionIcons = {
           <label class="field-label" for="tpl-label-checksWeekly">БЕЙДЖ «ЧЕКИ» (ЗВІТ ТИЖНЯ)</label>
           <input class="input" id="tpl-label-checksWeekly" type="text" data-label-input="checksWeekly" value="ЧЕКИ ✓" />
         </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-giftKicker">КІКЕР «ПОДАРУНКИ ЗА ДОНАТИ»</label>
+          <input class="input" id="tpl-label-giftKicker" type="text" data-label-input="giftKicker" value="ПОДАРУНКИ ЗА ДОНАТИ" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-giftHeadline">ЗАГОЛОВОК «ЯКІ ПОДАРУНКИ»</label>
+          <input class="input" id="tpl-label-giftHeadline" type="text" data-label-input="giftHeadline" value="Які подарунки" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-giftPreview">КІКЕР «ПРЕВʼЮ ПОДАРУНКІВ»</label>
+          <input class="input" id="tpl-label-giftPreview" type="text" data-label-input="giftPreview" value="ПРЕВʼЮ ПОДАРУНКІВ" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-giftList">БЕЙДЖ «СПИСОК ПОДАРУНКІВ»</label>
+          <input class="input" id="tpl-label-giftList" type="text" data-label-input="giftList" value="СПИСОК ПОДАРУНКІВ" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-giftItem1">ПОЗИЦІЯ 01</label>
+          <input class="input" id="tpl-label-giftItem1" type="text" data-label-input="giftItem1" value="ПОЗИЦІЯ 01" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-giftItem2">ПОЗИЦІЯ 02</label>
+          <input class="input" id="tpl-label-giftItem2" type="text" data-label-input="giftItem2" value="ПОЗИЦІЯ 02" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-giftItem3">ПОЗИЦІЯ 03</label>
+          <input class="input" id="tpl-label-giftItem3" type="text" data-label-input="giftItem3" value="ПОЗИЦІЯ 03" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-giftItem4">ПОЗИЦІЯ 04</label>
+          <input class="input" id="tpl-label-giftItem4" type="text" data-label-input="giftItem4" value="ПОЗИЦІЯ 04" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-giftFor">ТЕКСТ «ПОДАРУНКИ ДЛЯ»</label>
+          <input class="input" id="tpl-label-giftFor" type="text" data-label-input="giftFor" value="Подарунки для" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-giftBrigade">КІКЕР «ПОДАРУНКИ ДЛЯ БРИГАДИ»</label>
+          <input class="input" id="tpl-label-giftBrigade" type="text" data-label-input="giftBrigade" value="ПОДАРУНКИ ДЛЯ БРИГАДИ" />
+        </div>
       </div>
     </div>
   </aside>
@@ -853,6 +893,124 @@ const actionIcons = {
         <button type="button" class="dl-btn" data-dl="closedstory">↓ PNG</button>
         <button type="button" class="cp-btn" data-cp="closedstory">⧉ Копіювати</button>
         <span class="tpl-status" data-status="closedstory"></span>
+      </div>
+    </div>
+
+    <!-- POST: GIFTS PREVIEW -->
+    <div class="tpl">
+      <div class="tpl-cap">ПОСТ · ПРЕВʼЮ ПОДАРУНКІВ · 1080×1080</div>
+      <div class="tpl-preview" style="width:356px;height:356px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-giftpost" class="canvas" style="width:1080px;height:1080px;background:var(--c-ink);padding:80px;display:flex;flex-direction:column;justify-content:space-between;">
+            <TplPhotoSlot pos="top:220px;right:86px;" size={300} rotate={-4} frame="var(--c-bubble)" />
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateLockup layout="inline" color="var(--c-chalk)" vSize={28} gSize={32} />
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;letter-spacing:0.12em;color:var(--c-dust);">· <span data-label="giftKicker">ПОДАРУНКИ ЗА ДОНАТИ</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:28px;max-width:760px;">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:108px;line-height:0.96;color:var(--c-chalk);"><span data-label="giftHeadline">Які подарунки</span></div>
+              <p style="margin:0;font-family:'IBM Plex Mono',monospace;font-size:30px;line-height:1.5;color:var(--c-dust);" data-bind="desc">{fund.desc}</p>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="background:var(--c-bubble);color:var(--c-ink);font-family:'Unbounded',sans-serif;font-weight:800;font-size:32px;padding:20px 32px;">Ціль: <span data-bind="goalFmt">{goalFmt}</span></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:26px;color:var(--c-dust);">банка → лінк у біо</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="giftpost">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="giftpost">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="giftpost"></span>
+      </div>
+    </div>
+
+    <!-- STORY: GIFTS PREVIEW -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · ПРЕВʼЮ ПОДАРУНКІВ · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-giftstory" class="canvas" style="width:1080px;height:1350px;background:var(--c-bubble);padding:112px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+            <TplPhotoSlot pos="top:260px;right:92px;" size={300} rotate={6} frame="var(--c-ink)" />
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateLockup layout="inline" color="var(--c-ink)" vSize={34} gSize={38} />
+            </div>
+            <div style="display:flex;flex-direction:column;gap:44px;">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.2em;color:rgba(13,12,12,0.66);"><span data-label="giftPreview">ПРЕВʼЮ ПОДАРУНКІВ</span></div>
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:140px;line-height:0.95;color:var(--c-ink);"><span data-label="giftHeadline">Які подарунки</span></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:46px;line-height:1.6;color:var(--c-ink);" data-bind="titleAccent">{fund.titleAccent}</div>
+              <div style="height:40px;background:rgba(13,12,12,0.22);position:relative;"><span data-bar style={`position:absolute;inset:0;background:var(--c-ink);width:${percent}%`}></span></div>
+              <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:40px;color:rgba(13,12,12,0.72);">
+                <span style="color:var(--c-ink);font-weight:500;" data-bind="raisedFmt">{raisedFmt}</span>
+                <span data-bind="goalFmt">{goalFmt}</span>
+              </div>
+              <div style="border:6px dashed rgba(13,12,12,0.45);border-radius:80px;padding:34px 40px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.1em;color:rgba(13,12,12,0.6);">🔗 МІСЦЕ ДЛЯ ЛІНК-СТІКЕРА</div>
+            </div>
+            <div style="background:var(--c-ink);color:var(--c-bubble);font-family:'Unbounded',sans-serif;font-weight:800;font-size:46px;text-align:center;padding:50px;">Докинути в банку ↑</div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="giftstory">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="giftstory">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="giftstory"></span>
+      </div>
+    </div>
+
+    <!-- POST: GIFTS GRID -->
+    <div class="tpl">
+      <div class="tpl-cap">ПОСТ · СІТКА ПОДАРУНКІВ · 1080×1080</div>
+      <div class="tpl-preview" style="width:356px;height:356px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-giftgrid" class="canvas" style="width:1080px;height:1080px;background:var(--c-panel2);padding:80px;display:flex;flex-direction:column;gap:36px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateLockup layout="inline" color="var(--c-chalk)" vSize={26} gSize={30} />
+              <div style="background:var(--c-acid);color:var(--c-ink);font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;padding:12px 20px;letter-spacing:0.12em;"><span data-label="giftList">СПИСОК ПОДАРУНКІВ</span></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;flex:1;min-height:0;">
+              <div style="border:4px dashed var(--c-dust);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--c-dust);"><span data-label="giftItem1">ПОЗИЦІЯ 01</span></div>
+              <div style="border:4px dashed var(--c-dust);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--c-dust);"><span data-label="giftItem2">ПОЗИЦІЯ 02</span></div>
+              <div style="border:4px dashed var(--c-dust);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--c-dust);"><span data-label="giftItem3">ПОЗИЦІЯ 03</span></div>
+              <div style="border:4px dashed var(--c-dust);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--c-dust);"><span data-label="giftItem4">ПОЗИЦІЯ 04</span></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:58px;line-height:1;color:var(--c-chalk);"><span data-label="giftFor">Подарунки для</span><br /><span data-bind="titleAccent">{fund.titleAccent}</span></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:26px;color:var(--c-dust);">ціль <span data-bind="goalFmt">{goalFmt}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="giftgrid">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="giftgrid">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="giftgrid"></span>
+      </div>
+    </div>
+
+    <!-- STORY: GIFTS COUNTDOWN -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · ДОКИНУТИ НА ПОДАРУНКИ · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;">
+        <div class="tpl-scale">
+          <div id="vgx-giftcountdown" class="canvas" style="width:1080px;height:1350px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+            <TplPhotoSlot pos="top:310px;right:90px;" size={280} rotate={-6} frame="var(--c-bubble)" />
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateLockup layout="inline" color="var(--c-chalk)" vSize={34} gSize={38} />
+            </div>
+            <div style="display:flex;flex-direction:column;gap:40px;">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.2em;color:var(--c-acid);"><span data-label="giftBrigade">ПОДАРУНКИ ДЛЯ БРИГАДИ</span></div>
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:126px;line-height:0.95;color:var(--c-chalk);">Залишилось<br /><span style="color:transparent;-webkit-text-stroke:4px var(--c-acid);" data-bind="remainingFmt">{remainingFmt}</span></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:44px;color:var(--c-dust);">зібрано <span style="color:var(--c-bubble);font-weight:500;" data-bind="raisedFmt">{raisedFmt}</span> із <span data-bind="goalFmt">{goalFmt}</span></div>
+              <div style="border:6px dashed rgba(245,241,236,0.45);border-radius:80px;padding:34px 40px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.1em;color:var(--c-dust);">🔗 МІСЦЕ ДЛЯ ЛІНК-СТІКЕРА</div>
+            </div>
+            <div style="background:var(--c-bubble);color:var(--c-ink);font-family:'Unbounded',sans-serif;font-weight:800;font-size:46px;text-align:center;padding:50px;">Докинути в банку ↑</div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="giftcountdown">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="giftcountdown">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="giftcountdown"></span>
       </div>
     </div>
   </main>
