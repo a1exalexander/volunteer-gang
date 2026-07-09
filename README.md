@@ -4,7 +4,7 @@ Astro static site for the **Volunteer Gang** volunteer team, with a Decap CMS
 back office. Two pages:
 
 - **`/`** — landing page: hero, active fundraiser, the team, templates teaser.
-- **`/templates`** — an interactive Instagram image generator (7 branded
+- **`/templates`** — an interactive Instagram image generator (25 branded
   post/story templates, live preview, PNG download + clipboard copy).
 
 ## Stack
