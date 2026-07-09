@@ -4,15 +4,15 @@
 // as PNG or copied to the clipboard via html-to-image. State persists to
 // localStorage and is seeded from the CMS "active fundraiser" on first visit.
 
-import { fmtUAH, percentOf, dayFmt } from '../lib/format';
+import { fmtUAH, percentOf } from '../lib/format';
 
 const STORAGE_KEY = 'vg-tpl-state-v1';
 const LAYOUT_STORAGE_KEY = 'vg-tpl-layout-v1';
 const REMOVED_STORAGE_KEY = 'vg-tpl-removed-v1';
+const FORMAT_STORAGE_KEY = 'vg-tpl-format-v1';
 const CANVAS_IDS = ['announce', 'progress', 'urgent', 'push', 'report', 'thanks', 'closed', 'milestone', 'remaining', 'thermo', 'goalpost', 'photopost', 'photostory', 'halfway', 'deadline', 'share', 'weekly', 'quote', 'minimal', 'sos', 'closedstory'];
 
 interface State {
-  day: number;
   titleMain: string;
   titleAccent: string;
   desc: string;
@@ -21,6 +21,8 @@ interface State {
   /** the single uploaded photo, shared by every template's photo slot */
   photo: string | null;
   colors: Record<string, string>;
+  /** editable status/kicker labels, keyed by the canvases' data-label roles */
+  labels: Record<string, string>;
 }
 
 interface LayoutValue {
@@ -44,6 +46,21 @@ type CardLayout = Record<string, LayoutValue>;
 type LayoutStore = Record<string, CardLayout>;
 /** cardId → list of node keys the user has removed from that card */
 type RemovedStore = Record<string, string[]>;
+
+/** Post/story toggle per card — only the resolution changes, not the design. */
+type CardFormat = 'post' | 'story';
+/** cardId → chosen format (absent = the card's native format) */
+type FormatStore = Record<string, CardFormat>;
+// Preview boxes are the 1080px canvas scaled by .tpl-scale (0.32963), so the
+// preview height is the canvas height × that factor (1080→356, 1350→445).
+const FORMAT_DIMS: Record<CardFormat, { canvas: number; preview: number }> = {
+  post: { canvas: 1080, preview: 356 },
+  story: { canvas: 1350, preview: 445 },
+};
+const FORMAT_META: Record<CardFormat, { label: string; res: string }> = {
+  post: { label: 'ПОСТ', res: '1080×1080' },
+  story: { label: 'СТОРІЗ', res: '1080×1350' },
+};
 
 interface CardEditor {
   actions: HTMLElement;
@@ -81,8 +98,28 @@ const DEFAULT_COLORS: Record<string, string> = {
 };
 const COLOR_ROLES = Object.keys(DEFAULT_COLORS);
 
+// Editable status/kicker labels baked into the canvases via `data-label`.
+// The panel edits these; each value drives every canvas that shares the role
+// (e.g. `closed` appears on three templates). Decorative glyphs (↓, ✕) live
+// outside the bound span, so they are never part of the editable text.
+const DEFAULT_LABELS: Record<string, string> = {
+  collect: 'ЗБІР НА',
+  active: 'АКТИВНИЙ ЗБІР',
+  urgent: 'ТЕРМІНОВО · ЗБІР',
+  checks: 'ЧЕКИ ✓ ФОТО ✓',
+  handover: 'ПЕРЕДАНО',
+  closedKicker: 'ЗБІР ЗАКРИТО',
+  closed: 'ЗАКРИТО',
+  collected: 'ВЖЕ ЗІБРАНО',
+  thermo: 'ТЕРМОМЕТР ЗБОРУ',
+  equator: 'ЕКВАТОР ЗБОРУ',
+  deadline: 'ЗАКРИВАЄМО СЬОГОДНІ',
+  lastDay: 'останній день збору',
+  checksWeekly: 'ЧЕКИ ✓',
+};
+const LABEL_ROLES = Object.keys(DEFAULT_LABELS);
+
 const FALLBACK: State = {
-  day: 3,
   titleMain: '',
   titleAccent: '',
   desc: '',
@@ -90,11 +127,12 @@ const FALLBACK: State = {
   raised: 341500,
   photo: null,
   colors: { ...DEFAULT_COLORS },
+  labels: { ...DEFAULT_LABELS },
 };
 
 // Only these keys survive merging — drops stale fields (e.g. the retired
 // `no`/`jar`/`gift`) from old localStorage payloads and from the JSON seed.
-const ALLOWED_KEYS: (keyof State)[] = ['day', 'titleMain', 'titleAccent', 'desc', 'goal', 'raised', 'photo', 'colors'];
+const ALLOWED_KEYS: (keyof State)[] = ['titleMain', 'titleAccent', 'desc', 'goal', 'raised', 'photo', 'colors', 'labels'];
 
 function pick(obj: Record<string, unknown>): Partial<State> {
   const out: Partial<State> = {};
@@ -122,6 +160,9 @@ function readInitial(): State {
   // Deep-merge colours so a partial/stale saved object can't drop roles.
   const savedColors = merged.colors && typeof merged.colors === 'object' ? merged.colors : {};
   merged.colors = { ...DEFAULT_COLORS, ...savedColors };
+  // Same for labels — a stale payload can't drop a role and blank a canvas.
+  const savedLabels = merged.labels && typeof merged.labels === 'object' ? merged.labels : {};
+  merged.labels = { ...DEFAULT_LABELS, ...savedLabels };
   return merged;
 }
 
@@ -150,6 +191,7 @@ let state = readInitial();
 const actionIcons = readActionIcons();
 let editLayouts = readLayouts();
 let removedNodes = readRemoved();
+let cardFormats = readFormats();
 const cardEditors = new Map<string, CardEditor>();
 let activeCardId: string | null = null;
 let dragState: DragState | null = null;
@@ -239,6 +281,32 @@ function persistRemoved(): void {
   }
 }
 
+function readFormats(): FormatStore {
+  try {
+    const raw = localStorage.getItem(FORMAT_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return {};
+
+    const formats: FormatStore = {};
+    for (const [cardId, fmt] of Object.entries(parsed as Record<string, unknown>)) {
+      if (fmt === 'post' || fmt === 'story') formats[cardId] = fmt;
+    }
+    return formats;
+  } catch (error) {
+    console.error('Could not read template formats.', error);
+    return {};
+  }
+}
+
+function persistFormats(): void {
+  try {
+    localStorage.setItem(FORMAT_STORAGE_KEY, JSON.stringify(cardFormats));
+  } catch (error) {
+    console.error('Could not persist template formats.', error);
+  }
+}
+
 function isDefaultLayoutValue(value: LayoutValue): boolean {
   return value.x === 0 && value.y === 0 && value.scale === 1;
 }
@@ -264,7 +332,6 @@ function derived(): Record<string, string> {
   const raised = Math.max(0, Number(state.raised) || 0);
   const pct = percentOf(raised, goal);
   return {
-    day: String(state.day ?? ''),
     titleMain: state.titleMain,
     titleAccent: state.titleAccent,
     desc: state.desc,
@@ -273,7 +340,6 @@ function derived(): Record<string, string> {
     raisedFmt: fmtUAH(raised),
     goalFmt: fmtUAH(goal),
     remainingFmt: fmtUAH(Math.max(0, goal - raised)),
-    dayFmt: dayFmt(Number(state.day) || 1),
   };
 }
 
@@ -283,6 +349,11 @@ function render(): void {
   document.querySelectorAll<HTMLElement>('[data-bind]').forEach((el) => {
     const key = el.dataset.bind;
     if (key && key in v) el.textContent = v[key];
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-label]').forEach((el) => {
+    const role = el.dataset.label;
+    if (role && role in state.labels) el.textContent = state.labels[role];
   });
 
   document.querySelectorAll<HTMLElement>('[data-bar]').forEach((el) => {
@@ -363,6 +434,30 @@ function bindColors(): void {
     });
     persist();
     applyColors();
+  });
+}
+
+// ---------- editable template labels (status / kicker badges) ----------
+function bindLabels(): void {
+  document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[data-label-input]').forEach((inp) => {
+    const role = inp.dataset.labelInput;
+    if (!role || !LABEL_ROLES.includes(role)) return;
+    inp.value = state.labels[role] ?? DEFAULT_LABELS[role] ?? '';
+    inp.addEventListener('input', () => {
+      state.labels = { ...state.labels, [role]: inp.value };
+      persist();
+      render();
+    });
+  });
+
+  document.getElementById('tpl-labels-reset')?.addEventListener('click', () => {
+    state.labels = { ...DEFAULT_LABELS };
+    document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[data-label-input]').forEach((inp) => {
+      const role = inp.dataset.labelInput;
+      if (role && DEFAULT_LABELS[role] != null) inp.value = DEFAULT_LABELS[role];
+    });
+    persist();
+    render();
   });
 }
 
@@ -453,11 +548,15 @@ function isEditableCandidate(el: HTMLElement, canvas: HTMLElement): boolean {
   const positioned = style.position === 'absolute';
   const visual = hasVisualStyle(style);
   const compositeChildren = hasCompositeChildren(el);
+  // A block wrapping an editable label span reads as a text block even when
+  // the span is its only child (so plain-colour kickers stay drag/removable).
+  const hasLabelChild = !!el.querySelector(':scope > [data-label]');
 
   if (bound && style.display !== 'inline') return true;
   if (directChild) return true;
   if (positioned) return true;
   if (compositeChildren) return true;
+  if (hasLabelChild && style.display !== 'inline') return true;
   if (leafTextBlock && style.display !== 'inline') return true;
   if (visual && (hasText || compositeChildren || el.children.length <= 1)) return true;
   return false;
@@ -1011,6 +1110,153 @@ function bindDrawer(): void {
   });
 }
 
+// ---------- per-card post/story format toggle ----------
+// Each canvas ships with an inline height of 1080 (post) or 1350 (story).
+function nativeFormat(canvas: HTMLElement): CardFormat {
+  return canvas.style.height.trim() === '1350px' ? 'story' : 'post';
+}
+
+function bindCardFormats(): void {
+  document.querySelectorAll<HTMLElement>('.tpl').forEach((card) => {
+    const canvas = card.querySelector<HTMLElement>('.canvas');
+    const preview = card.querySelector<HTMLElement>('.tpl-preview');
+    const cap = card.querySelector<HTMLElement>('.tpl-cap');
+    const cardId = card.querySelector<HTMLElement>('[data-dl]')?.dataset.dl;
+    if (!canvas || !preview || !cardId || !CANVAS_IDS.includes(cardId)) return;
+
+    // Caption reads "ПОСТ · <NAME> · 1080×1080"; keep <NAME> to rebuild it
+    // as the format flips (prefix + resolution become dynamic).
+    const capParts = (cap?.textContent ?? '').split(' · ');
+    const capName = capParts.length >= 3 ? capParts.slice(1, -1).join(' · ') : '';
+
+    const native = nativeFormat(canvas);
+
+    const group = document.createElement('div');
+    group.className = 'tpl-format';
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', 'Формат');
+
+    const buttons = {} as Record<CardFormat, HTMLButtonElement>;
+    (['post', 'story'] as CardFormat[]).forEach((fmt) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'tpl-format-btn';
+      btn.dataset.formatBtn = fmt;
+      btn.textContent = fmt === 'post' ? 'Пост' : 'Сторіз';
+      buttons[fmt] = btn;
+      group.append(btn);
+    });
+    card.prepend(group);
+
+    const apply = (fmt: CardFormat, save: boolean): void => {
+      const dims = FORMAT_DIMS[fmt];
+      canvas.style.height = dims.canvas + 'px';
+      preview.style.height = dims.preview + 'px';
+      if (cap && capName) cap.textContent = `${FORMAT_META[fmt].label} · ${capName} · ${FORMAT_META[fmt].res}`;
+      for (const key of ['post', 'story'] as CardFormat[]) {
+        const active = key === fmt;
+        buttons[key].classList.toggle('is-active', active);
+        buttons[key].setAttribute('aria-pressed', String(active));
+      }
+      // Only store a divergence from the card's native format.
+      if (fmt === native) delete cardFormats[cardId];
+      else cardFormats[cardId] = fmt;
+      if (save) persistFormats();
+    };
+
+    buttons.post.addEventListener('click', () => apply('post', true));
+    buttons.story.addEventListener('click', () => apply('story', true));
+
+    apply(cardFormats[cardId] ?? native, false);
+  });
+}
+
+// ---------- desktop panel offset ----------
+// Publish the sticky header's live height so the fixed sidebar can sit right
+// below it and size its own scroll area (see .studio-panel in vg.css).
+function bindStudioLayout(): void {
+  const header = document.querySelector<HTMLElement>('.site-header');
+  if (!header) return;
+  const setVar = (): void => {
+    const h = Math.round(header.getBoundingClientRect().height);
+    document.documentElement.style.setProperty('--studio-header-h', `${h}px`);
+  };
+  setVar();
+  window.addEventListener('resize', setVar);
+}
+
+// ---------- panel field → canvas highlight ----------
+// Focusing (or hovering) a control in the fields panel rings every canvas
+// element it drives, so the editor can see where that content will change.
+// Selectors are scoped to `.gallery` so the panel's own preview figures
+// (which reuse the same data-bind roles) are never lit up.
+const FIELD_HIGHLIGHT: Record<string, string> = {
+  'tpl-titleMain': '[data-bind="titleMain"]',
+  'tpl-titleAccent': '[data-bind="titleAccent"]',
+  'tpl-desc': '[data-bind="desc"]',
+  'tpl-goal': '[data-bind="goalFmt"]',
+  'tpl-raised': '[data-bind="raisedFmt"]',
+};
+
+function highlightSelectorFor(el: HTMLElement): string | null {
+  const labelRole = el.dataset.labelInput;
+  if (labelRole && LABEL_ROLES.includes(labelRole)) return `[data-label="${labelRole}"]`;
+  if (el.id && FIELD_HIGHLIGHT[el.id]) return FIELD_HIGHLIGHT[el.id];
+  if (el.id === 'tpl-photo-clear' || el.closest('#tpl-photo-drop')) return '[data-photo],[data-nophoto]';
+  return null;
+}
+
+let activeHighlight: string | null = null;
+
+function applyBindHighlight(selector: string | null): void {
+  if (selector === activeHighlight) return;
+  document.querySelectorAll<HTMLElement>('.tpl-bind-highlight').forEach((el) => el.classList.remove('tpl-bind-highlight'));
+  activeHighlight = selector;
+  if (!selector) return;
+  // Scope every comma-separated part to `.gallery` so a multi-selector
+  // (e.g. the photo slots) can't leak past the canvases.
+  const scoped = selector
+    .split(',')
+    .map((part) => '.gallery ' + part.trim())
+    .join(',');
+  document.querySelectorAll<HTMLElement>(scoped).forEach((el) => el.classList.add('tpl-bind-highlight'));
+}
+
+// Fields whose row (not just the control itself) should trigger a hover preview.
+const HOVER_FIELD_SELECTOR = '[data-label-input], #tpl-titleMain, #tpl-titleAccent, #tpl-desc, #tpl-goal, #tpl-raised, #tpl-photo-drop, #tpl-photo-clear';
+
+function bindFocusHighlight(): void {
+  const panel = document.getElementById('studio-panel');
+  if (!panel) return;
+
+  // Focus wins over hover: once a field is focused its highlight stays put
+  // even as the pointer drifts across other rows.
+  let focusLocked = false;
+
+  panel.addEventListener('focusin', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const selector = highlightSelectorFor(target);
+    focusLocked = !!selector;
+    applyBindHighlight(selector);
+  });
+  panel.addEventListener('focusout', () => {
+    focusLocked = false;
+    applyBindHighlight(null);
+  });
+
+  panel.addEventListener('pointerover', (event) => {
+    if (focusLocked) return;
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const field = target.closest<HTMLElement>(HOVER_FIELD_SELECTOR);
+    applyBindHighlight(field ? highlightSelectorFor(field) : null);
+  });
+  panel.addEventListener('pointerleave', () => {
+    if (!focusLocked) applyBindHighlight(null);
+  });
+}
+
 function bindActions(): void {
   document.querySelectorAll<HTMLElement>('[data-dl]').forEach((btn) => {
     const id = btn.dataset.dl;
@@ -1025,7 +1271,6 @@ function bindActions(): void {
 }
 
 function init(): void {
-  bindField('tpl-day', 'day', true);
   bindField('tpl-titleMain', 'titleMain');
   bindField('tpl-titleAccent', 'titleAccent');
   bindField('tpl-desc', 'desc');
@@ -1033,9 +1278,13 @@ function init(): void {
   bindField('tpl-raised', 'raised', true);
   bindImage('tpl-photo', 'tpl-photo-clear');
   bindColors();
+  bindLabels();
   bindActions();
+  bindCardFormats();
   bindCardEditors();
+  bindFocusHighlight();
   bindDrawer();
+  bindStudioLayout();
   render();
   applyColors();
   // keep CANVAS_IDS referenced for clarity / future validation

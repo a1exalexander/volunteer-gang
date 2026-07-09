@@ -438,9 +438,13 @@ p {
 .studio-panel {
   width: 340px;
   flex-shrink: 0;
+  /* Pinned to the left, below the sticky site header, and self-scrolling so
+     the long fields list never pushes the gallery. --studio-header-h is
+     measured live in template-studio.ts (fallback = the desktop header). */
   position: sticky;
-  top: 0;
-  max-height: 100vh;
+  top: var(--studio-header-h, 71px);
+  align-self: flex-start;
+  max-height: calc(100vh - var(--studio-header-h, 71px));
   overflow-y: auto;
   padding: 36px 32px 48px;
   background: #17110f;
@@ -583,6 +587,13 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
 .swatch input[type='color']::-moz-color-swatch { border: none; border-radius: 50%; }
 .swatch span { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; color: var(--dust); text-transform: uppercase; }
 
+/* ---------- editable template labels ---------- */
+.panel-labels { display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--border); padding-top: 20px; }
+.panel-labels-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.panel-intro--mini { margin: 0; font-size: 11px; }
+.label-grid { display: flex; flex-direction: column; gap: 12px; }
+.label-grid .field { gap: 4px; }
+
 .gallery {
   /* template palette — recoloured live by the sidebar pickers (template-studio.ts) */
   --c-ink: #0d0c0c;
@@ -626,6 +637,30 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
 }
 .tpl { display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .tpl-cap { font-family: var(--font-mono); font-size: 12px; color: var(--dust); letter-spacing: 0.08em; }
+/* Per-card post/story segmented toggle (created in template-studio.ts). */
+.tpl-format {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: #17110f;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.tpl-format-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dust);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  padding: 5px 16px;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.tpl-format-btn:not(.is-active):hover { color: var(--chalk); }
+.tpl-format-btn.is-active { background: var(--bubble); color: var(--ink); }
 .tpl-preview { overflow: hidden; }
 .tpl-scale { transform: scale(0.32963); transform-origin: top left; }
 .tpl-actions { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
@@ -783,6 +818,26 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
 /* removed elements disappear from both the preview and the export */
 .tpl-node-removed { display: none !important; }
 .canvas--exporting .tpl-remove-btn { display: none !important; }
+
+/* ---------- panel field → canvas highlight ----------
+   Focusing/hovering a field in the studio panel rings every canvas element it
+   drives (template-studio.ts adds .tpl-bind-highlight). Fixed brand colours —
+   not the recolourable --c-* vars — so it reads on any template palette, and
+   scoped out of .canvas--exporting so a stray focus never bleeds into a PNG. */
+.canvas:not(.canvas--exporting) .tpl-bind-highlight {
+  border-radius: 4px;
+  outline: 10px solid #ff2e88;
+  outline-offset: 6px;
+  box-shadow: 0 0 0 6px rgba(245, 241, 236, 0.92), 0 0 48px 10px rgba(255, 46, 136, 0.4);
+  animation: tpl-bind-pulse 1.1s ease-in-out infinite;
+}
+@keyframes tpl-bind-pulse {
+  0%, 100% { outline-color: #ff2e88; }
+  50% { outline-color: #c9e400; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .canvas:not(.canvas--exporting) .tpl-bind-highlight { animation: none; }
+}
 
 /* ---------- reveal-on-scroll ---------- */
 .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease, transform 0.6s ease; }
