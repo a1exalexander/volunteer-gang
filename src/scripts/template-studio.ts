@@ -32,9 +32,11 @@ type CardLayout = Record<string, LayoutValue>;
 type LayoutStore = Record<string, CardLayout>;
 
 interface CardEditor {
+  actions: HTMLElement;
   canvas: HTMLElement;
   button: HTMLButtonElement;
   resetButton: HTMLButtonElement;
+  status: HTMLElement | null;
 }
 
 interface DragState {
@@ -445,7 +447,20 @@ function applyCardLayout(cardId: string): void {
 function updateCardResetButton(cardId: string): void {
   const editor = cardEditors.get(cardId);
   if (!editor) return;
-  editor.resetButton.style.display = activeCardId === cardId && hasCardLayoutChanges(cardId) ? 'inline-flex' : 'none';
+
+  const shouldRender = activeCardId === cardId && hasCardLayoutChanges(cardId);
+  const isRendered = editor.resetButton.parentElement === editor.actions;
+
+  if (shouldRender && !isRendered) {
+    if (editor.status) {
+      editor.actions.insertBefore(editor.resetButton, editor.status);
+    } else {
+      editor.actions.append(editor.resetButton);
+    }
+    return;
+  }
+
+  if (!shouldRender && isRendered) editor.resetButton.remove();
 }
 
 function updateCardEditButton(cardId: string): void {
@@ -545,16 +560,13 @@ function bindCardEditors(): void {
     resetButton.type = 'button';
     resetButton.className = 'ghost-btn tpl-reset-btn';
     resetButton.textContent = '↺ Скинути';
-    resetButton.style.display = 'none';
     resetButton.addEventListener('click', () => clearCardLayout(cardId));
 
-    const status = actions.querySelector('.tpl-status');
+    const status = actions.querySelector<HTMLElement>('.tpl-status');
     if (status) {
       actions.insertBefore(button, status);
-      actions.insertBefore(resetButton, status);
     } else {
       actions.append(button);
-      actions.append(resetButton);
     }
 
     canvas.addEventListener('pointerdown', (event) => {
@@ -597,7 +609,7 @@ function bindCardEditors(): void {
       event.preventDefault();
     });
 
-    cardEditors.set(cardId, { canvas, button, resetButton });
+    cardEditors.set(cardId, { actions, canvas, button, resetButton, status });
     updateCardControls(cardId);
   });
 

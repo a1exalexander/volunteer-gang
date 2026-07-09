@@ -485,6 +485,7 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   display: flex;
   flex-wrap: wrap;
   gap: 44px;
+  justify-content: center;
   align-items: flex-start;
 }
 .studio-alert {
@@ -517,6 +518,11 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
 .tpl-edit-btn.is-active {
   background: var(--acid);
   border-color: var(--acid);
+  color: var(--ink);
+}
+.tpl-edit-btn.is-active:hover {
+  background: #b8d100;
+  border-color: #b8d100;
   color: var(--ink);
 }
 .dl-btn {
