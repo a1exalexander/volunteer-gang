@@ -36,6 +36,8 @@ interface ActionIcons {
   done: string;
   reset: string;
   remove: string;
+  success: string;
+  error: string;
 }
 
 type CardLayout = Record<string, LayoutValue>;
@@ -124,7 +126,7 @@ function readInitial(): State {
 }
 
 function readActionIcons(): ActionIcons {
-  const fallback: ActionIcons = { download: '', copy: '', edit: '', done: '', reset: '', remove: '' };
+  const fallback: ActionIcons = { download: '', copy: '', edit: '', done: '', reset: '', remove: '', success: '', error: '' };
   const el = document.getElementById('vg-tpl-icons');
   if (!el?.textContent) return fallback;
   try {
@@ -136,6 +138,8 @@ function readActionIcons(): ActionIcons {
       done: typeof parsed.done === 'string' ? parsed.done : '',
       reset: typeof parsed.reset === 'string' ? parsed.reset : '',
       remove: typeof parsed.remove === 'string' ? parsed.remove : '',
+      success: typeof parsed.success === 'string' ? parsed.success : '',
+      error: typeof parsed.error === 'string' ? parsed.error : '',
     };
   } catch {
     return fallback;
@@ -304,6 +308,12 @@ function render(): void {
 function updatePhotoControls(): void {
   const clearBtn = document.getElementById('tpl-photo-clear');
   if (clearBtn) clearBtn.style.display = state.photo ? 'inline-block' : 'none';
+
+  const dropzone = document.getElementById('tpl-photo-drop');
+  if (dropzone) dropzone.classList.toggle('has-photo', !!state.photo);
+
+  const thumb = document.getElementById('tpl-photo-thumb');
+  if (thumb) thumb.style.backgroundImage = state.photo ? `url("${state.photo}")` : 'none';
 }
 
 type FieldEl = HTMLInputElement | HTMLTextAreaElement;
@@ -358,9 +368,10 @@ function bindColors(): void {
 
 function bindImage(inputId: string, clearId: string): void {
   const fileInput = document.getElementById(inputId) as HTMLInputElement | null;
-  fileInput?.addEventListener('change', () => {
-    const file = fileInput.files && fileInput.files[0];
-    if (!file) return;
+  const dropzone = document.getElementById('tpl-photo-drop');
+
+  const loadFile = (file: File | null | undefined): void => {
+    if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
     reader.onload = () => {
       state.photo = String(reader.result);
@@ -368,8 +379,36 @@ function bindImage(inputId: string, clearId: string): void {
       render();
     };
     reader.readAsDataURL(file);
+  };
+
+  fileInput?.addEventListener('change', () => {
+    loadFile(fileInput.files && fileInput.files[0]);
     fileInput.value = '';
   });
+
+  if (dropzone) {
+    const stop = (e: Event): void => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    ['dragenter', 'dragover'].forEach((evt) =>
+      dropzone.addEventListener(evt, (e) => {
+        stop(e);
+        dropzone.classList.add('is-dragover');
+      })
+    );
+    ['dragleave', 'dragend'].forEach((evt) =>
+      dropzone.addEventListener(evt, (e) => {
+        stop(e);
+        dropzone.classList.remove('is-dragover');
+      })
+    );
+    dropzone.addEventListener('drop', (e) => {
+      stop(e);
+      dropzone.classList.remove('is-dragover');
+      loadFile((e as DragEvent).dataTransfer?.files?.[0]);
+    });
+  }
 
   document.getElementById(clearId)?.addEventListener('click', () => {
     state.photo = null;
@@ -859,14 +898,33 @@ function lib(): HtmlToImage | null {
 }
 
 const timers: Record<string, number> = {};
-function setActionTooltip(id: string, mode: 'cp' | 'dl', msg: string): void {
+function setActionTooltip(id: string, mode: 'cp' | 'dl', msg: string, ok: boolean): void {
   const selector = mode === 'cp' ? `[data-cp="${id}"]` : `[data-dl="${id}"]`;
   const btn = document.querySelector<HTMLElement>(selector);
   if (!btn) return;
 
   const baseAria = btn.dataset.baseAriaLabel ?? btn.getAttribute('aria-label') ?? '';
   btn.dataset.baseAriaLabel = baseAria;
-  btn.dataset.actionTooltip = msg;
+
+  // Render the tooltip as a real element so a react-icons SVG can sit next to
+  // the label — the CSS `::after` used before could only show plain text.
+  let tip = btn.querySelector<HTMLElement>('.action-tooltip');
+  if (!tip) {
+    tip = document.createElement('span');
+    tip.className = 'action-tooltip';
+    tip.setAttribute('aria-hidden', 'true');
+    btn.appendChild(tip);
+  }
+  tip.classList.toggle('action-tooltip--error', !ok);
+  const iconMarkup = ok ? actionIcons.success : actionIcons.error;
+  const iconWrap = document.createElement('span');
+  iconWrap.className = 'action-tooltip-icon';
+  iconWrap.setAttribute('aria-hidden', 'true');
+  iconWrap.innerHTML = iconMarkup;
+  const label = document.createElement('span');
+  label.textContent = msg;
+  tip.replaceChildren(iconWrap, label);
+
   btn.classList.add('action-tooltip-visible');
   btn.setAttribute('aria-label', msg);
 
@@ -874,7 +932,6 @@ function setActionTooltip(id: string, mode: 'cp' | 'dl', msg: string): void {
   window.clearTimeout(timers[timerKey]);
   timers[timerKey] = window.setTimeout(() => {
     btn.classList.remove('action-tooltip-visible');
-    delete btn.dataset.actionTooltip;
     if (baseAria) btn.setAttribute('aria-label', baseAria);
     else btn.removeAttribute('aria-label');
   }, 2500);
@@ -903,10 +960,10 @@ async function download(id: string): Promise<void> {
     a.download = `vg-${id}.png`;
     a.click();
     window.setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-    setActionTooltip(id, 'dl', 'Збережено');
+    setActionTooltip(id, 'dl', 'Збережено', true);
   } catch (e) {
     console.error(e);
-    setActionTooltip(id, 'dl', 'Помилка збереження');
+    setActionTooltip(id, 'dl', 'Помилка збереження', false);
   }
 }
 
@@ -916,10 +973,10 @@ async function copy(id: string): Promise<void> {
     // requirement satisfied while the image renders.
     const item = new ClipboardItem({ 'image/png': makeBlob(id) });
     await navigator.clipboard.write([item]);
-    setActionTooltip(id, 'cp', 'Скопійовано');
+    setActionTooltip(id, 'cp', 'Скопійовано', true);
   } catch (e) {
     console.error(e);
-    setActionTooltip(id, 'cp', 'Помилка копіювання');
+    setActionTooltip(id, 'cp', 'Помилка копіювання', false);
   }
 }
 

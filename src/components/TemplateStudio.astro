@@ -4,7 +4,7 @@ import { fmtUAH, percentOf, dayFmt } from '../lib/format';
 import React from 'react';
 import type { IconType } from 'react-icons';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { FiCheck, FiCopy, FiDownload, FiEdit3, FiRotateCcw, FiTrash2 } from 'react-icons/fi';
+import { FiAlertTriangle, FiCheck, FiCheckCircle, FiCopy, FiDownload, FiEdit3, FiRotateCcw, FiTrash2 } from 'react-icons/fi';
 import TemplateLockup from './brand/TemplateLockup.astro';
 import TplPhotoSlot from './TplPhotoSlot.astro';
 
@@ -47,6 +47,10 @@ const actionIcons = {
   done: iconMarkup(FiCheck),
   reset: iconMarkup(FiRotateCcw),
   remove: iconMarkup(FiTrash2),
+  // Feedback icons paired with the success/error action tooltips
+  // («Збережено» / «Скопійовано» vs. their «Помилка …» variants).
+  success: iconMarkup(FiCheckCircle),
+  error: iconMarkup(FiAlertTriangle),
 };
 ---
 
@@ -109,11 +113,26 @@ const actionIcons = {
 
     <div class="panel-photo">
       <span class="field-label">ФОТО · ОДНЕ ДЛЯ ВСІХ ШАБЛОНІВ (за бажанням)</span>
+      <label class="dropzone" id="tpl-photo-drop">
+        <input id="tpl-photo" type="file" accept="image/*" class="dropzone-input" />
+        <span class="dropzone-thumb" id="tpl-photo-thumb" aria-hidden="true"></span>
+        <span class="dropzone-body">
+          <svg class="dropzone-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <span class="dropzone-text dropzone-text--empty">
+            <span class="dropzone-title">Перетягни фото сюди</span>
+            <span class="dropzone-hint">або натисни, щоб обрати</span>
+          </span>
+          <span class="dropzone-text dropzone-text--filled">
+            <span class="dropzone-title">Фото завантажено</span>
+            <span class="dropzone-hint">натисни або перетягни, щоб замінити</span>
+          </span>
+        </span>
+      </label>
       <div class="panel-photo-row">
-        <label class="file-btn">
-          Завантажити фото
-          <input id="tpl-photo" type="file" accept="image/*" style="display:none" />
-        </label>
         <button type="button" id="tpl-photo-clear" class="ghost-btn" style="display:none">✕ Прибрати</button>
       </div>
     </div>

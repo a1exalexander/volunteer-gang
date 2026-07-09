@@ -1,6 +1,16 @@
 ---
-// Google Analytics 4 (gtag.js). The loader only activates after the visitor
-// explicitly accepts analytics consent.
+// Google Analytics 4 (gtag.js) with Google Consent Mode v2.
+// The tag loads on every page — so Google can detect it and GA can send
+// anonymized, cookieless pings — but `analytics_storage` stays DENIED by
+// default until the visitor accepts consent in the banner. Accepting flips
+// consent to granted (enabling cookies / full measurement); declining keeps
+// it denied. This is the privacy-compliant, industry-standard setup.
+//
+// NOTE: the script body below is RAW JS. `define:vars` already emits it as an
+// inline, un-bundled script and injects `gaId`/`debug`. Do NOT wrap it in a
+// `{`...`}` template literal — an Astro <script> body is raw text, so that
+// wrapper is emitted verbatim and turns the whole body into an inert string
+// that never runs (this was the original bug: GA never loaded).
 const gaId = import.meta.env.PUBLIC_GA_ID;
 const debug = import.meta.env.PUBLIC_GA_DEBUG === '1';
 ---
@@ -8,29 +18,39 @@ const debug = import.meta.env.PUBLIC_GA_DEBUG === '1';
 {
   gaId && (
     <script is:inline define:vars={{ gaId, debug }}>
-      {`
       const consentKey = 'vg-analytics-consent';
 
-      window.loadVolunteerGangAnalytics = window.loadVolunteerGangAnalytics || function () {
-        if (window.__vgAnalyticsLoaded) return;
-        window.__vgAnalyticsLoaded = true;
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { window.dataLayer.push(arguments); }
+      window.gtag = gtag;
 
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){ window.dataLayer.push(arguments); }
-        window.gtag = gtag;
-        gtag('js', new Date());
-        gtag('config', gaId, { anonymize_ip: true, debug_mode: debug });
+      const granted = window.localStorage.getItem(consentKey) === 'accepted';
 
-        const script = document.createElement('script');
-        script.async = true;
-        script.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
-        document.head.appendChild(script);
+      // Consent Mode v2 — must run BEFORE config. Denied by default; only
+      // analytics is ever requested (this site runs no ads).
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: granted ? 'granted' : 'denied',
+        wait_for_update: 500,
+      });
+
+      gtag('js', new Date());
+      gtag('config', gaId, { anonymize_ip: true, debug_mode: debug });
+
+      // Load gtag.js on every page so the tag is always present/detectable.
+      const gaScript = document.createElement('script');
+      gaScript.async = true;
+      gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+      document.head.appendChild(gaScript);
+
+      // Called by the consent banner when the visitor makes a choice.
+      window.vgSetAnalyticsConsent = function (accepted) {
+        gtag('consent', 'update', {
+          analytics_storage: accepted ? 'granted' : 'denied',
+        });
       };
-
-      if (window.localStorage.getItem(consentKey) === 'accepted') {
-        window.loadVolunteerGangAnalytics();
-      }
-      `}
     </script>
   )
 }

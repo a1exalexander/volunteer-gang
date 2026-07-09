@@ -45,15 +45,18 @@ const typeSpecimens = {
 <Layout title="Volunteer Gang — Бренд-бук" description="Логотип, кольори та типографіка Volunteer Gang." ogId="home" noindex>
   <!-- HERO -->
   <section class="section brand-hero">
-    <div class="eyebrow">БРЕНД-БУК · V 1.0 · 2026</div>
-    <h1 class="brand-h1">
-      <Logo word1={word1} word2={word2} graffiti="layered" layout="stack" size={72} gangSize={92} rotate={-5} />
-    </h1>
-    <p class="brand-lede">{settings.tagline}</p>
+    <div class="container brand-hero-inner">
+      <div class="eyebrow">БРЕНД-БУК · V 1.0 · 2026</div>
+      <h1 class="brand-h1">
+        <Logo word1={word1} word2={word2} graffiti="layered" layout="stack" size={72} gangSize={92} rotate={-5} />
+      </h1>
+      <p class="brand-lede">{settings.tagline}</p>
+    </div>
   </section>
 
   <!-- 01 · LOGO -->
   <section class="section">
+    <div class="container">
     <div class="sec-head"><span class="sec-num">01</span><h2 class="sec-title">Логотип</h2></div>
     <div class="brand-grid brand-grid--2">
       <div class="brand-cell">
@@ -154,10 +157,12 @@ const typeSpecimens = {
       <p><strong>Правило двох голосів.</strong> «VOLUNTEER» — просте біле накреслення без ефектів: дисципліна і звітність. «GANG» — графіті-леттеринг: бабл-заливка, чорний контур і обʼємна тінь, салатовий кант.</p>
       <p><strong>Охоронне поле.</strong> Мінімальний відступ навколо логотипа — висота літери «G». Мінімальна ширина — 120 px.</p>
     </div>
+    </div>
   </section>
 
   <!-- 02 · COLORS -->
   <section class="section">
+    <div class="container">
     <div class="sec-head"><span class="sec-num">02</span><h2 class="sec-title">Кольори</h2></div>
     <div class="brand-swatches">
       {palette.map((c, i) => (
@@ -188,10 +193,12 @@ const typeSpecimens = {
         <span class="tpl-status" data-status="chevrons"></span>
       </div>
     </div>
+    </div>
   </section>
 
   <!-- 03 · TYPE -->
   <section class="section">
+    <div class="container">
     <div class="sec-head"><span class="sec-num">03</span><h2 class="sec-title">Типографіка</h2></div>
     <div class="brand-grid brand-grid--3">
       <div class="brand-frame brand-type">
@@ -219,6 +226,7 @@ const typeSpecimens = {
         </div>
       </div>
     </div>
+    </div>
   </section>
 
   <!-- html-to-image (CDN global) powers PNG export/copy, same as /templates -->
@@ -229,7 +237,7 @@ const typeSpecimens = {
 </Layout>
 
 <style>
-  .brand-hero { display: flex; flex-direction: column; gap: 28px; }
+  .brand-hero-inner { display: flex; flex-direction: column; gap: 28px; }
   .brand-h1 { margin: 0; }
   .brand-lede { font-size: 22px; font-weight: 500; color: var(--chalk); }
 
