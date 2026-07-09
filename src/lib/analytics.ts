@@ -1,6 +1,5 @@
 // Lightweight client-side analytics wiring. Every function is a no-op when
-// GA hasn't loaded (no PUBLIC_GA_ID, or consent not granted), so it is always
-// safe to call.
+// GA hasn't loaded (no PUBLIC_GA_ID), so it is always safe to call.
 
 declare global {
   interface Window {
