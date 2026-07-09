@@ -636,7 +636,7 @@ textarea.input:focus { outline: 2px solid var(--pink); outline-offset: -1px; }
     bottom: calc(20px + env(safe-area-inset-bottom, 0px));
     transform: translateX(-50%);
     z-index: 98;
-    background: var(--pink);
+    background: var(--bubble);
     color: var(--ink);
     border: none;
     font-family: var(--font-mono);
@@ -648,7 +648,7 @@ textarea.input:focus { outline: 2px solid var(--pink); outline-offset: -1px; }
     white-space: nowrap;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
   }
-  .drawer-toggle:hover { background: var(--pink-hover); }
+  .drawer-toggle:hover { background: #ec93d8; }
   @media (prefers-reduced-motion: reduce) {
     .studio-panel,
     .drawer-backdrop { transition: none; }
