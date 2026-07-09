@@ -1,6 +1,10 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { fmtUAH, percentOf, dayFmt } from '../lib/format';
+import React from 'react';
+import type { IconType } from 'react-icons';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { FiCheck, FiCopy, FiDownload, FiEdit3, FiRotateCcw } from 'react-icons/fi';
 import TemplateLockup from './brand/TemplateLockup.astro';
 import TplPhotoSlot from './TplPhotoSlot.astro';
 
@@ -25,6 +29,23 @@ const initial = {
   goal: fund.goal,
   raised: fund.raised,
   photo: null,
+};
+
+const iconMarkup = (icon: IconType) =>
+  renderToStaticMarkup(
+    React.createElement(icon, {
+      size: 14,
+      'aria-hidden': true,
+      focusable: false,
+    })
+  );
+
+const actionIcons = {
+  download: iconMarkup(FiDownload),
+  copy: iconMarkup(FiCopy),
+  edit: iconMarkup(FiEdit3),
+  done: iconMarkup(FiCheck),
+  reset: iconMarkup(FiRotateCcw),
 };
 ---
 
@@ -758,6 +779,7 @@ const initial = {
 </div>
 
 <script id="vg-tpl-initial" type="application/json" is:inline set:html={JSON.stringify(initial)}></script>
+<script id="vg-tpl-icons" type="application/json" is:inline set:html={JSON.stringify(actionIcons)}></script>
 <script is:inline async src="https://unpkg.com/html-to-image@1.11.13/dist/html-to-image.js"></script>
 <script>
   import '../scripts/template-studio';

@@ -7,6 +7,7 @@
 import { fmtUAH, percentOf, dayFmt } from '../lib/format';
 
 const STORAGE_KEY = 'vg-tpl-state-v1';
+const LAYOUT_STORAGE_KEY = 'vg-tpl-layout-v1';
 const CANVAS_IDS = ['announce', 'progress', 'urgent', 'push', 'report', 'thanks', 'closed', 'milestone', 'remaining', 'thermo', 'goalpost', 'photopost', 'photostory', 'halfway', 'deadline', 'share', 'weekly', 'quote', 'minimal', 'sos', 'closedstory'];
 
 interface State {
@@ -19,6 +20,48 @@ interface State {
   /** the single uploaded photo, shared by every template's photo slot */
   photo: string | null;
   colors: Record<string, string>;
+}
+
+interface LayoutValue {
+  x: number;
+  y: number;
+  scale: number;
+}
+
+interface ActionIcons {
+  download: string;
+  copy: string;
+  edit: string;
+  done: string;
+  reset: string;
+}
+
+type CardLayout = Record<string, LayoutValue>;
+type LayoutStore = Record<string, CardLayout>;
+
+interface CardEditor {
+  actions: HTMLElement;
+  canvas: HTMLElement;
+  button: HTMLButtonElement;
+  resetButton: HTMLButtonElement;
+  status: HTMLElement | null;
+}
+
+interface DragState {
+  mode: 'move' | 'scale';
+  cardId: string;
+  key: string;
+  node: HTMLElement;
+  pointerId: number;
+  startX: number;
+  startY: number;
+  originX: number;
+  originY: number;
+  originScale: number;
+  scale: number;
+  centerX: number;
+  centerY: number;
+  startDistance: number;
 }
 
 // User-mixable template palette roles → the `--c-*` custom properties the
@@ -76,7 +119,30 @@ function readInitial(): State {
   return merged;
 }
 
+function readActionIcons(): ActionIcons {
+  const fallback: ActionIcons = { download: '', copy: '', edit: '', done: '', reset: '' };
+  const el = document.getElementById('vg-tpl-icons');
+  if (!el?.textContent) return fallback;
+  try {
+    const parsed = JSON.parse(el.textContent) as Partial<ActionIcons>;
+    return {
+      download: typeof parsed.download === 'string' ? parsed.download : '',
+      copy: typeof parsed.copy === 'string' ? parsed.copy : '',
+      edit: typeof parsed.edit === 'string' ? parsed.edit : '',
+      done: typeof parsed.done === 'string' ? parsed.done : '',
+      reset: typeof parsed.reset === 'string' ? parsed.reset : '',
+    };
+  } catch {
+    return fallback;
+  }
+}
+
 let state = readInitial();
+const actionIcons = readActionIcons();
+let editLayouts = readLayouts();
+const cardEditors = new Map<string, CardEditor>();
+let activeCardId: string | null = null;
+let dragState: DragState | null = null;
 
 function persist(): void {
   try {
@@ -84,6 +150,62 @@ function persist(): void {
   } catch {
     /* storage may be unavailable (private mode) — degrade silently */
   }
+}
+
+function isLayoutValue(value: unknown): value is LayoutValue {
+  if (!value || typeof value !== 'object') return false;
+  const point = value as Partial<LayoutValue>;
+  return (
+    typeof point.x === 'number' &&
+    Number.isFinite(point.x) &&
+    typeof point.y === 'number' &&
+    Number.isFinite(point.y) &&
+    (point.scale == null || (typeof point.scale === 'number' && Number.isFinite(point.scale)))
+  );
+}
+
+function readLayouts(): LayoutStore {
+  try {
+    const raw = localStorage.getItem(LAYOUT_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return {};
+
+    const layouts: LayoutStore = {};
+    for (const [cardId, cardLayout] of Object.entries(parsed as Record<string, unknown>)) {
+      if (!cardLayout || typeof cardLayout !== 'object') continue;
+
+      const nodes: CardLayout = {};
+      for (const [nodeKey, point] of Object.entries(cardLayout as Record<string, unknown>)) {
+        if (isLayoutValue(point)) {
+          nodes[nodeKey] = { x: point.x, y: point.y, scale: point.scale ?? 1 };
+        }
+      }
+
+      if (Object.keys(nodes).length > 0) layouts[cardId] = nodes;
+    }
+
+    return layouts;
+  } catch (error) {
+    console.error('Could not read template layout edits.', error);
+    return {};
+  }
+}
+
+function persistLayouts(): void {
+  try {
+    localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(editLayouts));
+  } catch (error) {
+    console.error('Could not persist template layout edits.', error);
+  }
+}
+
+function isDefaultLayoutValue(value: LayoutValue): boolean {
+  return value.x === 0 && value.y === 0 && value.scale === 1;
+}
+
+function hasCardLayoutChanges(cardId: string): boolean {
+  return Object.keys(editLayouts[cardId] ?? {}).length > 0;
 }
 
 function derived(): Record<string, string> {
@@ -209,6 +331,350 @@ function bindImage(inputId: string, clearId: string): void {
   });
 }
 
+function hasOwnText(el: HTMLElement): boolean {
+  return Array.from(el.childNodes).some((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim());
+}
+
+function hasVisualStyle(style: CSSStyleDeclaration): boolean {
+  return (
+    style.backgroundColor !== 'rgba(0, 0, 0, 0)' ||
+    style.backgroundImage !== 'none' ||
+    style.borderTopWidth !== '0px' ||
+    style.borderRightWidth !== '0px' ||
+    style.borderBottomWidth !== '0px' ||
+    style.borderLeftWidth !== '0px' ||
+    style.clipPath !== 'none'
+  );
+}
+
+function hasInlineChildrenOnly(el: HTMLElement): boolean {
+  return Array.from(el.children).every((child) => child.tagName === 'BR' || child.tagName === 'SPAN');
+}
+
+function hasCompositeChildren(el: HTMLElement): boolean {
+  const children = Array.from(el.children);
+  return children.length > 1 || children.some((child) => child.tagName !== 'BR' && child.tagName !== 'SPAN');
+}
+
+function isEditableCandidate(el: HTMLElement, canvas: HTMLElement): boolean {
+  if (el === canvas) return false;
+
+  const style = getComputedStyle(el);
+  const directChild = el.parentElement === canvas;
+  const bound = !!(el.dataset.bind || el.dataset.bar || el.dataset.barV || el.dataset.photo || el.dataset.nophoto || el.dataset.exportOptional);
+  const hasText = hasOwnText(el) || (el.children.length === 0 && !!el.textContent?.trim());
+  const leafTextBlock = hasText && hasInlineChildrenOnly(el);
+  const positioned = style.position === 'absolute';
+  const visual = hasVisualStyle(style);
+  const compositeChildren = hasCompositeChildren(el);
+
+  if (bound && style.display !== 'inline') return true;
+  if (directChild) return true;
+  if (positioned) return true;
+  if (compositeChildren) return true;
+  if (leafTextBlock && style.display !== 'inline') return true;
+  if (visual && (hasText || compositeChildren || el.children.length <= 1)) return true;
+  return false;
+}
+
+function shouldSkipNestedEditable(el: HTMLElement): boolean {
+  const parentEditable = el.parentElement?.closest('[data-tpl-edit-node]');
+  if (!parentEditable) return false;
+
+  const style = getComputedStyle(el);
+  const hasText = hasOwnText(el) || (el.children.length === 0 && !!el.textContent?.trim());
+  const leafTextBlock = hasText && hasInlineChildrenOnly(el);
+  const visual = hasVisualStyle(style);
+  const positioned = style.position === 'absolute';
+  const compositeChildren = hasCompositeChildren(el);
+
+  return !positioned && !visual && !compositeChildren && (style.display === 'inline' || leafTextBlock);
+}
+
+function nodePath(canvas: HTMLElement, el: HTMLElement): string {
+  const segments: number[] = [];
+  let current: HTMLElement | null = el;
+
+  while (current && current !== canvas) {
+    const parentNode = current.parentNode;
+    if (!(parentNode instanceof HTMLElement)) break;
+    const parentEl: HTMLElement = parentNode;
+    segments.unshift(Array.prototype.indexOf.call(parentEl.children, current));
+    current = parentEl;
+  }
+
+  return segments.join('-');
+}
+
+function getLayoutValue(cardId: string, key: string): LayoutValue {
+  return editLayouts[cardId]?.[key] ?? { x: 0, y: 0, scale: 1 };
+}
+
+function setLayoutValue(cardId: string, key: string, value: LayoutValue): void {
+  const nextCardLayout = { ...(editLayouts[cardId] ?? {}) };
+
+  if (isDefaultLayoutValue(value)) {
+    delete nextCardLayout[key];
+  } else {
+    nextCardLayout[key] = value;
+  }
+
+  if (Object.keys(nextCardLayout).length === 0) {
+    const nextLayouts = { ...editLayouts };
+    delete nextLayouts[cardId];
+    editLayouts = nextLayouts;
+    return;
+  }
+
+  editLayouts = {
+    ...editLayouts,
+    [cardId]: nextCardLayout,
+  };
+}
+
+function formatTransform(base: string, value: LayoutValue): string {
+  const move = value.x === 0 && value.y === 0 ? '' : `translate(${value.x.toFixed(1)}px, ${value.y.toFixed(1)}px)`;
+  const scale = value.scale === 1 ? '' : `scale(${value.scale.toFixed(3)})`;
+  return [move, scale, base].filter(Boolean).join(' ').trim();
+}
+
+function ensureScaleHandle(node: HTMLElement): void {
+  if (node.querySelector(':scope > [data-tpl-scale-handle]')) return;
+
+  if (getComputedStyle(node).position === 'static' && !node.style.position) {
+    node.style.position = 'relative';
+  }
+
+  const handle = document.createElement('button');
+  handle.type = 'button';
+  handle.className = 'tpl-edit-handle';
+  handle.dataset.tplScaleHandle = 'true';
+  handle.dataset.exportIgnore = 'true';
+  handle.setAttribute('aria-label', 'Змінити розмір елемента');
+  node.append(handle);
+}
+
+function applyOffset(cardId: string, node: HTMLElement): void {
+  const key = node.dataset.tplEditNode;
+  if (!key) return;
+
+  const base = node.dataset.tplEditBaseTransform ?? '';
+  node.style.transform = formatTransform(base, getLayoutValue(cardId, key));
+}
+
+function applyCardLayout(cardId: string): void {
+  const editor = cardEditors.get(cardId);
+  if (!editor) return;
+
+  editor.canvas.querySelectorAll<HTMLElement>('[data-tpl-edit-node]').forEach((node) => {
+    applyOffset(cardId, node);
+  });
+}
+
+function setButtonLabel(button: HTMLElement, iconMarkup: string, label: string): void {
+  if (!iconMarkup) {
+    button.textContent = label;
+    return;
+  }
+  button.innerHTML = `<span class="tpl-btn-icon" aria-hidden="true">${iconMarkup}</span><span>${label}</span>`;
+}
+
+function updateCardResetButton(cardId: string): void {
+  const editor = cardEditors.get(cardId);
+  if (!editor) return;
+
+  const shouldRender = activeCardId === cardId && hasCardLayoutChanges(cardId);
+  const isRendered = editor.resetButton.parentElement === editor.actions;
+
+  if (shouldRender && !isRendered) {
+    if (editor.status) {
+      editor.actions.insertBefore(editor.resetButton, editor.status);
+    } else {
+      editor.actions.append(editor.resetButton);
+    }
+    return;
+  }
+
+  if (!shouldRender && isRendered) editor.resetButton.remove();
+}
+
+function updateCardEditButton(cardId: string): void {
+  const editor = cardEditors.get(cardId);
+  if (!editor) return;
+
+  const editing = activeCardId === cardId;
+  editor.button.classList.toggle('is-active', editing);
+  setButtonLabel(editor.button, editing ? actionIcons.done : actionIcons.edit, editing ? 'Готово' : 'Редагувати');
+  editor.button.setAttribute('aria-pressed', String(editing));
+}
+
+function updateCardControls(cardId: string): void {
+  updateCardEditButton(cardId);
+  updateCardResetButton(cardId);
+}
+
+function clearCardLayout(cardId: string): void {
+  if (!editLayouts[cardId]) return;
+
+  const nextLayouts = { ...editLayouts };
+  delete nextLayouts[cardId];
+  editLayouts = nextLayouts;
+  applyCardLayout(cardId);
+  updateCardControls(cardId);
+  persistLayouts();
+}
+
+function registerEditableNodes(cardId: string, canvas: HTMLElement): void {
+  const walker = document.createTreeWalker(canvas, NodeFilter.SHOW_ELEMENT);
+  const editableNodes: HTMLElement[] = [];
+
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    if (!(node instanceof HTMLElement)) continue;
+    if (!isEditableCandidate(node, canvas)) continue;
+    if (shouldSkipNestedEditable(node)) continue;
+
+    editableNodes.push(node);
+  }
+
+  for (const node of editableNodes) {
+    node.dataset.tplEditNode = nodePath(canvas, node);
+    node.dataset.tplEditBaseTransform = node.style.transform;
+    ensureScaleHandle(node);
+    applyOffset(cardId, node);
+  }
+}
+
+function getCanvasScale(canvas: HTMLElement): number {
+  const rect = canvas.getBoundingClientRect();
+  if (!rect.width || !canvas.offsetWidth) return 1;
+  return rect.width / canvas.offsetWidth;
+}
+
+function setCardEditing(cardId: string, editing: boolean): void {
+  const editor = cardEditors.get(cardId);
+  if (!editor) return;
+
+  if (editing && activeCardId && activeCardId !== cardId) setCardEditing(activeCardId, false);
+  if (!editing && dragState?.cardId === cardId) finishDragging();
+
+  editor.canvas.classList.toggle('canvas--editing', editing);
+  activeCardId = editing ? cardId : activeCardId === cardId ? null : activeCardId;
+  updateCardControls(cardId);
+}
+
+function finishDragging(): void {
+  if (!dragState) return;
+  dragState.node.classList.remove('is-dragging', 'is-scaling');
+  if (dragState.node.hasPointerCapture(dragState.pointerId)) {
+    dragState.node.releasePointerCapture(dragState.pointerId);
+  }
+  persistLayouts();
+  dragState = null;
+}
+
+function bindCardEditors(): void {
+  document.querySelectorAll<HTMLElement>('.tpl').forEach((card) => {
+    const actions = card.querySelector<HTMLElement>('.tpl-actions');
+    const canvas = card.querySelector<HTMLElement>('.canvas');
+    const exportBtn = actions?.querySelector<HTMLElement>('[data-dl]');
+    const cardId = exportBtn?.dataset.dl;
+    if (!actions || !canvas || !cardId || !CANVAS_IDS.includes(cardId)) return;
+
+    registerEditableNodes(cardId, canvas);
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'cp-btn tpl-edit-btn';
+    button.dataset.editCard = cardId;
+    button.setAttribute('aria-pressed', 'false');
+    setButtonLabel(button, actionIcons.edit, 'Редагувати');
+    button.addEventListener('click', () => setCardEditing(cardId, activeCardId !== cardId));
+
+    const resetButton = document.createElement('button');
+    resetButton.type = 'button';
+    resetButton.className = 'ghost-btn tpl-reset-btn';
+    setButtonLabel(resetButton, actionIcons.reset, 'Скинути');
+    resetButton.addEventListener('click', () => clearCardLayout(cardId));
+
+    const status = actions.querySelector<HTMLElement>('.tpl-status');
+    if (status) {
+      actions.insertBefore(button, status);
+    } else {
+      actions.append(button);
+    }
+
+    canvas.addEventListener('pointerdown', (event) => {
+      if (activeCardId !== cardId) return;
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+
+      const handle = target.closest<HTMLElement>('[data-tpl-scale-handle]');
+      const node = target.closest<HTMLElement>('[data-tpl-edit-node]');
+      if (!node || !canvas.contains(node)) return;
+
+      const key = node.dataset.tplEditNode;
+      if (!key) return;
+
+      const layoutValue = getLayoutValue(cardId, key);
+      const rect = node.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const startDistance = Math.max(1, Math.hypot(event.clientX - centerX, event.clientY - centerY));
+
+      dragState = {
+        mode: handle ? 'scale' : 'move',
+        cardId,
+        key,
+        node,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        originX: layoutValue.x,
+        originY: layoutValue.y,
+        originScale: layoutValue.scale,
+        scale: getCanvasScale(canvas),
+        centerX,
+        centerY,
+        startDistance,
+      };
+
+      node.classList.add(handle ? 'is-scaling' : 'is-dragging');
+      node.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    });
+
+    cardEditors.set(cardId, { actions, canvas, button, resetButton, status });
+    updateCardControls(cardId);
+  });
+
+  document.addEventListener('pointermove', (event) => {
+    if (!dragState || event.pointerId !== dragState.pointerId) return;
+
+    let layoutValue: LayoutValue;
+    if (dragState.mode === 'scale') {
+      const distance = Math.max(1, Math.hypot(event.clientX - dragState.centerX, event.clientY - dragState.centerY));
+      const nextScale = Math.min(3, Math.max(0.35, dragState.originScale * (distance / dragState.startDistance)));
+      layoutValue = { x: dragState.originX, y: dragState.originY, scale: nextScale };
+    } else {
+      const dx = (event.clientX - dragState.startX) / dragState.scale;
+      const dy = (event.clientY - dragState.startY) / dragState.scale;
+      layoutValue = { x: dragState.originX + dx, y: dragState.originY + dy, scale: dragState.originScale };
+    }
+
+    setLayoutValue(dragState.cardId, dragState.key, layoutValue);
+    applyOffset(dragState.cardId, dragState.node);
+    updateCardControls(dragState.cardId);
+  });
+
+  document.addEventListener('pointerup', (event) => {
+    if (dragState && event.pointerId === dragState.pointerId) finishDragging();
+  });
+  document.addEventListener('pointercancel', (event) => {
+    if (dragState && event.pointerId === dragState.pointerId) finishDragging();
+  });
+}
+
 // ---------- export (PNG download / clipboard copy) ----------
 type HtmlToImage = { toBlob: (node: HTMLElement, opts?: Record<string, unknown>) => Promise<Blob | null> };
 
@@ -219,6 +685,7 @@ type HtmlToImage = { toBlob: (node: HTMLElement, opts?: Record<string, unknown>)
 function exportFilter(node: Node): boolean {
   if (!(node instanceof HTMLElement)) return true;
   if (node.dataset.exportOptional === 'photo') return !!state.photo;
+  if (node.dataset.exportIgnore === 'true') return false;
   return true;
 }
 
@@ -227,16 +694,25 @@ function lib(): HtmlToImage | null {
 }
 
 const timers: Record<string, number> = {};
-function setStatus(id: string, msg: string): void {
-  const el = document.querySelector<HTMLElement>(`[data-status="${id}"]`);
-  if (!el) return;
-  el.textContent = msg;
-  if (msg && msg !== '…') {
-    window.clearTimeout(timers[id]);
-    timers[id] = window.setTimeout(() => {
-      el.textContent = '';
-    }, 2500);
-  }
+function setActionTooltip(id: string, mode: 'cp' | 'dl', msg: string): void {
+  const selector = mode === 'cp' ? `[data-cp="${id}"]` : `[data-dl="${id}"]`;
+  const btn = document.querySelector<HTMLElement>(selector);
+  if (!btn) return;
+
+  const baseAria = btn.dataset.baseAriaLabel ?? btn.getAttribute('aria-label') ?? '';
+  btn.dataset.baseAriaLabel = baseAria;
+  btn.dataset.actionTooltip = msg;
+  btn.classList.add('action-tooltip-visible');
+  btn.setAttribute('aria-label', msg);
+
+  const timerKey = `action-tip-${mode}-${id}`;
+  window.clearTimeout(timers[timerKey]);
+  timers[timerKey] = window.setTimeout(() => {
+    btn.classList.remove('action-tooltip-visible');
+    delete btn.dataset.actionTooltip;
+    if (baseAria) btn.setAttribute('aria-label', baseAria);
+    else btn.removeAttribute('aria-label');
+  }, 2500);
 }
 
 async function makeBlob(id: string): Promise<Blob> {
@@ -244,13 +720,17 @@ async function makeBlob(id: string): Promise<Blob> {
   if (!htmlToImage) throw new Error('html-to-image not loaded');
   const node = document.getElementById('vgx-' + id);
   if (!node) throw new Error('missing canvas: ' + id);
-  const blob = await htmlToImage.toBlob(node, { pixelRatio: 1, filter: exportFilter });
-  if (!blob) throw new Error('empty blob');
-  return blob;
+  node.classList.add('canvas--exporting');
+  try {
+    const blob = await htmlToImage.toBlob(node, { pixelRatio: 1, filter: exportFilter });
+    if (!blob) throw new Error('empty blob');
+    return blob;
+  } finally {
+    node.classList.remove('canvas--exporting');
+  }
 }
 
 async function download(id: string): Promise<void> {
-  setStatus(id, '…');
   try {
     const blob = await makeBlob(id);
     const a = document.createElement('a');
@@ -258,24 +738,23 @@ async function download(id: string): Promise<void> {
     a.download = `vg-${id}.png`;
     a.click();
     window.setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-    setStatus(id, '✓ збережено');
+    setActionTooltip(id, 'dl', 'Збережено');
   } catch (e) {
     console.error(e);
-    setStatus(id, '✕ помилка');
+    setActionTooltip(id, 'dl', 'Помилка збереження');
   }
 }
 
 async function copy(id: string): Promise<void> {
-  setStatus(id, '…');
   try {
     // ClipboardItem accepts a Promise<Blob>, which keeps Safari's user-gesture
     // requirement satisfied while the image renders.
     const item = new ClipboardItem({ 'image/png': makeBlob(id) });
     await navigator.clipboard.write([item]);
-    setStatus(id, '✓ скопійовано');
+    setActionTooltip(id, 'cp', 'Скопійовано');
   } catch (e) {
     console.error(e);
-    setStatus(id, '✕ помилка');
+    setActionTooltip(id, 'cp', 'Помилка копіювання');
   }
 }
 
@@ -313,10 +792,12 @@ function bindDrawer(): void {
 function bindActions(): void {
   document.querySelectorAll<HTMLElement>('[data-dl]').forEach((btn) => {
     const id = btn.dataset.dl;
+    setButtonLabel(btn, actionIcons.download, 'PNG');
     if (id) btn.addEventListener('click', () => download(id));
   });
   document.querySelectorAll<HTMLElement>('[data-cp]').forEach((btn) => {
     const id = btn.dataset.cp;
+    setButtonLabel(btn, actionIcons.copy, 'Копіювати');
     if (id) btn.addEventListener('click', () => copy(id));
   });
 }
@@ -331,6 +812,7 @@ function init(): void {
   bindImage('tpl-photo', 'tpl-photo-clear');
   bindColors();
   bindActions();
+  bindCardEditors();
   bindDrawer();
   render();
   applyColors();
