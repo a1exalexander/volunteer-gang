@@ -5,6 +5,7 @@
 // localStorage and is seeded from the CMS "active fundraiser" on first visit.
 
 import { fmtUAH, percentOf } from '../lib/format';
+import { trackEvent } from '../lib/analytics';
 
 const STORAGE_KEY = 'vg-tpl-state-v1';
 const LAYOUT_STORAGE_KEY = 'vg-tpl-layout-v1';
@@ -195,6 +196,15 @@ let cardFormats = readFormats();
 const cardEditors = new Map<string, CardEditor>();
 let activeCardId: string | null = null;
 let dragState: DragState | null = null;
+let drawerOpen = false;
+
+function trackTemplateEvent(action: string, params: Record<string, unknown> = {}): void {
+  trackEvent('template_interaction', {
+    section: 'templates',
+    action,
+    ...params,
+  });
+}
 
 function persist(): void {
   try {
@@ -403,6 +413,14 @@ function bindField(id: string, key: keyof State, numeric = false): void {
     persist();
     render();
   });
+  el.addEventListener('change', () => {
+    trackTemplateEvent('field_updated', {
+      field: key,
+      kind: numeric ? 'number' : 'text',
+      value_length: numeric ? undefined : el.value.trim().length,
+      is_empty: el.value.trim().length === 0,
+    });
+  });
 }
 
 // ---------- template colour mixer ----------
@@ -424,6 +442,9 @@ function bindColors(): void {
       persist();
       applyColors();
     });
+    inp.addEventListener('change', () => {
+      trackTemplateEvent('color_updated', { role });
+    });
   });
 
   document.getElementById('tpl-colors-reset')?.addEventListener('click', () => {
@@ -434,6 +455,7 @@ function bindColors(): void {
     });
     persist();
     applyColors();
+    trackTemplateEvent('colors_reset');
   });
 }
 
@@ -448,6 +470,13 @@ function bindLabels(): void {
       persist();
       render();
     });
+    inp.addEventListener('change', () => {
+      trackTemplateEvent('label_updated', {
+        role,
+        value_length: inp.value.trim().length,
+        is_empty: inp.value.trim().length === 0,
+      });
+    });
   });
 
   document.getElementById('tpl-labels-reset')?.addEventListener('click', () => {
@@ -458,6 +487,7 @@ function bindLabels(): void {
     });
     persist();
     render();
+    trackTemplateEvent('labels_reset');
   });
 }
 
@@ -465,19 +495,24 @@ function bindImage(inputId: string, clearId: string): void {
   const fileInput = document.getElementById(inputId) as HTMLInputElement | null;
   const dropzone = document.getElementById('tpl-photo-drop');
 
-  const loadFile = (file: File | null | undefined): void => {
+  const loadFile = (file: File | null | undefined, source: 'picker' | 'drop'): void => {
     if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
     reader.onload = () => {
       state.photo = String(reader.result);
       persist();
       render();
+      trackTemplateEvent('photo_uploaded', {
+        source,
+        mime: file.type,
+        size_kb: Math.round(file.size / 1024),
+      });
     };
     reader.readAsDataURL(file);
   };
 
   fileInput?.addEventListener('change', () => {
-    loadFile(fileInput.files && fileInput.files[0]);
+    loadFile(fileInput.files && fileInput.files[0], 'picker');
     fileInput.value = '';
   });
 
@@ -501,7 +536,7 @@ function bindImage(inputId: string, clearId: string): void {
     dropzone.addEventListener('drop', (e) => {
       stop(e);
       dropzone.classList.remove('is-dragover');
-      loadFile((e as DragEvent).dataTransfer?.files?.[0]);
+      loadFile((e as DragEvent).dataTransfer?.files?.[0], 'drop');
     });
   }
 
@@ -509,6 +544,7 @@ function bindImage(inputId: string, clearId: string): void {
     state.photo = null;
     persist();
     render();
+    trackTemplateEvent('photo_cleared');
   });
 }
 
@@ -663,7 +699,7 @@ function ensureRemoveButton(cardId: string, node: HTMLElement): void {
   button.addEventListener('click', (event) => {
     event.stopPropagation();
     const key = node.dataset.tplEditNode;
-    if (key) removeNode(cardId, key);
+    if (key) removeNode(cardId, key, 'button');
   });
   node.append(button);
 }
@@ -698,12 +734,13 @@ function applyRemovedState(cardId: string): void {
   });
 }
 
-function removeNode(cardId: string, key: string): void {
+function removeNode(cardId: string, key: string, source: 'button' | 'keyboard'): void {
   if (!isNodeRemoved(cardId, key)) {
     removedNodes = {
       ...removedNodes,
       [cardId]: [...(removedNodes[cardId] ?? []), key],
     };
+    trackTemplateEvent('card_element_removed', { card_id: cardId, source });
   }
   applyRemovedState(cardId);
   updateCardControls(cardId);
@@ -719,6 +756,7 @@ function restoreCardRemovals(cardId: string): void {
   applyRemovedState(cardId);
   updateCardControls(cardId);
   persistRemoved();
+  trackTemplateEvent('card_removed_elements_reset', { card_id: cardId });
 }
 
 function applyOffset(cardId: string, node: HTMLElement): void {
@@ -830,16 +868,29 @@ function setCardEditing(cardId: string, editing: boolean): void {
   editor.canvas.classList.toggle('canvas--editing', editing);
   activeCardId = editing ? cardId : activeCardId === cardId ? null : activeCardId;
   updateCardControls(cardId);
+  trackTemplateEvent('card_edit_mode_changed', { card_id: cardId, enabled: editing });
 }
 
 function finishDragging(): void {
   if (!dragState) return;
+  const stateAtDrag = dragState;
+  const finalValue = getLayoutValue(stateAtDrag.cardId, stateAtDrag.key);
+  const changed =
+    finalValue.x !== stateAtDrag.originX ||
+    finalValue.y !== stateAtDrag.originY ||
+    finalValue.scale !== stateAtDrag.originScale;
   dragState.node.classList.remove('is-dragging', 'is-scaling');
   if (dragState.node.hasPointerCapture(dragState.pointerId)) {
     dragState.node.releasePointerCapture(dragState.pointerId);
   }
   persistLayouts();
   dragState = null;
+  if (changed) {
+    trackTemplateEvent('card_element_transformed', {
+      card_id: stateAtDrag.cardId,
+      mode: stateAtDrag.mode,
+    });
+  }
 }
 
 function bindCardEditors(): void {
@@ -865,8 +916,10 @@ function bindCardEditors(): void {
     resetButton.className = 'ghost-btn tpl-reset-btn';
     setButtonLabel(resetButton, actionIcons.reset, 'Скинути');
     resetButton.addEventListener('click', () => {
+      const hadEdits = hasCardEdits(cardId);
       clearCardLayout(cardId);
       restoreCardRemovals(cardId);
+      if (hadEdits) trackTemplateEvent('card_edits_reset', { card_id: cardId });
     });
 
     const status = actions.querySelector<HTMLElement>('.tpl-status');
@@ -973,7 +1026,7 @@ function bindCardEditors(): void {
     if (!key) return;
 
     event.preventDefault();
-    removeNode(activeCardId, key);
+    removeNode(activeCardId, key, 'keyboard');
   });
 }
 
@@ -1060,9 +1113,11 @@ async function download(id: string): Promise<void> {
     a.click();
     window.setTimeout(() => URL.revokeObjectURL(a.href), 10000);
     setActionTooltip(id, 'dl', 'Збережено', true);
+    trackTemplateEvent('template_export', { method: 'download', card_id: id, status: 'success' });
   } catch (e) {
     console.error(e);
     setActionTooltip(id, 'dl', 'Помилка збереження', false);
+    trackTemplateEvent('template_export', { method: 'download', card_id: id, status: 'error' });
   }
 }
 
@@ -1073,9 +1128,11 @@ async function copy(id: string): Promise<void> {
     const item = new ClipboardItem({ 'image/png': makeBlob(id) });
     await navigator.clipboard.write([item]);
     setActionTooltip(id, 'cp', 'Скопійовано', true);
+    trackTemplateEvent('template_export', { method: 'copy', card_id: id, status: 'success' });
   } catch (e) {
     console.error(e);
     setActionTooltip(id, 'cp', 'Помилка копіювання', false);
+    trackTemplateEvent('template_export', { method: 'copy', card_id: id, status: 'error' });
   }
 }
 
@@ -1087,26 +1144,29 @@ function bindDrawer(): void {
   const backdrop = document.getElementById('studio-drawer-backdrop');
   if (!panel || !toggle || !backdrop) return;
 
-  const setOpen = (open: boolean): void => {
+  const setOpen = (open: boolean, source: 'toggle' | 'close' | 'backdrop' | 'escape' | 'breakpoint'): void => {
+    if (open === drawerOpen) return;
+    drawerOpen = open;
     panel.classList.toggle('open', open);
     backdrop.classList.toggle('open', open);
     toggle.setAttribute('aria-expanded', String(open));
     // Freeze the page behind the drawer; harmless on desktop where the
     // drawer chrome is display:none and setOpen is never called.
     document.body.classList.toggle('drawer-locked', open);
+    trackTemplateEvent('drawer_toggled', { open, source });
   };
 
-  toggle.addEventListener('click', () => setOpen(!panel.classList.contains('open')));
-  closeBtn?.addEventListener('click', () => setOpen(false));
-  backdrop.addEventListener('click', () => setOpen(false));
+  toggle.addEventListener('click', () => setOpen(!panel.classList.contains('open'), 'toggle'));
+  closeBtn?.addEventListener('click', () => setOpen(false, 'close'));
+  backdrop.addEventListener('click', () => setOpen(false, 'backdrop'));
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && panel.classList.contains('open')) setOpen(false);
+    if (e.key === 'Escape' && panel.classList.contains('open')) setOpen(false, 'escape');
   });
 
   // If the viewport grows past the mobile breakpoint while the drawer is
   // open, reset so the desktop sidebar isn't left with a scroll-locked body.
   window.matchMedia('(min-width: 900.02px)').addEventListener('change', (e) => {
-    if (e.matches) setOpen(false);
+    if (e.matches) setOpen(false, 'breakpoint');
   });
 }
 
@@ -1149,6 +1209,7 @@ function bindCardFormats(): void {
     card.prepend(group);
 
     const apply = (fmt: CardFormat, save: boolean): void => {
+      const previous = cardFormats[cardId] ?? native;
       const dims = FORMAT_DIMS[fmt];
       canvas.style.height = dims.canvas + 'px';
       preview.style.height = dims.preview + 'px';
@@ -1162,6 +1223,12 @@ function bindCardFormats(): void {
       if (fmt === native) delete cardFormats[cardId];
       else cardFormats[cardId] = fmt;
       if (save) persistFormats();
+      if (save && fmt !== previous) {
+        trackTemplateEvent('card_format_changed', {
+          card_id: cardId,
+          format: fmt,
+        });
+      }
     };
 
     buttons.post.addEventListener('click', () => apply('post', true));
@@ -1289,6 +1356,7 @@ function init(): void {
   bindStudioLayout();
   render();
   applyColors();
+  trackTemplateEvent('studio_loaded', { templates_count: CANVAS_IDS.length });
   // keep CANVAS_IDS referenced for clarity / future validation
   void CANVAS_IDS;
 }
