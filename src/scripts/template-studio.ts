@@ -34,6 +34,7 @@ type LayoutStore = Record<string, CardLayout>;
 interface CardEditor {
   canvas: HTMLElement;
   button: HTMLButtonElement;
+  resetButton: HTMLButtonElement;
 }
 
 interface DragState {
@@ -168,6 +169,14 @@ function persistLayouts(): void {
   } catch (error) {
     console.error('Could not persist template layout edits.', error);
   }
+}
+
+function isDefaultLayoutValue(value: LayoutValue): boolean {
+  return value.x === 0 && value.y === 0 && value.scale === 1;
+}
+
+function hasCardLayoutChanges(cardId: string): boolean {
+  return Object.keys(editLayouts[cardId] ?? {}).length > 0;
 }
 
 function derived(): Record<string, string> {
@@ -373,12 +382,24 @@ function getLayoutValue(cardId: string, key: string): LayoutValue {
 }
 
 function setLayoutValue(cardId: string, key: string, value: LayoutValue): void {
+  const nextCardLayout = { ...(editLayouts[cardId] ?? {}) };
+
+  if (isDefaultLayoutValue(value)) {
+    delete nextCardLayout[key];
+  } else {
+    nextCardLayout[key] = value;
+  }
+
+  if (Object.keys(nextCardLayout).length === 0) {
+    const nextLayouts = { ...editLayouts };
+    delete nextLayouts[cardId];
+    editLayouts = nextLayouts;
+    return;
+  }
+
   editLayouts = {
     ...editLayouts,
-    [cardId]: {
-      ...(editLayouts[cardId] ?? {}),
-      [key]: value,
-    },
+    [cardId]: nextCardLayout,
   };
 }
 
@@ -410,6 +431,32 @@ function applyOffset(cardId: string, node: HTMLElement): void {
 
   const base = node.dataset.tplEditBaseTransform ?? '';
   node.style.transform = formatTransform(base, getLayoutValue(cardId, key));
+}
+
+function applyCardLayout(cardId: string): void {
+  const editor = cardEditors.get(cardId);
+  if (!editor) return;
+
+  editor.canvas.querySelectorAll<HTMLElement>('[data-tpl-edit-node]').forEach((node) => {
+    applyOffset(cardId, node);
+  });
+}
+
+function updateCardResetButton(cardId: string): void {
+  const editor = cardEditors.get(cardId);
+  if (!editor) return;
+  editor.resetButton.style.display = hasCardLayoutChanges(cardId) ? 'inline-flex' : 'none';
+}
+
+function clearCardLayout(cardId: string): void {
+  if (!editLayouts[cardId]) return;
+
+  const nextLayouts = { ...editLayouts };
+  delete nextLayouts[cardId];
+  editLayouts = nextLayouts;
+  applyCardLayout(cardId);
+  updateCardResetButton(cardId);
+  persistLayouts();
 }
 
 function registerEditableNodes(cardId: string, canvas: HTMLElement): void {
@@ -481,11 +528,20 @@ function bindCardEditors(): void {
     button.textContent = '✎ Редагувати';
     button.addEventListener('click', () => setCardEditing(cardId, activeCardId !== cardId));
 
+    const resetButton = document.createElement('button');
+    resetButton.type = 'button';
+    resetButton.className = 'ghost-btn tpl-reset-btn';
+    resetButton.textContent = '↺ Скинути';
+    resetButton.style.display = 'none';
+    resetButton.addEventListener('click', () => clearCardLayout(cardId));
+
     const status = actions.querySelector('.tpl-status');
     if (status) {
       actions.insertBefore(button, status);
+      actions.insertBefore(resetButton, status);
     } else {
       actions.append(button);
+      actions.append(resetButton);
     }
 
     canvas.addEventListener('pointerdown', (event) => {
@@ -528,7 +584,8 @@ function bindCardEditors(): void {
       event.preventDefault();
     });
 
-    cardEditors.set(cardId, { canvas, button });
+    cardEditors.set(cardId, { canvas, button, resetButton });
+    updateCardResetButton(cardId);
   });
 
   document.addEventListener('pointermove', (event) => {
@@ -547,6 +604,7 @@ function bindCardEditors(): void {
 
     setLayoutValue(dragState.cardId, dragState.key, layoutValue);
     applyOffset(dragState.cardId, dragState.node);
+    updateCardResetButton(dragState.cardId);
   });
 
   document.addEventListener('pointerup', (event) => {
