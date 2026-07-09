@@ -515,6 +515,23 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
 .tpl-preview { overflow: hidden; }
 .tpl-scale { transform: scale(0.32963); transform-origin: top left; }
 .tpl-actions { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.tpl-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tpl-actions button .tpl-btn-icon {
+  width: 13px;
+  height: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.tpl-actions button .tpl-btn-icon svg {
+  width: 13px;
+  height: 13px;
+  display: block;
+}
 .tpl-edit-btn.is-active {
   background: var(--acid);
   border-color: var(--acid);
@@ -553,16 +570,16 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   content: attr(data-action-tooltip);
   position: absolute;
   left: 50%;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 6px);
   transform: translateX(-50%);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.04em;
   white-space: nowrap;
   color: var(--ink);
   background: var(--acid);
   border: 1px solid var(--acid);
-  padding: 6px 10px;
+  padding: 4px 8px;
   border-radius: 999px;
   opacity: 0;
   pointer-events: none;

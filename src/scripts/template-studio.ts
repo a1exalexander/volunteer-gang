@@ -28,6 +28,14 @@ interface LayoutValue {
   scale: number;
 }
 
+interface ActionIcons {
+  download: string;
+  copy: string;
+  edit: string;
+  done: string;
+  reset: string;
+}
+
 type CardLayout = Record<string, LayoutValue>;
 type LayoutStore = Record<string, CardLayout>;
 
@@ -111,7 +119,26 @@ function readInitial(): State {
   return merged;
 }
 
+function readActionIcons(): ActionIcons {
+  const fallback: ActionIcons = { download: '', copy: '', edit: '', done: '', reset: '' };
+  const el = document.getElementById('vg-tpl-icons');
+  if (!el?.textContent) return fallback;
+  try {
+    const parsed = JSON.parse(el.textContent) as Partial<ActionIcons>;
+    return {
+      download: typeof parsed.download === 'string' ? parsed.download : '',
+      copy: typeof parsed.copy === 'string' ? parsed.copy : '',
+      edit: typeof parsed.edit === 'string' ? parsed.edit : '',
+      done: typeof parsed.done === 'string' ? parsed.done : '',
+      reset: typeof parsed.reset === 'string' ? parsed.reset : '',
+    };
+  } catch {
+    return fallback;
+  }
+}
+
 let state = readInitial();
+const actionIcons = readActionIcons();
 let editLayouts = readLayouts();
 const cardEditors = new Map<string, CardEditor>();
 let activeCardId: string | null = null;
@@ -444,6 +471,14 @@ function applyCardLayout(cardId: string): void {
   });
 }
 
+function setButtonLabel(button: HTMLElement, iconMarkup: string, label: string): void {
+  if (!iconMarkup) {
+    button.textContent = label;
+    return;
+  }
+  button.innerHTML = `<span class="tpl-btn-icon" aria-hidden="true">${iconMarkup}</span><span>${label}</span>`;
+}
+
 function updateCardResetButton(cardId: string): void {
   const editor = cardEditors.get(cardId);
   if (!editor) return;
@@ -469,7 +504,7 @@ function updateCardEditButton(cardId: string): void {
 
   const editing = activeCardId === cardId;
   editor.button.classList.toggle('is-active', editing);
-  editor.button.textContent = editing ? '✓ Готово' : '✎ Редагувати';
+  setButtonLabel(editor.button, editing ? actionIcons.done : actionIcons.edit, editing ? 'Готово' : 'Редагувати');
   editor.button.setAttribute('aria-pressed', String(editing));
 }
 
@@ -553,13 +588,13 @@ function bindCardEditors(): void {
     button.className = 'cp-btn tpl-edit-btn';
     button.dataset.editCard = cardId;
     button.setAttribute('aria-pressed', 'false');
-    button.textContent = '✎ Редагувати';
+    setButtonLabel(button, actionIcons.edit, 'Редагувати');
     button.addEventListener('click', () => setCardEditing(cardId, activeCardId !== cardId));
 
     const resetButton = document.createElement('button');
     resetButton.type = 'button';
     resetButton.className = 'ghost-btn tpl-reset-btn';
-    resetButton.textContent = '↺ Скинути';
+    setButtonLabel(resetButton, actionIcons.reset, 'Скинути');
     resetButton.addEventListener('click', () => clearCardLayout(cardId));
 
     const status = actions.querySelector<HTMLElement>('.tpl-status');
@@ -757,10 +792,12 @@ function bindDrawer(): void {
 function bindActions(): void {
   document.querySelectorAll<HTMLElement>('[data-dl]').forEach((btn) => {
     const id = btn.dataset.dl;
+    setButtonLabel(btn, actionIcons.download, 'PNG');
     if (id) btn.addEventListener('click', () => download(id));
   });
   document.querySelectorAll<HTMLElement>('[data-cp]').forEach((btn) => {
     const id = btn.dataset.cp;
+    setButtonLabel(btn, actionIcons.copy, 'Копіювати');
     if (id) btn.addEventListener('click', () => copy(id));
   });
 }

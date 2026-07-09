@@ -71,7 +71,8 @@ export async function renderOgPng({ word1, word2, eyebrow, title, subtitle }: Og
     </div>
   `;
 
-  const svg = await satori(markup, { width: 1200, height: 630, fonts: FONTS });
+  // satori-html currently types html`...` as Preact VNode; satori accepts ReactNode.
+  const svg = await satori(markup as unknown as Parameters<typeof satori>[0], { width: 1200, height: 630, fonts: FONTS });
   const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: 1200 } });
   return Buffer.from(resvg.render().asPng());
 }

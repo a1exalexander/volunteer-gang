@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 
 // Astro 6's dev server doesn't auto-serve index.html from public/ subdirectories,
@@ -24,6 +25,7 @@ export default defineConfig({
   // robots.txt, and JSON-LD structured data. Override via SITE env var when needed.
   site: process.env.SITE || 'https://volunteer-gang.netlify.app',
   integrations: [
+    react(),
     // Generates /sitemap-index.xml + /sitemap-0.xml from all built HTML pages.
     // The /admin SPA is excluded; non-HTML routes (og/*.png, robots.txt) are
     // skipped automatically.
