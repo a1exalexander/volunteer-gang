@@ -280,6 +280,37 @@ async function copy(id: string): Promise<void> {
   }
 }
 
+// ---------- mobile bottom drawer for the fields panel ----------
+function bindDrawer(): void {
+  const panel = document.getElementById('studio-panel');
+  const toggle = document.getElementById('studio-drawer-toggle');
+  const closeBtn = document.getElementById('studio-drawer-close');
+  const backdrop = document.getElementById('studio-drawer-backdrop');
+  if (!panel || !toggle || !backdrop) return;
+
+  const setOpen = (open: boolean): void => {
+    panel.classList.toggle('open', open);
+    backdrop.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    // Freeze the page behind the drawer; harmless on desktop where the
+    // drawer chrome is display:none and setOpen is never called.
+    document.body.classList.toggle('drawer-locked', open);
+  };
+
+  toggle.addEventListener('click', () => setOpen(!panel.classList.contains('open')));
+  closeBtn?.addEventListener('click', () => setOpen(false));
+  backdrop.addEventListener('click', () => setOpen(false));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && panel.classList.contains('open')) setOpen(false);
+  });
+
+  // If the viewport grows past the mobile breakpoint while the drawer is
+  // open, reset so the desktop sidebar isn't left with a scroll-locked body.
+  window.matchMedia('(min-width: 900.02px)').addEventListener('change', (e) => {
+    if (e.matches) setOpen(false);
+  });
+}
+
 function bindActions(): void {
   document.querySelectorAll<HTMLElement>('[data-dl]').forEach((btn) => {
     const id = btn.dataset.dl;
@@ -302,6 +333,7 @@ function init(): void {
   bindImage('tpl-gift', 'tpl-gift-clear', 'gift');
   bindColors();
   bindActions();
+  bindDrawer();
   render();
   applyColors();
   // keep CANVAS_IDS referenced for clarity / future validation
