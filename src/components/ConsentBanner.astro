@@ -1,49 +1,39 @@
----
-const gaId = import.meta.env.PUBLIC_GA_ID;
----
+<aside class="consent-banner" data-consent-banner hidden>
+  <div class="consent-copy">
+    <div class="consent-kicker">VOLUNTEER GANG · ANALYTICS</div>
+    <p>
+      Ми використовуємо Google Analytics, щоб збирати лише звичні дані про сайт:
+      перегляди сторінок, джерела переходів і технічні показники.
+    </p>
+  </div>
 
-{
-  gaId && (
-    <Fragment>
-      <aside class="consent-banner" data-consent-banner hidden>
-        <div class="consent-copy">
-          <div class="consent-kicker">VOLUNTEER GANG · ANALYTICS</div>
-          <p>
-            Ми використовуємо Google Analytics, щоб збирати лише звичні дані про сайт:
-            перегляди сторінок, джерела переходів і технічні показники.
-          </p>
-        </div>
+  <div class="consent-actions">
+    <button type="button" class="btn btn-primary btn--sm" data-consent-accept>Добре</button>
+    <button type="button" class="consent-btn" data-consent-decline>Ні, дякую</button>
+  </div>
+</aside>
 
-        <div class="consent-actions">
-          <button type="button" class="btn btn-primary btn--sm" data-consent-accept>Добре</button>
-          <button type="button" class="consent-btn" data-consent-decline>Ні, дякую</button>
-        </div>
-      </aside>
+<script is:inline>
+  {`
+  const consentKey = 'vg-analytics-consent';
+  const banner = document.querySelector('[data-consent-banner]');
+  const acceptBtn = document.querySelector('[data-consent-accept]');
+  const declineBtn = document.querySelector('[data-consent-decline]');
+  const consentValue = window.localStorage.getItem(consentKey);
 
-      <script is:inline>
-        {`
-        const consentKey = 'vg-analytics-consent';
-        const banner = document.querySelector('[data-consent-banner]');
-        const acceptBtn = document.querySelector('[data-consent-accept]');
-        const declineBtn = document.querySelector('[data-consent-decline]');
-        const consentValue = window.localStorage.getItem(consentKey);
+  if (banner && consentValue !== 'accepted' && consentValue !== 'denied') {
+    banner.hidden = false;
+  }
 
-        if (banner && consentValue !== 'accepted' && consentValue !== 'denied') {
-          banner.hidden = false;
-        }
+  acceptBtn?.addEventListener('click', () => {
+    window.localStorage.setItem(consentKey, 'accepted');
+    banner?.setAttribute('hidden', '');
+    window.loadVolunteerGangAnalytics?.();
+  });
 
-        acceptBtn?.addEventListener('click', () => {
-          window.localStorage.setItem(consentKey, 'accepted');
-          banner?.setAttribute('hidden', '');
-          window.loadVolunteerGangAnalytics?.();
-        });
-
-        declineBtn?.addEventListener('click', () => {
-          window.localStorage.setItem(consentKey, 'denied');
-          banner?.setAttribute('hidden', '');
-        });
-        `}
-      </script>
-    </Fragment>
-  )
-}
+  declineBtn?.addEventListener('click', () => {
+    window.localStorage.setItem(consentKey, 'denied');
+    banner?.setAttribute('hidden', '');
+  });
+  `}
+</script>
