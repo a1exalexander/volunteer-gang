@@ -546,7 +546,8 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   cursor: pointer;
 }
 .cp-btn:hover { border-color: var(--bubble); color: var(--bubble); }
-.tpl-status { font-family: var(--font-mono); font-size: 12px; color: var(--acid); min-width: 90px; }
+.tpl-status { font-family: var(--font-mono); font-size: 12px; color: var(--acid); display: none; }
+.tpl-status:not(:empty) { display: inline-block; min-width: 90px; }
 
 /* the fixed-size export canvases keep their exact pixel dimensions */
 .canvas { position: relative; box-sizing: border-box; }
