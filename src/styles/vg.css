@@ -479,6 +479,34 @@ textarea.input:focus { outline: 2px solid var(--pink); outline-offset: -1px; }
   gap: 44px;
   align-items: flex-start;
 }
+.studio-alert {
+  flex-basis: 100%;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1px dashed var(--border);
+  background: #17110f;
+  padding: 14px 18px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--dust);
+}
+.studio-alert p { margin: 0; }
+.studio-alert strong { color: var(--chalk); font-weight: 500; }
+.studio-alert-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--acid);
+  border-radius: 50%;
+  color: var(--acid);
+  font-size: 12px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .tpl { display: flex; flex-direction: column; gap: 12px; }
 .tpl-cap { font-family: var(--font-mono); font-size: 12px; color: var(--dust); letter-spacing: 0.08em; }
 .tpl-preview { overflow: hidden; }

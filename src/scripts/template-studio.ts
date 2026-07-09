@@ -223,6 +223,18 @@ function bindImage(inputId: string, clearId: string, key: 'photo' | 'gift'): voi
 // ---------- export (PNG download / clipboard copy) ----------
 type HtmlToImage = { toBlob: (node: HTMLElement, opts?: Record<string, unknown>) => Promise<Blob | null> };
 
+// Photo slots are optional: elements marked data-export-optional="photo|gift"
+// are placeholder-hints for the preview only. When the matching image was
+// never uploaded they are dropped from the export clone, so the downloaded
+// or copied PNG comes out without the placeholder (see the alert on /templates).
+function exportFilter(node: Node): boolean {
+  if (!(node instanceof HTMLElement)) return true;
+  const optional = node.dataset.exportOptional;
+  if (optional === 'photo') return !!state.photo;
+  if (optional === 'gift') return !!state.gift;
+  return true;
+}
+
 function lib(): HtmlToImage | null {
   return (window as unknown as { htmlToImage?: HtmlToImage }).htmlToImage ?? null;
 }
@@ -245,7 +257,7 @@ async function makeBlob(id: string): Promise<Blob> {
   if (!htmlToImage) throw new Error('html-to-image not loaded');
   const node = document.getElementById('vgx-' + id);
   if (!node) throw new Error('missing canvas: ' + id);
-  const blob = await htmlToImage.toBlob(node, { pixelRatio: 1 });
+  const blob = await htmlToImage.toBlob(node, { pixelRatio: 1, filter: exportFilter });
   if (!blob) throw new Error('empty blob');
   return blob;
 }
