@@ -1,23 +1,36 @@
 ---
-// Google Analytics 4 (gtag.js). Renders nothing unless PUBLIC_GA_ID is set,
-// so local dev and un-configured deploys stay clean.
+// Google Analytics 4 (gtag.js). The loader only activates after the visitor
+// explicitly accepts analytics consent.
 const gaId = import.meta.env.PUBLIC_GA_ID;
 const debug = import.meta.env.PUBLIC_GA_DEBUG === '1';
 ---
 
 {
   gaId && (
-    <Fragment>
-      <script async is:inline src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
-      <script is:inline define:vars={{ gaId, debug }}>
-        {`
+    <script is:inline define:vars={{ gaId, debug }}>
+      {`
+      const consentKey = 'vg-analytics-consent';
+
+      window.loadVolunteerGangAnalytics = window.loadVolunteerGangAnalytics || function () {
+        if (window.__vgAnalyticsLoaded) return;
+        window.__vgAnalyticsLoaded = true;
+
         window.dataLayer = window.dataLayer || [];
-        function gtag(){ dataLayer.push(arguments); }
+        function gtag(){ window.dataLayer.push(arguments); }
         window.gtag = gtag;
         gtag('js', new Date());
         gtag('config', gaId, { anonymize_ip: true, debug_mode: debug });
-        `}
-      </script>
-    </Fragment>
+
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+        document.head.appendChild(script);
+      };
+
+      if (window.localStorage.getItem(consentKey) === 'accepted') {
+        window.loadVolunteerGangAnalytics();
+      }
+      `}
+    </script>
   )
 }
