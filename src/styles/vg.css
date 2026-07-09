@@ -192,6 +192,62 @@ p {
   color: var(--acid);
 }
 
+/* Global reset pill (studio only): absolutely centred in the header so it
+   sits dead-centre regardless of the logo / nav widths. Shown by JS only
+   once the studio has unsaved edits (see template-studio.ts). */
+.header-reset {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border: 1px solid var(--acid);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--acid) 12%, transparent);
+  color: var(--acid);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  cursor: pointer;
+  z-index: 1;
+  animation: header-reset-in 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.header-reset:hover {
+  background: var(--acid);
+  color: var(--ink);
+  border-color: var(--acid);
+}
+.header-reset:focus-visible {
+  outline: 2px solid var(--acid);
+  outline-offset: 2px;
+}
+/* Beats the UA `[hidden]` rule, which our class `display` would otherwise win. */
+.header-reset[hidden] { display: none; }
+.header-reset .tpl-btn-icon { width: 13px; height: 13px; display: inline-flex; }
+.header-reset .tpl-btn-icon svg { width: 13px; height: 13px; display: block; }
+/* Opacity-only so it plays cleanly whether the pill is absolutely centred
+   (desktop) or in normal flex flow (mobile) — a transform keyframe would
+   fight the centring translate. */
+@keyframes header-reset-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .header-reset { animation: none; transition: none; }
+}
+/* The section tag is wide; below full-desktop widths it would sit under the
+   centred pill. Drop it only while the pill is actually showing, so an
+   un-edited studio keeps its tag. (`:has` is already relied on elsewhere.) */
+@media (max-width: 1200px) {
+  .site-header-inner:has(#tpl-global-reset:not([hidden])) .nav-tag { display: none; }
+}
+
 /* ---------- hero ---------- */
 .hero {
   padding: 96px var(--pad-x) 104px;
@@ -989,6 +1045,27 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   .site-header { padding: 16px var(--pad-x); }
   .site-nav { gap: 16px; }
   .nav-link, .nav-tag { font-size: 11px; letter-spacing: 0.08em; }
+  /* Phones are too narrow to absolutely centre the pill without it landing
+     on the wide logo. Drop it into the header's flex flow instead: with the
+     section tag hidden it sits evenly between the logo and the back link.
+     Shrink to an icon-only tap target (name stays in aria-label). */
+  .header-reset {
+    position: static;
+    transform: none;
+    padding: 0;
+    gap: 0;
+    min-width: 40px;
+    min-height: 40px;
+    justify-content: center;
+  }
+  .header-reset > span:not(.tpl-btn-icon) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
   .hero-v { font-size: 52px; }
   .sec-title { font-size: 26px; }
   .members { grid-template-columns: 1fr; }

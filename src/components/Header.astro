@@ -25,6 +25,20 @@ const { active, settings, jarActive = false } = Astro.props;
       />
     </a>
 
+    {
+      active === 'templates' && (
+        <button
+          type="button"
+          id="tpl-global-reset"
+          class="header-reset"
+          aria-label="Скинути всі зміни шаблонів"
+          hidden
+        >
+          Скинути все
+        </button>
+      )
+    }
+
     <nav class="site-nav">
       {
         active === 'templates' ? (

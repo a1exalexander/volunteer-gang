@@ -151,14 +151,32 @@ function pick(obj: Record<string, unknown>): Partial<State> {
   return out;
 }
 
-function readInitial(): State {
-  let base: State = { ...FALLBACK };
+// The pristine baseline: brand defaults plus the CMS "active fundraiser"
+// seed, but *without* any localStorage overrides. It never changes after
+// load, so it doubles as the target the header "Скинути все" button restores
+// to and as the yardstick for detecting whether anything was edited.
+function readSeed(): State {
+  const base: State = { ...FALLBACK, colors: { ...DEFAULT_COLORS }, labels: { ...DEFAULT_LABELS } };
   const el = document.getElementById('vg-tpl-initial');
   try {
-    if (el?.textContent) base = { ...base, ...pick(JSON.parse(el.textContent)) };
+    if (el?.textContent) {
+      const seeded = pick(JSON.parse(el.textContent));
+      // The seed only carries fundraiser fields — colours and labels always
+      // fall back to the brand defaults, so drop any stray values.
+      delete seeded.colors;
+      delete seeded.labels;
+      return { ...base, ...seeded };
+    }
   } catch {
     /* ignore malformed seed */
   }
+  return base;
+}
+
+const SEED: State = readSeed();
+
+function readInitial(): State {
+  const base: State = { ...SEED, colors: { ...SEED.colors }, labels: { ...SEED.labels } };
   let saved: Record<string, unknown> = {};
   try {
     saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {};
@@ -207,6 +225,10 @@ const cardEditors = new Map<string, CardEditor>();
 let activeCardId: string | null = null;
 let dragState: DragState | null = null;
 let drawerOpen = false;
+// Per-card callbacks that restore the native post/story format, and the
+// header's global reset button — both driven by resetAll().
+const formatResetters: Array<() => void> = [];
+let globalResetBtn: HTMLButtonElement | null = null;
 
 function trackTemplateEvent(action: string, params: Record<string, unknown> = {}): void {
   trackEvent('template_interaction', {
@@ -222,6 +244,7 @@ function persist(): void {
   } catch {
     /* storage may be unavailable (private mode) — degrade silently */
   }
+  updateGlobalReset();
 }
 
 function isLayoutValue(value: unknown): value is LayoutValue {
@@ -325,6 +348,7 @@ function persistFormats(): void {
   } catch (error) {
     console.error('Could not persist template formats.', error);
   }
+  updateGlobalReset();
 }
 
 function isDefaultLayoutValue(value: LayoutValue): boolean {
@@ -826,6 +850,7 @@ function updateCardEditButton(cardId: string): void {
 function updateCardControls(cardId: string): void {
   updateCardEditButton(cardId);
   updateCardResetButton(cardId);
+  updateGlobalReset();
 }
 
 function clearCardLayout(cardId: string): void {
@@ -1244,6 +1269,9 @@ function bindCardFormats(): void {
     buttons.post.addEventListener('click', () => apply('post', true));
     buttons.story.addEventListener('click', () => apply('story', true));
 
+    // Let resetAll() snap this card back to its native format without saving.
+    formatResetters.push(() => apply(native, false));
+
     apply(cardFormats[cardId] ?? native, false);
   });
 }
@@ -1336,6 +1364,109 @@ function bindFocusHighlight(): void {
   });
 }
 
+// ---------- global reset (header «Скинути все») ----------
+// A single button in the site header that appears the moment the studio
+// diverges from its pristine seed — an edited field, a recoloured swatch, a
+// moved/removed element, or a flipped post/story format — and wipes every
+// override back to that seed in one click.
+function fieldsMatchSeed(): boolean {
+  return (
+    state.titleMain === SEED.titleMain &&
+    state.titleAccent === SEED.titleAccent &&
+    state.desc === SEED.desc &&
+    Number(state.goal) === Number(SEED.goal) &&
+    Number(state.raised) === Number(SEED.raised) &&
+    state.photo === SEED.photo &&
+    COLOR_ROLES.every((role) => state.colors[role] === SEED.colors[role]) &&
+    LABEL_ROLES.every((role) => state.labels[role] === SEED.labels[role])
+  );
+}
+
+function hasAnyChanges(): boolean {
+  return (
+    Object.keys(editLayouts).length > 0 ||
+    Object.keys(removedNodes).length > 0 ||
+    Object.keys(cardFormats).length > 0 ||
+    !fieldsMatchSeed()
+  );
+}
+
+function updateGlobalReset(): void {
+  if (globalResetBtn) globalResetBtn.hidden = !hasAnyChanges();
+}
+
+// Push the current `state` back into every panel control after a reset.
+function syncPanelInputs(): void {
+  const fields: [string, keyof State][] = [
+    ['tpl-titleMain', 'titleMain'],
+    ['tpl-titleAccent', 'titleAccent'],
+    ['tpl-desc', 'desc'],
+    ['tpl-goal', 'goal'],
+    ['tpl-raised', 'raised'],
+  ];
+  for (const [id, key] of fields) {
+    const el = document.getElementById(id) as FieldEl | null;
+    if (el) {
+      const value = state[key];
+      el.value = value == null ? '' : String(value);
+    }
+  }
+  document.querySelectorAll<HTMLInputElement>('[data-color]').forEach((inp) => {
+    const role = inp.dataset.color;
+    if (role && state.colors[role]) inp.value = state.colors[role];
+  });
+  document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[data-label-input]').forEach((inp) => {
+    const role = inp.dataset.labelInput;
+    if (role && state.labels[role] != null) inp.value = state.labels[role];
+  });
+}
+
+function resetAll(): void {
+  if (!hasAnyChanges()) return;
+
+  const wasEditing = activeCardId;
+
+  // 1. Restore every in-memory store to the pristine seed / defaults.
+  state = { ...SEED, colors: { ...SEED.colors }, labels: { ...SEED.labels } };
+  editLayouts = {};
+  removedNodes = {};
+  cardFormats = {};
+
+  // 2. Drop the persisted overrides so a reload stays reset.
+  [STORAGE_KEY, LAYOUT_STORAGE_KEY, REMOVED_STORAGE_KEY, FORMAT_STORAGE_KEY].forEach((key) => {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      /* storage may be unavailable — degrade silently */
+    }
+  });
+
+  // 3. Leave edit mode (also clears any selection / in-flight drag).
+  if (wasEditing) setCardEditing(wasEditing, false);
+
+  // 4. Re-sync the panel controls and repaint the canvases.
+  syncPanelInputs();
+  formatResetters.forEach((reset) => reset());
+  cardEditors.forEach((_editor, cardId) => {
+    applyCardLayout(cardId);
+    applyRemovedState(cardId);
+    updateCardControls(cardId);
+  });
+  applyColors();
+  render();
+
+  updateGlobalReset();
+  trackTemplateEvent('studio_reset_all');
+}
+
+function bindGlobalReset(): void {
+  globalResetBtn = document.getElementById('tpl-global-reset') as HTMLButtonElement | null;
+  if (!globalResetBtn) return;
+  setButtonLabel(globalResetBtn, actionIcons.reset, 'Скинути все');
+  globalResetBtn.addEventListener('click', resetAll);
+  updateGlobalReset();
+}
+
 function bindActions(): void {
   document.querySelectorAll<HTMLElement>('[data-dl]').forEach((btn) => {
     const id = btn.dataset.dl;
@@ -1364,6 +1495,7 @@ function init(): void {
   bindFocusHighlight();
   bindDrawer();
   bindStudioLayout();
+  bindGlobalReset();
   render();
   applyColors();
   trackTemplateEvent('studio_loaded', { templates_count: CANVAS_IDS.length });
