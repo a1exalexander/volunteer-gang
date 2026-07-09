@@ -1202,7 +1202,9 @@ function highlightSelectorFor(el: HTMLElement): string | null {
   const labelRole = el.dataset.labelInput;
   if (labelRole && LABEL_ROLES.includes(labelRole)) return `[data-label="${labelRole}"]`;
   if (el.id && FIELD_HIGHLIGHT[el.id]) return FIELD_HIGHLIGHT[el.id];
-  if (el.id === 'tpl-photo-clear' || el.closest('#tpl-photo-drop')) return '[data-photo],[data-nophoto]';
+  if (el.id === 'tpl-photo-clear' || el.closest('#tpl-photo-drop')) {
+    return '[data-export-optional="photo"],[data-photo],[data-nophoto]';
+  }
   return null;
 }
 
