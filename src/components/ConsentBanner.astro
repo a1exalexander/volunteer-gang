@@ -27,11 +27,12 @@
   acceptBtn?.addEventListener('click', () => {
     window.localStorage.setItem(consentKey, 'accepted');
     banner?.setAttribute('hidden', '');
-    window.loadVolunteerGangAnalytics?.();
+    window.vgSetAnalyticsConsent?.(true);
   });
 
   declineBtn?.addEventListener('click', () => {
     window.localStorage.setItem(consentKey, 'denied');
     banner?.setAttribute('hidden', '');
+    window.vgSetAnalyticsConsent?.(false);
   });
 </script>
