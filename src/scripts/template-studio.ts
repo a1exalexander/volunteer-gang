@@ -445,7 +445,22 @@ function applyCardLayout(cardId: string): void {
 function updateCardResetButton(cardId: string): void {
   const editor = cardEditors.get(cardId);
   if (!editor) return;
-  editor.resetButton.style.display = hasCardLayoutChanges(cardId) ? 'inline-flex' : 'none';
+  editor.resetButton.style.display = activeCardId === cardId && hasCardLayoutChanges(cardId) ? 'inline-flex' : 'none';
+}
+
+function updateCardEditButton(cardId: string): void {
+  const editor = cardEditors.get(cardId);
+  if (!editor) return;
+
+  const editing = activeCardId === cardId;
+  editor.button.classList.toggle('is-active', editing);
+  editor.button.textContent = editing ? '✓ Готово' : '✎ Редагувати';
+  editor.button.setAttribute('aria-pressed', String(editing));
+}
+
+function updateCardControls(cardId: string): void {
+  updateCardEditButton(cardId);
+  updateCardResetButton(cardId);
 }
 
 function clearCardLayout(cardId: string): void {
@@ -455,7 +470,7 @@ function clearCardLayout(cardId: string): void {
   delete nextLayouts[cardId];
   editLayouts = nextLayouts;
   applyCardLayout(cardId);
-  updateCardResetButton(cardId);
+  updateCardControls(cardId);
   persistLayouts();
 }
 
@@ -494,10 +509,8 @@ function setCardEditing(cardId: string, editing: boolean): void {
   if (!editing && dragState?.cardId === cardId) finishDragging();
 
   editor.canvas.classList.toggle('canvas--editing', editing);
-  editor.button.classList.toggle('is-active', editing);
-  editor.button.textContent = editing ? '✓ Готово' : '✎ Редагувати';
-  editor.button.setAttribute('aria-pressed', String(editing));
   activeCardId = editing ? cardId : activeCardId === cardId ? null : activeCardId;
+  updateCardControls(cardId);
 }
 
 function finishDragging(): void {
@@ -585,7 +598,7 @@ function bindCardEditors(): void {
     });
 
     cardEditors.set(cardId, { canvas, button, resetButton });
-    updateCardResetButton(cardId);
+    updateCardControls(cardId);
   });
 
   document.addEventListener('pointermove', (event) => {
@@ -604,7 +617,7 @@ function bindCardEditors(): void {
 
     setLayoutValue(dragState.cardId, dragState.key, layoutValue);
     applyOffset(dragState.cardId, dragState.node);
-    updateCardResetButton(dragState.cardId);
+    updateCardControls(dragState.cardId);
   });
 
   document.addEventListener('pointerup', (event) => {

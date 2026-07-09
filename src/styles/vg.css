@@ -509,11 +509,11 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   color: var(--acid);
   margin-top: 1px;
 }
-.tpl { display: flex; flex-direction: column; gap: 12px; }
+.tpl { display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .tpl-cap { font-family: var(--font-mono); font-size: 12px; color: var(--dust); letter-spacing: 0.08em; }
 .tpl-preview { overflow: hidden; }
 .tpl-scale { transform: scale(0.32963); transform-origin: top left; }
-.tpl-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tpl-actions { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
 .tpl-edit-btn.is-active {
   background: var(--acid);
   border-color: var(--acid);
