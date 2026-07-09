@@ -26,35 +26,38 @@ const gang = settings.brand.word2;
 <Layout title={home.seo.title} description={home.seo.description} active="home">
   <!-- ============ HERO ============ -->
   <section class="hero">
-    <div class="hero-top mount mount-1">
-      <div class="eyebrow">{home.hero.eyebrow}</div>
-      <div class="hero-since">
-        <div class="dot"></div>
-        <div class="eyebrow">{home.hero.sinceLabel}</div>
+    <div class="container">
+      <div class="hero-top mount mount-1">
+        <div class="eyebrow">{home.hero.eyebrow}</div>
+        <div class="hero-since">
+          <div class="dot"></div>
+          <div class="eyebrow">{home.hero.sinceLabel}</div>
+        </div>
       </div>
-    </div>
 
-    <h1 class="mount mount-2">
-      <span class="hero-v">{settings.brand.word1}</span>
-      <span class="gang-wrap">
-        <span class="gang">
-          <GangWord word={gang} />
-          <span aria-hidden="true" class="drip drip1"></span>
-          <span aria-hidden="true" class="drip drip2"></span>
+      <h1 class="mount mount-2">
+        <span class="hero-v">{settings.brand.word1}</span>
+        <span class="gang-wrap">
+          <span class="gang">
+            <GangWord word={gang} />
+            <span aria-hidden="true" class="drip drip1"></span>
+            <span aria-hidden="true" class="drip drip2"></span>
+          </span>
+          <GangUnderline class="gang-underline" />
         </span>
-        <GangUnderline class="gang-underline" />
-      </span>
-    </h1>
+      </h1>
 
-    <div class="hero-tagline-row mount mount-3">
-      <Chevrons />
-      <p class="hero-tagline">{settings.tagline}</p>
+      <div class="hero-tagline-row mount mount-3">
+        <Chevrons />
+        <p class="hero-tagline">{settings.tagline}</p>
+      </div>
+      <p class="hero-intro mount mount-4">{home.hero.intro}</p>
     </div>
-    <p class="hero-intro mount mount-4">{home.hero.intro}</p>
   </section>
 
   <!-- ============ ACTIVE FUNDRAISER ============ -->
   <section class="section" id="zbir">
+    <div class="container">
     <div class="sec-head">
       <span class="sec-num">{home.sections.fundraiser.num}</span>
       <h2 class="sec-title">{home.sections.fundraiser.title}</h2>
@@ -103,10 +106,12 @@ const gang = settings.brand.word2;
         <div class="fund-proof">{home.proofLine}</div>
       </div>
     </div>
+    </div>
   </section>
 
   <!-- ============ MEMBERS ============ -->
   <section class="section" id="gang">
+    <div class="container">
     <div class="sec-head">
       <span class="sec-num">{home.sections.members.num}</span>
       <h2 class="sec-title">{home.sections.members.title}</h2>
@@ -135,24 +140,27 @@ const gang = settings.brand.word2;
         ))
       }
     </div>
+    </div>
   </section>
 
   <!-- ============ TEMPLATES TEASER ============ -->
   <section class="section teaser">
-    <div class="teaser-copy">
-      <div class="teaser-head">
-        <span class="sec-num">{home.sections.templates.num}</span>
-        <h2 class="sec-title">{home.sections.templates.title}</h2>
+    <div class="container teaser-inner">
+      <div class="teaser-copy">
+        <div class="teaser-head">
+          <span class="sec-num">{home.sections.templates.num}</span>
+          <h2 class="sec-title">{home.sections.templates.title}</h2>
+        </div>
+        <p class="teaser-body">{home.teaser.body}</p>
       </div>
-      <p class="teaser-body">{home.teaser.body}</p>
+      <a
+        href="/templates"
+        class="btn btn-primary btn--lg"
+        data-track="cta_click"
+        data-evt-cta-location="home_templates"
+      >
+        {home.teaser.cta}
+      </a>
     </div>
-    <a
-      href="/templates"
-      class="btn btn-primary btn--lg"
-      data-track="cta_click"
-      data-evt-cta-location="home_templates"
-    >
-      {home.teaser.cta}
-    </a>
   </section>
 </Layout>

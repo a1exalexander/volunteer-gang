@@ -10,19 +10,21 @@ const { settings } = Astro.props;
 ---
 
 <footer class="site-footer">
-  <div class="footer-logo">
-    <Logo
-      word1={settings.brand.word1}
-      word2={settings.brand.word2}
-      graffiti="layered"
-      layout="inline"
-      size={22}
-      gangSize={26}
-      rotate={-4}
-    />
-  </div>
-  <div class="footer-right">
-    <a href="/brand" class="footer-link" rel="nofollow">БРЕНД-БУК</a>
-    <div class="footer-tag">{settings.footerTagline}</div>
+  <div class="container site-footer-inner">
+    <div class="footer-logo">
+      <Logo
+        word1={settings.brand.word1}
+        word2={settings.brand.word2}
+        graffiti="layered"
+        layout="inline"
+        size={22}
+        gangSize={26}
+        rotate={-4}
+      />
+    </div>
+    <div class="footer-right">
+      <a href="/brand" class="footer-link" rel="nofollow">БРЕНД-БУК</a>
+      <div class="footer-tag">{settings.footerTagline}</div>
+    </div>
   </div>
 </footer>
