@@ -14,7 +14,6 @@
 </aside>
 
 <script is:inline>
-  {`
   const consentKey = 'vg-analytics-consent';
   const banner = document.querySelector('[data-consent-banner]');
   const acceptBtn = document.querySelector('[data-consent-accept]');
@@ -35,5 +34,4 @@
     window.localStorage.setItem(consentKey, 'denied');
     banner?.setAttribute('hidden', '');
   });
-  `}
 </script>
