@@ -548,6 +548,27 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
 .cp-btn:hover { border-color: var(--bubble); color: var(--bubble); }
 .tpl-status { font-family: var(--font-mono); font-size: 12px; color: var(--acid); display: none; }
 .tpl-status:not(:empty) { display: inline-block; min-width: 90px; }
+.tpl-actions button[data-action-tooltip] { position: relative; }
+.tpl-actions button[data-action-tooltip]::after {
+  content: attr(data-action-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: var(--ink);
+  background: var(--acid);
+  border: 1px solid var(--acid);
+  padding: 6px 10px;
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.tpl-actions button[data-action-tooltip].action-tooltip-visible::after { opacity: 1; }
 
 /* the fixed-size export canvases keep their exact pixel dimensions */
 .canvas { position: relative; box-sizing: border-box; }

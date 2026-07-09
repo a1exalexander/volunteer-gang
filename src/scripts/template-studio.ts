@@ -659,37 +659,24 @@ function lib(): HtmlToImage | null {
 }
 
 const timers: Record<string, number> = {};
-function setStatus(id: string, msg: string): void {
-  const el = document.querySelector<HTMLElement>(`[data-status="${id}"]`);
-  if (!el) return;
-  el.textContent = msg;
-  if (msg && msg !== '…') {
-    window.clearTimeout(timers[id]);
-    timers[id] = window.setTimeout(() => {
-      el.textContent = '';
-    }, 2500);
-  }
-}
-
-function setCopyTooltip(id: string, msg: string): void {
-  const btn = document.querySelector<HTMLElement>(`[data-cp="${id}"]`);
+function setActionTooltip(id: string, mode: 'cp' | 'dl', msg: string): void {
+  const selector = mode === 'cp' ? `[data-cp="${id}"]` : `[data-dl="${id}"]`;
+  const btn = document.querySelector<HTMLElement>(selector);
   if (!btn) return;
 
-  const baseTitle = btn.dataset.baseTitle ?? btn.getAttribute('title') ?? '';
-  btn.dataset.baseTitle = baseTitle;
-  btn.setAttribute('title', msg);
+  const baseAria = btn.dataset.baseAriaLabel ?? btn.getAttribute('aria-label') ?? '';
+  btn.dataset.baseAriaLabel = baseAria;
+  btn.dataset.actionTooltip = msg;
+  btn.classList.add('action-tooltip-visible');
   btn.setAttribute('aria-label', msg);
 
-  const timerKey = `cp-tip-${id}`;
+  const timerKey = `action-tip-${mode}-${id}`;
   window.clearTimeout(timers[timerKey]);
   timers[timerKey] = window.setTimeout(() => {
-    if (baseTitle) {
-      btn.setAttribute('title', baseTitle);
-      btn.setAttribute('aria-label', baseTitle);
-      return;
-    }
-    btn.removeAttribute('title');
-    btn.removeAttribute('aria-label');
+    btn.classList.remove('action-tooltip-visible');
+    delete btn.dataset.actionTooltip;
+    if (baseAria) btn.setAttribute('aria-label', baseAria);
+    else btn.removeAttribute('aria-label');
   }, 2500);
 }
 
@@ -709,7 +696,6 @@ async function makeBlob(id: string): Promise<Blob> {
 }
 
 async function download(id: string): Promise<void> {
-  setStatus(id, '…');
   try {
     const blob = await makeBlob(id);
     const a = document.createElement('a');
@@ -717,10 +703,10 @@ async function download(id: string): Promise<void> {
     a.download = `vg-${id}.png`;
     a.click();
     window.setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-    setStatus(id, '✓ збережено');
+    setActionTooltip(id, 'dl', 'Збережено');
   } catch (e) {
     console.error(e);
-    setStatus(id, '✕ помилка');
+    setActionTooltip(id, 'dl', 'Помилка збереження');
   }
 }
 
@@ -730,10 +716,10 @@ async function copy(id: string): Promise<void> {
     // requirement satisfied while the image renders.
     const item = new ClipboardItem({ 'image/png': makeBlob(id) });
     await navigator.clipboard.write([item]);
-    setCopyTooltip(id, 'Скопійовано');
+    setActionTooltip(id, 'cp', 'Скопійовано');
   } catch (e) {
     console.error(e);
-    setCopyTooltip(id, 'Помилка копіювання');
+    setActionTooltip(id, 'cp', 'Помилка копіювання');
   }
 }
 
