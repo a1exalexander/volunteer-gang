@@ -4,7 +4,7 @@ import { fmtUAH, percentOf, dayFmt } from '../lib/format';
 import React from 'react';
 import type { IconType } from 'react-icons';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { FiAlertTriangle, FiCheck, FiCheckCircle, FiCopy, FiDownload, FiEdit3, FiRotateCcw } from 'react-icons/fi';
+import { FiAlertTriangle, FiCheck, FiCheckCircle, FiCopy, FiDownload, FiEdit3, FiRotateCcw, FiTrash2 } from 'react-icons/fi';
 import TemplateLockup from './brand/TemplateLockup.astro';
 import TplPhotoSlot from './TplPhotoSlot.astro';
 
@@ -46,6 +46,7 @@ const actionIcons = {
   edit: iconMarkup(FiEdit3),
   done: iconMarkup(FiCheck),
   reset: iconMarkup(FiRotateCcw),
+  remove: iconMarkup(FiTrash2),
   // Feedback icons paired with the success/error action tooltips
   // («Збережено» / «Скопійовано» vs. their «Помилка …» variants).
   success: iconMarkup(FiCheckCircle),

@@ -8,6 +8,7 @@ import { fmtUAH, percentOf, dayFmt } from '../lib/format';
 
 const STORAGE_KEY = 'vg-tpl-state-v1';
 const LAYOUT_STORAGE_KEY = 'vg-tpl-layout-v1';
+const REMOVED_STORAGE_KEY = 'vg-tpl-removed-v1';
 const CANVAS_IDS = ['announce', 'progress', 'urgent', 'push', 'report', 'thanks', 'closed', 'milestone', 'remaining', 'thermo', 'goalpost', 'photopost', 'photostory', 'halfway', 'deadline', 'share', 'weekly', 'quote', 'minimal', 'sos', 'closedstory'];
 
 interface State {
@@ -34,12 +35,15 @@ interface ActionIcons {
   edit: string;
   done: string;
   reset: string;
+  remove: string;
   success: string;
   error: string;
 }
 
 type CardLayout = Record<string, LayoutValue>;
 type LayoutStore = Record<string, CardLayout>;
+/** cardId → list of node keys the user has removed from that card */
+type RemovedStore = Record<string, string[]>;
 
 interface CardEditor {
   actions: HTMLElement;
@@ -122,7 +126,7 @@ function readInitial(): State {
 }
 
 function readActionIcons(): ActionIcons {
-  const fallback: ActionIcons = { download: '', copy: '', edit: '', done: '', reset: '', success: '', error: '' };
+  const fallback: ActionIcons = { download: '', copy: '', edit: '', done: '', reset: '', remove: '', success: '', error: '' };
   const el = document.getElementById('vg-tpl-icons');
   if (!el?.textContent) return fallback;
   try {
@@ -133,6 +137,7 @@ function readActionIcons(): ActionIcons {
       edit: typeof parsed.edit === 'string' ? parsed.edit : '',
       done: typeof parsed.done === 'string' ? parsed.done : '',
       reset: typeof parsed.reset === 'string' ? parsed.reset : '',
+      remove: typeof parsed.remove === 'string' ? parsed.remove : '',
       success: typeof parsed.success === 'string' ? parsed.success : '',
       error: typeof parsed.error === 'string' ? parsed.error : '',
     };
@@ -144,6 +149,7 @@ function readActionIcons(): ActionIcons {
 let state = readInitial();
 const actionIcons = readActionIcons();
 let editLayouts = readLayouts();
+let removedNodes = readRemoved();
 const cardEditors = new Map<string, CardEditor>();
 let activeCardId: string | null = null;
 let dragState: DragState | null = null;
@@ -204,12 +210,53 @@ function persistLayouts(): void {
   }
 }
 
+function readRemoved(): RemovedStore {
+  try {
+    const raw = localStorage.getItem(REMOVED_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return {};
+
+    const removed: RemovedStore = {};
+    for (const [cardId, keys] of Object.entries(parsed as Record<string, unknown>)) {
+      if (!Array.isArray(keys)) continue;
+      const nodeKeys = keys.filter((k): k is string => typeof k === 'string');
+      if (nodeKeys.length > 0) removed[cardId] = nodeKeys;
+    }
+
+    return removed;
+  } catch (error) {
+    console.error('Could not read removed template elements.', error);
+    return {};
+  }
+}
+
+function persistRemoved(): void {
+  try {
+    localStorage.setItem(REMOVED_STORAGE_KEY, JSON.stringify(removedNodes));
+  } catch (error) {
+    console.error('Could not persist removed template elements.', error);
+  }
+}
+
 function isDefaultLayoutValue(value: LayoutValue): boolean {
   return value.x === 0 && value.y === 0 && value.scale === 1;
 }
 
 function hasCardLayoutChanges(cardId: string): boolean {
   return Object.keys(editLayouts[cardId] ?? {}).length > 0;
+}
+
+function hasCardRemovals(cardId: string): boolean {
+  return (removedNodes[cardId]?.length ?? 0) > 0;
+}
+
+function isNodeRemoved(cardId: string, key: string): boolean {
+  return !!removedNodes[cardId]?.includes(key);
+}
+
+function hasCardEdits(cardId: string): boolean {
+  return hasCardLayoutChanges(cardId) || hasCardRemovals(cardId);
 }
 
 function derived(): Record<string, string> {
@@ -493,6 +540,88 @@ function ensureScaleHandle(node: HTMLElement): void {
   node.append(handle);
 }
 
+// The remove button only appears once its node is selected (see the
+// `.is-selected` CSS rule); clicking it hides the element from the preview
+// and the export, restorable via the card's «Скинути» button.
+function ensureRemoveButton(cardId: string, node: HTMLElement): void {
+  if (node.querySelector(':scope > [data-tpl-remove-handle]')) return;
+
+  if (getComputedStyle(node).position === 'static' && !node.style.position) {
+    node.style.position = 'relative';
+  }
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'tpl-remove-btn';
+  button.dataset.tplRemoveHandle = 'true';
+  button.dataset.exportIgnore = 'true';
+  button.setAttribute('aria-label', 'Видалити елемент');
+  if (actionIcons.remove) {
+    button.innerHTML = `<span class="tpl-btn-icon" aria-hidden="true">${actionIcons.remove}</span>`;
+  } else {
+    button.textContent = '✕';
+  }
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const key = node.dataset.tplEditNode;
+    if (key) removeNode(cardId, key);
+  });
+  node.append(button);
+}
+
+function selectNode(cardId: string, node: HTMLElement): void {
+  const editor = cardEditors.get(cardId);
+  if (!editor) return;
+  editor.canvas.querySelectorAll<HTMLElement>('[data-tpl-edit-node].is-selected').forEach((n) => {
+    if (n !== node) n.classList.remove('is-selected');
+  });
+  node.classList.add('is-selected');
+}
+
+function clearSelection(cardId: string): void {
+  const editor = cardEditors.get(cardId);
+  if (!editor) return;
+  editor.canvas.querySelectorAll<HTMLElement>('[data-tpl-edit-node].is-selected').forEach((n) => {
+    n.classList.remove('is-selected');
+  });
+}
+
+function applyRemovedState(cardId: string): void {
+  const editor = cardEditors.get(cardId);
+  if (!editor) return;
+
+  const removed = new Set(removedNodes[cardId] ?? []);
+  editor.canvas.querySelectorAll<HTMLElement>('[data-tpl-edit-node]').forEach((node) => {
+    const key = node.dataset.tplEditNode;
+    const isRemoved = !!key && removed.has(key);
+    node.classList.toggle('tpl-node-removed', isRemoved);
+    if (isRemoved) node.classList.remove('is-selected');
+  });
+}
+
+function removeNode(cardId: string, key: string): void {
+  if (!isNodeRemoved(cardId, key)) {
+    removedNodes = {
+      ...removedNodes,
+      [cardId]: [...(removedNodes[cardId] ?? []), key],
+    };
+  }
+  applyRemovedState(cardId);
+  updateCardControls(cardId);
+  persistRemoved();
+}
+
+function restoreCardRemovals(cardId: string): void {
+  if (!removedNodes[cardId]) return;
+
+  const nextRemoved = { ...removedNodes };
+  delete nextRemoved[cardId];
+  removedNodes = nextRemoved;
+  applyRemovedState(cardId);
+  updateCardControls(cardId);
+  persistRemoved();
+}
+
 function applyOffset(cardId: string, node: HTMLElement): void {
   const key = node.dataset.tplEditNode;
   if (!key) return;
@@ -522,7 +651,7 @@ function updateCardResetButton(cardId: string): void {
   const editor = cardEditors.get(cardId);
   if (!editor) return;
 
-  const shouldRender = activeCardId === cardId && hasCardLayoutChanges(cardId);
+  const shouldRender = activeCardId === cardId && hasCardEdits(cardId);
   const isRendered = editor.resetButton.parentElement === editor.actions;
 
   if (shouldRender && !isRendered) {
@@ -580,6 +709,7 @@ function registerEditableNodes(cardId: string, canvas: HTMLElement): void {
     node.dataset.tplEditNode = nodePath(canvas, node);
     node.dataset.tplEditBaseTransform = node.style.transform;
     ensureScaleHandle(node);
+    ensureRemoveButton(cardId, node);
     applyOffset(cardId, node);
   }
 }
@@ -596,6 +726,7 @@ function setCardEditing(cardId: string, editing: boolean): void {
 
   if (editing && activeCardId && activeCardId !== cardId) setCardEditing(activeCardId, false);
   if (!editing && dragState?.cardId === cardId) finishDragging();
+  if (!editing) clearSelection(cardId);
 
   editor.canvas.classList.toggle('canvas--editing', editing);
   activeCardId = editing ? cardId : activeCardId === cardId ? null : activeCardId;
@@ -634,7 +765,10 @@ function bindCardEditors(): void {
     resetButton.type = 'button';
     resetButton.className = 'ghost-btn tpl-reset-btn';
     setButtonLabel(resetButton, actionIcons.reset, 'Скинути');
-    resetButton.addEventListener('click', () => clearCardLayout(cardId));
+    resetButton.addEventListener('click', () => {
+      clearCardLayout(cardId);
+      restoreCardRemovals(cardId);
+    });
 
     const status = actions.querySelector<HTMLElement>('.tpl-status');
     if (status) {
@@ -648,12 +782,21 @@ function bindCardEditors(): void {
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
 
+      // The remove button handles its own click; don't start a drag under it.
+      if (target.closest<HTMLElement>('[data-tpl-remove-handle]')) return;
+
       const handle = target.closest<HTMLElement>('[data-tpl-scale-handle]');
       const node = target.closest<HTMLElement>('[data-tpl-edit-node]');
-      if (!node || !canvas.contains(node)) return;
+      if (!node || !canvas.contains(node)) {
+        clearSelection(cardId);
+        return;
+      }
 
       const key = node.dataset.tplEditNode;
       if (!key) return;
+
+      // Clicking an element selects it, revealing its remove button.
+      selectNode(cardId, node);
 
       const layoutValue = getLayoutValue(cardId, key);
       const rect = node.getBoundingClientRect();
@@ -684,6 +827,7 @@ function bindCardEditors(): void {
     });
 
     cardEditors.set(cardId, { actions, canvas, button, resetButton, status });
+    applyRemovedState(cardId);
     updateCardControls(cardId);
   });
 
@@ -712,6 +856,26 @@ function bindCardEditors(): void {
   document.addEventListener('pointercancel', (event) => {
     if (dragState && event.pointerId === dragState.pointerId) finishDragging();
   });
+
+  // Delete / Backspace removes the currently selected element, unless the
+  // user is typing in a form field (where those keys must edit text).
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+    if (!activeCardId) return;
+
+    const target = event.target;
+    if (target instanceof HTMLElement) {
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+    }
+
+    const editor = cardEditors.get(activeCardId);
+    const selected = editor?.canvas.querySelector<HTMLElement>('[data-tpl-edit-node].is-selected');
+    const key = selected?.dataset.tplEditNode;
+    if (!key) return;
+
+    event.preventDefault();
+    removeNode(activeCardId, key);
+  });
 }
 
 // ---------- export (PNG download / clipboard copy) ----------
@@ -723,6 +887,7 @@ type HtmlToImage = { toBlob: (node: HTMLElement, opts?: Record<string, unknown>)
 // comes out without the placeholder (see the alert on /templates).
 function exportFilter(node: Node): boolean {
   if (!(node instanceof HTMLElement)) return true;
+  if (node.classList.contains('tpl-node-removed')) return false;
   if (node.dataset.exportOptional === 'photo') return !!state.photo;
   if (node.dataset.exportIgnore === 'true') return false;
   return true;
