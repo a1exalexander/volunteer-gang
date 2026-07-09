@@ -671,6 +671,28 @@ function setStatus(id: string, msg: string): void {
   }
 }
 
+function setCopyTooltip(id: string, msg: string): void {
+  const btn = document.querySelector<HTMLElement>(`[data-cp="${id}"]`);
+  if (!btn) return;
+
+  const baseTitle = btn.dataset.baseTitle ?? btn.getAttribute('title') ?? '';
+  btn.dataset.baseTitle = baseTitle;
+  btn.setAttribute('title', msg);
+  btn.setAttribute('aria-label', msg);
+
+  const timerKey = `cp-tip-${id}`;
+  window.clearTimeout(timers[timerKey]);
+  timers[timerKey] = window.setTimeout(() => {
+    if (baseTitle) {
+      btn.setAttribute('title', baseTitle);
+      btn.setAttribute('aria-label', baseTitle);
+      return;
+    }
+    btn.removeAttribute('title');
+    btn.removeAttribute('aria-label');
+  }, 2500);
+}
+
 async function makeBlob(id: string): Promise<Blob> {
   const htmlToImage = lib();
   if (!htmlToImage) throw new Error('html-to-image not loaded');
@@ -703,16 +725,15 @@ async function download(id: string): Promise<void> {
 }
 
 async function copy(id: string): Promise<void> {
-  setStatus(id, '…');
   try {
     // ClipboardItem accepts a Promise<Blob>, which keeps Safari's user-gesture
     // requirement satisfied while the image renders.
     const item = new ClipboardItem({ 'image/png': makeBlob(id) });
     await navigator.clipboard.write([item]);
-    setStatus(id, '✓ скопійовано');
+    setCopyTooltip(id, 'Скопійовано');
   } catch (e) {
     console.error(e);
-    setStatus(id, '✕ помилка');
+    setCopyTooltip(id, 'Помилка копіювання');
   }
 }
 
