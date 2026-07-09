@@ -817,6 +817,26 @@ function bindCardEditors(): void {
   document.addEventListener('pointercancel', (event) => {
     if (dragState && event.pointerId === dragState.pointerId) finishDragging();
   });
+
+  // Delete / Backspace removes the currently selected element, unless the
+  // user is typing in a form field (where those keys must edit text).
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+    if (!activeCardId) return;
+
+    const target = event.target;
+    if (target instanceof HTMLElement) {
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+    }
+
+    const editor = cardEditors.get(activeCardId);
+    const selected = editor?.canvas.querySelector<HTMLElement>('[data-tpl-edit-node].is-selected');
+    const key = selected?.dataset.tplEditNode;
+    if (!key) return;
+
+    event.preventDefault();
+    removeNode(activeCardId, key);
+  });
 }
 
 // ---------- export (PNG download / clipboard copy) ----------
