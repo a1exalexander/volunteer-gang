@@ -2,8 +2,6 @@
 import type { CollectionEntry } from 'astro:content';
 import { fmtUAH, percentOf, dayFmt } from '../lib/format';
 import TemplateLockup from './brand/TemplateLockup.astro';
-import TemplateGang from './brand/TemplateGang.astro';
-import TemplateMonogram from './brand/TemplateMonogram.astro';
 
 interface Props {
   fund: CollectionEntry<'fundraiser'>['data'];
@@ -162,7 +160,7 @@ const initial = {
         <div class="tpl-scale">
           <div id="vgx-progress" class="canvas" style="width:1080px;height:1350px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-              <TemplateMonogram size={53} color="var(--c-chalk)" />
+              <TemplateLockup layout="inline" color="var(--c-chalk)" vSize={34} gSize={38} />
               <div style="display:flex;gap:14px;">
                 <div style="width:50px;height:36px;background:var(--c-pink);clip-path:polygon(50% 0,100% 45%,100% 100%,50% 55%,0 100%,0 45%);"></div>
                 <div style="width:50px;height:36px;background:var(--c-pink);clip-path:polygon(50% 0,100% 45%,100% 100%,50% 55%,0 100%,0 45%);"></div>
@@ -239,7 +237,7 @@ const initial = {
         <div class="tpl-scale">
           <div id="vgx-push" class="canvas" style="width:1080px;height:1350px;background:var(--c-pink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-              <TemplateMonogram size={53} color="var(--c-ink)" shadow="var(--c-chalk)" />
+              <TemplateLockup layout="inline" color="var(--c-ink)" vSize={34} gSize={38} />
               <div style="font-family:'IBM Plex Mono',monospace;font-size:39px;letter-spacing:0.18em;color:var(--c-ink);">ДЕНЬ <span data-bind="day">{fund.day}</span></div>
             </div>
             <div style="display:flex;flex-direction:column;gap:50px;">
@@ -266,7 +264,7 @@ const initial = {
         <div class="tpl-scale">
           <div id="vgx-report" class="canvas" style="width:1080px;height:1080px;background:var(--c-bubble);padding:80px;display:flex;flex-direction:column;gap:48px;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:30px;color:var(--c-ink);">VG · ЗВІТ</div>
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:30px;color:var(--c-ink);">VOLUNTEER GANG · ЗВІТ</div>
               <div style="background:var(--c-ink);color:var(--c-pink);font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;padding:12px 20px;letter-spacing:0.12em;">ЧЕКИ ✓ ФОТО ✓</div>
             </div>
             <div style="flex:1;position:relative;min-height:0;">
@@ -297,7 +295,7 @@ const initial = {
         <div class="tpl-scale">
           <div id="vgx-thanks" class="canvas" style="width:1080px;height:1350px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-              <TemplateMonogram size={53} color="var(--c-chalk)" />
+              <TemplateLockup layout="inline" color="var(--c-chalk)" vSize={34} gSize={38} />
               <div style="font-family:'IBM Plex Mono',monospace;font-size:39px;letter-spacing:0.18em;color:var(--c-dust);">ЗБІР ЗАКРИТО</div>
             </div>
             <div style="display:flex;flex-direction:column;gap:70px;align-items:flex-start;">
@@ -346,7 +344,7 @@ const initial = {
         <div class="tpl-scale">
           <div id="vgx-milestone" class="canvas" style="width:1080px;height:1350px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-              <TemplateMonogram size={53} color="var(--c-chalk)" />
+              <TemplateLockup layout="inline" color="var(--c-chalk)" vSize={34} gSize={38} />
               <div style="font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.22em;color:var(--c-acid);">ВЖЕ ЗІБРАНО</div>
             </div>
             <div style="display:flex;flex-direction:column;gap:56px;">
@@ -376,7 +374,7 @@ const initial = {
         <div class="tpl-scale">
           <div id="vgx-remaining" class="canvas" style="width:1080px;height:1350px;background:var(--c-acid);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-              <TemplateMonogram size={53} color="var(--c-ink)" />
+              <TemplateLockup layout="inline" color="var(--c-ink)" vSize={34} gSize={38} />
               <div style="font-family:'IBM Plex Mono',monospace;font-size:39px;letter-spacing:0.2em;color:var(--c-ink);">ДЕНЬ <span data-bind="day">{fund.day}</span></div>
             </div>
             <div style="display:flex;flex-direction:column;gap:44px;">
@@ -402,7 +400,7 @@ const initial = {
         <div class="tpl-scale">
           <div id="vgx-thermo" class="canvas" style="width:1080px;height:1350px;background:var(--c-ink);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-              <TemplateMonogram size={53} color="var(--c-chalk)" />
+              <TemplateLockup layout="inline" color="var(--c-chalk)" vSize={34} gSize={38} />
               <div style="font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0.22em;color:var(--c-acid);">ТЕРМОМЕТР ЗБОРУ</div>
             </div>
             <div style="display:flex;gap:70px;align-items:stretch;flex:1;min-height:0;padding:50px 0;">
@@ -574,8 +572,7 @@ const initial = {
         <div class="tpl-scale">
           <div id="vgx-share" class="canvas" style="width:1080px;height:1350px;background:var(--c-chalk);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-              <TemplateMonogram size={53} color="var(--c-ink)" />
-              <TemplateGang gSize={60} rotate={-4} />
+              <TemplateLockup layout="inline" color="var(--c-ink)" vSize={34} gSize={38} rotate={-4} />
             </div>
             <div style="display:flex;flex-direction:column;gap:44px;">
               <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:150px;line-height:0.95;color:var(--c-ink);">Репост<br />= донат</div>
@@ -601,7 +598,7 @@ const initial = {
         <div class="tpl-scale">
           <div id="vgx-weekly" class="canvas" style="width:1080px;height:1080px;background:var(--c-panel2);padding:80px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:34px;color:var(--c-chalk);">VG · ЗВІТ ТИЖНЯ</div>
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:34px;color:var(--c-chalk);">VOLUNTEER GANG · ЗВІТ ТИЖНЯ</div>
               <div style="background:var(--c-acid);color:var(--c-ink);font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:500;padding:12px 20px;letter-spacing:0.12em;">ЧЕКИ ✓</div>
             </div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--c-line);border:1px solid var(--c-line);">
@@ -713,8 +710,7 @@ const initial = {
         <div class="tpl-scale">
           <div id="vgx-closedstory" class="canvas" style="width:1080px;height:1350px;background:var(--c-acid);padding:114px 100px;display:flex;flex-direction:column;justify-content:space-between;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-              <TemplateMonogram size={53} color="var(--c-ink)" />
-              <TemplateGang gSize={56} rotate={-4} />
+              <TemplateLockup layout="inline" color="var(--c-ink)" vSize={34} gSize={38} rotate={-4} />
             </div>
             <div style="display:flex;flex-direction:column;gap:70px;align-items:flex-start;">
               <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:130px;line-height:1;color:var(--c-ink);transform:rotate(-6deg);border:14px solid var(--c-ink);padding:36px 54px;">ЗАКРИТО ✕</div>
