@@ -13,7 +13,7 @@ back office. Two pages:
 - **Decap CMS 3** (loaded from CDN) with **Netlify Identity + git-gateway** in
   production and a **local backend** for dev
 - Content = YAML in `src/content/**`, validated by Zod in `src/content.config.ts`
-- `@astrojs/sitemap`, dynamic OG images (satori + resvg), GA4 + consent banner
+- `@astrojs/sitemap`, dynamic OG images (satori + resvg), GA4
 - Hand-authored CSS with brand tokens in `src/styles/vg.css` (no framework)
 
 ## Develop

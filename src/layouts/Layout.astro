@@ -3,7 +3,6 @@ import '../styles/vg.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Analytics from '../components/Analytics.astro';
-import ConsentBanner from '../components/ConsentBanner.astro';
 import { getEntry } from 'astro:content';
 import { siteGraph } from '../lib/schema';
 
@@ -112,7 +111,6 @@ const serializeJsonLd = (data: object) => JSON.stringify(data).replace(/</g, '\\
     </main>
 
     <Footer settings={settings} />
-    <ConsentBanner />
 
     <script>
       import { initAnalytics } from '../lib/analytics';
