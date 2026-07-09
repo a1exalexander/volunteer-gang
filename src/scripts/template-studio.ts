@@ -257,6 +257,12 @@ function render(): void {
 function updatePhotoControls(): void {
   const clearBtn = document.getElementById('tpl-photo-clear');
   if (clearBtn) clearBtn.style.display = state.photo ? 'inline-block' : 'none';
+
+  const dropzone = document.getElementById('tpl-photo-drop');
+  if (dropzone) dropzone.classList.toggle('has-photo', !!state.photo);
+
+  const thumb = document.getElementById('tpl-photo-thumb');
+  if (thumb) thumb.style.backgroundImage = state.photo ? `url("${state.photo}")` : 'none';
 }
 
 type FieldEl = HTMLInputElement | HTMLTextAreaElement;
@@ -311,9 +317,10 @@ function bindColors(): void {
 
 function bindImage(inputId: string, clearId: string): void {
   const fileInput = document.getElementById(inputId) as HTMLInputElement | null;
-  fileInput?.addEventListener('change', () => {
-    const file = fileInput.files && fileInput.files[0];
-    if (!file) return;
+  const dropzone = document.getElementById('tpl-photo-drop');
+
+  const loadFile = (file: File | null | undefined): void => {
+    if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
     reader.onload = () => {
       state.photo = String(reader.result);
@@ -321,8 +328,36 @@ function bindImage(inputId: string, clearId: string): void {
       render();
     };
     reader.readAsDataURL(file);
+  };
+
+  fileInput?.addEventListener('change', () => {
+    loadFile(fileInput.files && fileInput.files[0]);
     fileInput.value = '';
   });
+
+  if (dropzone) {
+    const stop = (e: Event): void => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    ['dragenter', 'dragover'].forEach((evt) =>
+      dropzone.addEventListener(evt, (e) => {
+        stop(e);
+        dropzone.classList.add('is-dragover');
+      })
+    );
+    ['dragleave', 'dragend'].forEach((evt) =>
+      dropzone.addEventListener(evt, (e) => {
+        stop(e);
+        dropzone.classList.remove('is-dragover');
+      })
+    );
+    dropzone.addEventListener('drop', (e) => {
+      stop(e);
+      dropzone.classList.remove('is-dragover');
+      loadFile((e as DragEvent).dataTransfer?.files?.[0]);
+    });
+  }
 
   document.getElementById(clearId)?.addEventListener('click', () => {
     state.photo = null;
