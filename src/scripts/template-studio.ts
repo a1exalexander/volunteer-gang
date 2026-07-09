@@ -124,8 +124,8 @@ const DEFAULT_LABELS: Record<string, string> = {
   giftItem2: 'ПОЗИЦІЯ 02',
   giftItem3: 'ПОЗИЦІЯ 03',
   giftItem4: 'ПОЗИЦІЯ 04',
-  giftFor: 'Подарунки для',
-  giftBrigade: 'ПОДАРУНКИ ДЛЯ БРИГАДИ',
+  giftFor: 'Подарунки за донат',
+  giftBrigade: 'ПОДАРУНКИ ЗА ДОНАТ',
 };
 const LABEL_ROLES = Object.keys(DEFAULT_LABELS);
 
