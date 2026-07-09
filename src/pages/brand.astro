@@ -5,7 +5,6 @@
 import Layout from '../layouts/Layout.astro';
 import Logo from '../components/brand/Logo.astro';
 import GangMonogram from '../components/brand/GangMonogram.astro';
-import VgPatch from '../components/brand/VgPatch.astro';
 import Chevrons from '../components/brand/Chevrons.astro';
 import { getEntry } from 'astro:content';
 
@@ -15,8 +14,8 @@ const settings = settingsEntry.data;
 const { word1, word2 } = settings.brand;
 
 const palette = [
-  { name: 'Фуксія-91', hex: '#FF2E88', use: 'головний · дія', fg: '#0D0C0C', span: true },
-  { name: 'Бабл', hex: '#F4A6E3', use: 'заливка літер', fg: '#0D0C0C' },
+  { name: 'Бабл', hex: '#F4A6E3', use: 'головний · дія', fg: '#0D0C0C', span: true },
+  { name: 'Фуксія-91', hex: '#FF2E88', use: 'акцент · виділення', fg: '#0D0C0C' },
   { name: 'Кислота', hex: '#C9E400', use: 'кант і акценти', fg: '#0D0C0C' },
   { name: 'Балаклава', hex: '#0D0C0C', use: 'фон і контур', fg: '#F5F1EC', border: true },
   { name: 'Крейда', hex: '#F5F1EC', use: 'текст', fg: '#0D0C0C' },
@@ -56,7 +55,7 @@ const typeSpecimens = {
   <!-- 01 · LOGO -->
   <section class="section">
     <div class="sec-head"><span class="sec-num">01</span><h2 class="sec-title">Логотип</h2></div>
-    <div class="brand-grid brand-grid--3">
+    <div class="brand-grid brand-grid--2">
       <div class="brand-cell">
         <div class="brand-frame" id="dl-logo-main">
           <Logo word1={word1} word2={word2} graffiti="layered" layout="stack" size={30} gangSize={38} rotate={-5} />
@@ -69,25 +68,14 @@ const typeSpecimens = {
         </div>
       </div>
       <div class="brand-cell">
-        <div class="brand-frame brand-frame--pink" id="dl-logo-inverse">
+        <div class="brand-frame brand-frame--bubble" id="dl-logo-inverse">
           <Logo word1={word1} word2={word2} graffiti="layered" layout="stack" size={24} gangSize={30} rotate={-5} inverse />
         </div>
-        <div class="brand-cap">ІНВЕРСІЯ · на рожевому</div>
+        <div class="brand-cap">ІНВЕРСІЯ · на баблі</div>
         <div class="brand-actions">
           <button type="button" class="dl-btn" data-dl="logo-inverse" data-track="brand_download" data-evt-asset="logo-inverse">↓ PNG</button>
           <button type="button" class="cp-btn" data-cp="logo-inverse">⧉ Копіювати</button>
           <span class="tpl-status" data-status="logo-inverse"></span>
-        </div>
-      </div>
-      <div class="brand-cell">
-        <div class="brand-frame" id="dl-patch">
-          <VgPatch since={settings.since} region={settings.region} />
-        </div>
-        <div class="brand-cap">ШЕВРОН · монограма VG</div>
-        <div class="brand-actions">
-          <button type="button" class="dl-btn" data-dl="patch" data-track="brand_download" data-evt-asset="patch">↓ PNG</button>
-          <button type="button" class="cp-btn" data-cp="patch">⧉ Копіювати</button>
-          <span class="tpl-status" data-status="patch"></span>
         </div>
       </div>
     </div>
@@ -163,7 +151,7 @@ const typeSpecimens = {
     </div>
 
     <div class="brand-rules">
-      <p><strong>Правило двох голосів.</strong> «VOLUNTEER» — просте біле накреслення без ефектів: дисципліна і звітність. «GANG» — графіті-леттеринг: рожева заливка, чорний контур і обʼємна тінь, салатовий кант.</p>
+      <p><strong>Правило двох голосів.</strong> «VOLUNTEER» — просте біле накреслення без ефектів: дисципліна і звітність. «GANG» — графіті-леттеринг: бабл-заливка, чорний контур і обʼємна тінь, салатовий кант.</p>
       <p><strong>Охоронне поле.</strong> Мінімальний відступ навколо логотипа — висота літери «G». Мінімальна ширина — 120 px.</p>
     </div>
   </section>
@@ -266,7 +254,7 @@ const typeSpecimens = {
     justify-content: center;
     gap: 22px;
   }
-  .brand-frame--pink { background: var(--pink); border-color: var(--pink); }
+  .brand-frame--bubble { background: var(--bubble); border-color: var(--bubble); }
   .brand-frame--row { flex-direction: row; }
   .brand-cap {
     font-family: var(--font-mono);
@@ -318,10 +306,10 @@ const typeSpecimens = {
     letter-spacing: 0.02em;
     font-size: 34px;
     line-height: 1.05;
-    text-shadow: 3px 3px 0 var(--pink);
+    text-shadow: 3px 3px 0 var(--bubble);
   }
   .brand-type-body { font-size: 16px; line-height: 1.6; }
-  .brand-type-num { font-size: 34px; font-weight: 500; color: var(--pink); }
+  .brand-type-num { font-size: 34px; font-weight: 500; color: var(--bubble); }
 
   /* download / copy action rows (reuse global .dl-btn/.cp-btn/.tpl-status) */
   .brand-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
