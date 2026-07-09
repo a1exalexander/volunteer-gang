@@ -367,6 +367,7 @@ function registerEditableNodes(cardId: string, canvas: HTMLElement): void {
     const node = walker.currentNode;
     if (!(node instanceof HTMLElement)) continue;
     if (!isEditableCandidate(node, canvas)) continue;
+    if (node.parentElement?.closest('[data-tpl-edit-node]')) continue;
 
     node.dataset.tplEditNode = nodePath(canvas, node);
     node.dataset.tplEditBaseTransform = node.style.transform;
