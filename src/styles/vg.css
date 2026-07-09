@@ -390,6 +390,13 @@ p {
   border: 2px solid #17110f;
 }
 .studio-panel::-webkit-scrollbar-thumb:hover { background: var(--pink); }
+
+/* Drawer chrome (toggle / head / backdrop) only exists on mobile —
+   see the max-width: 900px block below. */
+.drawer-toggle,
+.drawer-head,
+.drawer-backdrop { display: none; }
+body.drawer-locked { overflow: hidden; }
 .panel-title { font-family: var(--font-head); font-weight: 700; letter-spacing: 0.02em; font-size: 26px; }
 .panel-intro { font-size: 13px; line-height: 1.55; color: var(--dust); }
 .field { display: flex; flex-direction: column; gap: 6px; }
@@ -551,14 +558,103 @@ textarea.input:focus { outline: 2px solid var(--pink); outline-offset: -1px; }
   .fund-card { width: 100%; }
   .fund-side { min-width: 0; }
   .studio { flex-direction: column; }
+
+  /* "Дані збору" becomes a bottom drawer: slides up over the page and
+     covers 75% of the viewport, so it can be opened from anywhere. */
   .studio-panel {
     width: 100%;
-    position: static;
+    position: fixed;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 75vh;
+    height: 75dvh;
     max-height: none;
+    z-index: 100;
     border-right: none;
+    border-top: 2px solid var(--pink);
+    padding: 0 24px 48px;
+    transform: translateY(100%);
+    visibility: hidden;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s 0.35s;
+  }
+  .studio-panel.open {
+    transform: translateY(0);
+    visibility: visible;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    flex-shrink: 0;
+    margin: 0 -24px;
+    padding: 16px 24px;
+    background: #17110f;
     border-bottom: 1px solid var(--border);
   }
-  .gallery { padding: 36px var(--pad-x) 72px; justify-content: center; align-items: center; }
+  .drawer-grip { width: 44px; height: 5px; border-radius: 999px; background: var(--border); }
+  .drawer-close {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--chalk);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .drawer-close:hover { border-color: var(--pink); color: var(--pink); }
+  .drawer-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    background: rgba(13, 12, 12, 0.65);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+  .drawer-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    position: fixed;
+    left: 50%;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 98;
+    background: var(--pink);
+    color: var(--ink);
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    padding: 14px 24px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  }
+  .drawer-toggle:hover { background: var(--pink-hover); }
+  @media (prefers-reduced-motion: reduce) {
+    .studio-panel,
+    .drawer-backdrop { transition: none; }
+  }
+
+  .gallery { padding: 36px var(--pad-x) 96px; justify-content: center; align-items: center; }
 }
 
 @media (max-width: 775.98px) {

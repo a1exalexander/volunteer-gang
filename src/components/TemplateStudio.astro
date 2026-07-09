@@ -29,8 +29,17 @@ const initial = {
 ---
 
 <div class="studio">
+  <!-- Mobile-only: floating opener + backdrop for the fields drawer -->
+  <button type="button" id="studio-drawer-toggle" class="drawer-toggle" aria-controls="studio-panel" aria-expanded="false">✎ ДАНІ ЗБОРУ</button>
+  <div id="studio-drawer-backdrop" class="drawer-backdrop"></div>
+
   <!-- ============ FIELDS PANEL ============ -->
-  <aside class="studio-panel" aria-label="Дані збору">
+  <aside id="studio-panel" class="studio-panel" aria-label="Дані збору">
+    <div class="drawer-head">
+      <span class="drawer-grip" aria-hidden="true"></span>
+      <button type="button" id="studio-drawer-close" class="drawer-close" aria-label="Закрити панель">✕</button>
+    </div>
+
     <div class="field">
       <h1 class="panel-title">Дані збору</h1>
       <p class="panel-intro">
