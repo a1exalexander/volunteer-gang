@@ -2,6 +2,11 @@
   command = "npm run build"
   publish = "dist"
 
+[build.environment]
+  # GA4 measurement id — public by nature (it ships in the page source).
+  # Note: this overrides any PUBLIC_GA_ID set in the Netlify UI.
+  PUBLIC_GA_ID = "G-GLZGJTMKL2"
+
 # SPA fallback for Decap admin (single-page app routes).
 [[redirects]]
   from = "/admin/*"
