@@ -58,6 +58,63 @@ editors can log in at `/admin`. Optional env vars:
 - `PUBLIC_GA_ID` — GA4 measurement id (analytics disabled when unset)
 - `SITE` — canonical origin for absolute URLs (defaults to the Netlify subdomain)
 
+## Templates analytics flow
+
+`/templates` now emits a unified GA4 event `template_interaction` with
+`section: "templates"` and an `action` parameter for key user steps:
+
+- `studio_loaded`
+- `field_updated` (title/description/goal/raised changes)
+- `color_updated`, `colors_reset`
+- `label_updated`, `labels_reset`
+- `photo_uploaded`, `photo_cleared`
+- `card_format_changed` (post/story)
+- `card_edit_mode_changed`, `card_element_transformed`,
+  `card_element_removed`, `card_removed_elements_reset`, `card_edits_reset`
+- `drawer_toggled` (mobile panel open/close)
+- `template_export` with `method` (`download`/`copy`) and `status`
+  (`success`/`error`)
+
+### GA4 setup (events, conversions, explorations)
+
+In GA4 Admin:
+
+1. Open **Admin → Events** and verify incoming `template_interaction`.
+2. Open **Admin → Key events** (Conversions) and mark these as key:
+   - `template_export` where `status = success` (primary success metric)
+   - `photo_uploaded` (content-enriched session)
+   - `card_format_changed` (format customization intent)
+
+#### Recommended funnel (Explore → Funnel exploration)
+
+Create a funnel scoped to `section = templates`:
+
+1. `studio_loaded`
+2. `field_updated` OR `photo_uploaded`
+3. `template_export` with `status = success`
+
+Use breakdowns by:
+
+- `method` (`download` vs `copy`)
+- `card_id`
+- device category (mobile/desktop)
+
+#### Recommended free-form reports
+
+- **Top templates exported**  
+  Filter: `action = template_export` and `status = success`  
+  Rows: `card_id`  
+  Values: Event count
+
+- **Export error rate**  
+  Filter: `action = template_export`  
+  Rows: `status`, `method`  
+  Values: Event count
+
+- **Editing depth before export**  
+  Build segment: users with `card_edit_mode_changed` or `card_element_transformed`  
+  Compare export success (`template_export` + `status=success`) vs users without edits.
+
 ## Notes
 
 - The design is desktop-first (from the Claude Design handoff); the page chrome
