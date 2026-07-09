@@ -22,12 +22,13 @@ interface State {
   colors: Record<string, string>;
 }
 
-interface Point {
+interface LayoutValue {
   x: number;
   y: number;
+  scale: number;
 }
 
-type CardLayout = Record<string, Point>;
+type CardLayout = Record<string, LayoutValue>;
 type LayoutStore = Record<string, CardLayout>;
 
 interface CardEditor {
@@ -36,6 +37,7 @@ interface CardEditor {
 }
 
 interface DragState {
+  mode: 'move' | 'scale';
   cardId: string;
   key: string;
   node: HTMLElement;
@@ -44,7 +46,11 @@ interface DragState {
   startY: number;
   originX: number;
   originY: number;
+  originScale: number;
   scale: number;
+  centerX: number;
+  centerY: number;
+  startDistance: number;
 }
 
 // User-mixable template palette roles → the `--c-*` custom properties the
@@ -116,10 +122,16 @@ function persist(): void {
   }
 }
 
-function isPoint(value: unknown): value is Point {
+function isLayoutValue(value: unknown): value is LayoutValue {
   if (!value || typeof value !== 'object') return false;
-  const point = value as Partial<Point>;
-  return typeof point.x === 'number' && Number.isFinite(point.x) && typeof point.y === 'number' && Number.isFinite(point.y);
+  const point = value as Partial<LayoutValue>;
+  return (
+    typeof point.x === 'number' &&
+    Number.isFinite(point.x) &&
+    typeof point.y === 'number' &&
+    Number.isFinite(point.y) &&
+    (point.scale == null || (typeof point.scale === 'number' && Number.isFinite(point.scale)))
+  );
 }
 
 function readLayouts(): LayoutStore {
@@ -135,7 +147,9 @@ function readLayouts(): LayoutStore {
 
       const nodes: CardLayout = {};
       for (const [nodeKey, point] of Object.entries(cardLayout as Record<string, unknown>)) {
-        if (isPoint(point)) nodes[nodeKey] = point;
+        if (isLayoutValue(point)) {
+          nodes[nodeKey] = { x: point.x, y: point.y, scale: point.scale ?? 1 };
+        }
       }
 
       if (Object.keys(nodes).length > 0) layouts[cardId] = nodes;
@@ -299,6 +313,11 @@ function hasInlineChildrenOnly(el: HTMLElement): boolean {
   return Array.from(el.children).every((child) => child.tagName === 'BR' || child.tagName === 'SPAN');
 }
 
+function hasCompositeChildren(el: HTMLElement): boolean {
+  const children = Array.from(el.children);
+  return children.length > 1 || children.some((child) => child.tagName !== 'BR' && child.tagName !== 'SPAN');
+}
+
 function isEditableCandidate(el: HTMLElement, canvas: HTMLElement): boolean {
   if (el === canvas) return false;
 
@@ -309,13 +328,29 @@ function isEditableCandidate(el: HTMLElement, canvas: HTMLElement): boolean {
   const leafTextBlock = hasText && hasInlineChildrenOnly(el);
   const positioned = style.position === 'absolute';
   const visual = hasVisualStyle(style);
+  const compositeChildren = hasCompositeChildren(el);
 
-  if (bound) return true;
+  if (bound && style.display !== 'inline') return true;
   if (directChild) return true;
   if (positioned) return true;
+  if (compositeChildren) return true;
   if (leafTextBlock && style.display !== 'inline') return true;
-  if (visual && (hasText || el.children.length <= 1)) return true;
+  if (visual && (hasText || compositeChildren || el.children.length <= 1)) return true;
   return false;
+}
+
+function shouldSkipNestedEditable(el: HTMLElement): boolean {
+  const parentEditable = el.parentElement?.closest('[data-tpl-edit-node]');
+  if (!parentEditable) return false;
+
+  const style = getComputedStyle(el);
+  const hasText = hasOwnText(el) || (el.children.length === 0 && !!el.textContent?.trim());
+  const leafTextBlock = hasText && hasInlineChildrenOnly(el);
+  const visual = hasVisualStyle(style);
+  const positioned = style.position === 'absolute';
+  const compositeChildren = hasCompositeChildren(el);
+
+  return !positioned && !visual && !compositeChildren && (style.display === 'inline' || leafTextBlock);
 }
 
 function nodePath(canvas: HTMLElement, el: HTMLElement): string {
@@ -333,23 +368,40 @@ function nodePath(canvas: HTMLElement, el: HTMLElement): string {
   return segments.join('-');
 }
 
-function getOffset(cardId: string, key: string): Point {
-  return editLayouts[cardId]?.[key] ?? { x: 0, y: 0 };
+function getLayoutValue(cardId: string, key: string): LayoutValue {
+  return editLayouts[cardId]?.[key] ?? { x: 0, y: 0, scale: 1 };
 }
 
-function setOffset(cardId: string, key: string, point: Point): void {
+function setLayoutValue(cardId: string, key: string, value: LayoutValue): void {
   editLayouts = {
     ...editLayouts,
     [cardId]: {
       ...(editLayouts[cardId] ?? {}),
-      [key]: point,
+      [key]: value,
     },
   };
 }
 
-function formatTransform(base: string, point: Point): string {
-  const move = point.x === 0 && point.y === 0 ? '' : `translate(${point.x.toFixed(1)}px, ${point.y.toFixed(1)}px)`;
-  return [move, base].filter(Boolean).join(' ').trim();
+function formatTransform(base: string, value: LayoutValue): string {
+  const move = value.x === 0 && value.y === 0 ? '' : `translate(${value.x.toFixed(1)}px, ${value.y.toFixed(1)}px)`;
+  const scale = value.scale === 1 ? '' : `scale(${value.scale.toFixed(3)})`;
+  return [move, scale, base].filter(Boolean).join(' ').trim();
+}
+
+function ensureScaleHandle(node: HTMLElement): void {
+  if (node.querySelector(':scope > [data-tpl-scale-handle]')) return;
+
+  if (getComputedStyle(node).position === 'static' && !node.style.position) {
+    node.style.position = 'relative';
+  }
+
+  const handle = document.createElement('button');
+  handle.type = 'button';
+  handle.className = 'tpl-edit-handle';
+  handle.dataset.tplScaleHandle = 'true';
+  handle.dataset.exportIgnore = 'true';
+  handle.setAttribute('aria-label', 'Змінити розмір елемента');
+  node.append(handle);
 }
 
 function applyOffset(cardId: string, node: HTMLElement): void {
@@ -357,20 +409,26 @@ function applyOffset(cardId: string, node: HTMLElement): void {
   if (!key) return;
 
   const base = node.dataset.tplEditBaseTransform ?? '';
-  node.style.transform = formatTransform(base, getOffset(cardId, key));
+  node.style.transform = formatTransform(base, getLayoutValue(cardId, key));
 }
 
 function registerEditableNodes(cardId: string, canvas: HTMLElement): void {
   const walker = document.createTreeWalker(canvas, NodeFilter.SHOW_ELEMENT);
+  const editableNodes: HTMLElement[] = [];
 
   while (walker.nextNode()) {
     const node = walker.currentNode;
     if (!(node instanceof HTMLElement)) continue;
     if (!isEditableCandidate(node, canvas)) continue;
-    if (node.parentElement?.closest('[data-tpl-edit-node]')) continue;
+    if (shouldSkipNestedEditable(node)) continue;
 
+    editableNodes.push(node);
+  }
+
+  for (const node of editableNodes) {
     node.dataset.tplEditNode = nodePath(canvas, node);
     node.dataset.tplEditBaseTransform = node.style.transform;
+    ensureScaleHandle(node);
     applyOffset(cardId, node);
   }
 }
@@ -397,7 +455,7 @@ function setCardEditing(cardId: string, editing: boolean): void {
 
 function finishDragging(): void {
   if (!dragState) return;
-  dragState.node.classList.remove('is-dragging');
+  dragState.node.classList.remove('is-dragging', 'is-scaling');
   if (dragState.node.hasPointerCapture(dragState.pointerId)) {
     dragState.node.releasePointerCapture(dragState.pointerId);
   }
@@ -435,26 +493,37 @@ function bindCardEditors(): void {
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
 
+      const handle = target.closest<HTMLElement>('[data-tpl-scale-handle]');
       const node = target.closest<HTMLElement>('[data-tpl-edit-node]');
       if (!node || !canvas.contains(node)) return;
 
       const key = node.dataset.tplEditNode;
       if (!key) return;
 
-      const point = getOffset(cardId, key);
+      const layoutValue = getLayoutValue(cardId, key);
+      const rect = node.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const startDistance = Math.max(1, Math.hypot(event.clientX - centerX, event.clientY - centerY));
+
       dragState = {
+        mode: handle ? 'scale' : 'move',
         cardId,
         key,
         node,
         pointerId: event.pointerId,
         startX: event.clientX,
         startY: event.clientY,
-        originX: point.x,
-        originY: point.y,
+        originX: layoutValue.x,
+        originY: layoutValue.y,
+        originScale: layoutValue.scale,
         scale: getCanvasScale(canvas),
+        centerX,
+        centerY,
+        startDistance,
       };
 
-      node.classList.add('is-dragging');
+      node.classList.add(handle ? 'is-scaling' : 'is-dragging');
       node.setPointerCapture(event.pointerId);
       event.preventDefault();
     });
@@ -465,10 +534,18 @@ function bindCardEditors(): void {
   document.addEventListener('pointermove', (event) => {
     if (!dragState || event.pointerId !== dragState.pointerId) return;
 
-    const dx = (event.clientX - dragState.startX) / dragState.scale;
-    const dy = (event.clientY - dragState.startY) / dragState.scale;
-    const point = { x: dragState.originX + dx, y: dragState.originY + dy };
-    setOffset(dragState.cardId, dragState.key, point);
+    let layoutValue: LayoutValue;
+    if (dragState.mode === 'scale') {
+      const distance = Math.max(1, Math.hypot(event.clientX - dragState.centerX, event.clientY - dragState.centerY));
+      const nextScale = Math.min(3, Math.max(0.35, dragState.originScale * (distance / dragState.startDistance)));
+      layoutValue = { x: dragState.originX, y: dragState.originY, scale: nextScale };
+    } else {
+      const dx = (event.clientX - dragState.startX) / dragState.scale;
+      const dy = (event.clientY - dragState.startY) / dragState.scale;
+      layoutValue = { x: dragState.originX + dx, y: dragState.originY + dy, scale: dragState.originScale };
+    }
+
+    setLayoutValue(dragState.cardId, dragState.key, layoutValue);
     applyOffset(dragState.cardId, dragState.node);
   });
 
@@ -490,6 +567,7 @@ type HtmlToImage = { toBlob: (node: HTMLElement, opts?: Record<string, unknown>)
 function exportFilter(node: Node): boolean {
   if (!(node instanceof HTMLElement)) return true;
   if (node.dataset.exportOptional === 'photo') return !!state.photo;
+  if (node.dataset.exportIgnore === 'true') return false;
   return true;
 }
 

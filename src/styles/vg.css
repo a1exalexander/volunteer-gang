@@ -557,7 +557,36 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   cursor: grabbing;
   z-index: 5;
 }
+.canvas--editing [data-tpl-edit-node].is-scaling {
+  cursor: nwse-resize;
+  z-index: 5;
+}
+.tpl-edit-handle {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 28px;
+  height: 28px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--acid);
+  color: var(--ink);
+  cursor: nwse-resize;
+  z-index: 6;
+}
+.tpl-edit-handle::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+}
+.canvas--editing [data-tpl-edit-node] > .tpl-edit-handle { display: inline-flex; }
 .canvas--exporting [data-tpl-edit-node] { box-shadow: none !important; }
+.canvas--exporting .tpl-edit-handle { display: none !important; }
 
 /* ---------- reveal-on-scroll ---------- */
 .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease, transform 0.6s ease; }
