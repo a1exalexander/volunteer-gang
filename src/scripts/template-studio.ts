@@ -34,6 +34,8 @@ interface ActionIcons {
   edit: string;
   done: string;
   reset: string;
+  success: string;
+  error: string;
 }
 
 type CardLayout = Record<string, LayoutValue>;
@@ -120,7 +122,7 @@ function readInitial(): State {
 }
 
 function readActionIcons(): ActionIcons {
-  const fallback: ActionIcons = { download: '', copy: '', edit: '', done: '', reset: '' };
+  const fallback: ActionIcons = { download: '', copy: '', edit: '', done: '', reset: '', success: '', error: '' };
   const el = document.getElementById('vg-tpl-icons');
   if (!el?.textContent) return fallback;
   try {
@@ -131,6 +133,8 @@ function readActionIcons(): ActionIcons {
       edit: typeof parsed.edit === 'string' ? parsed.edit : '',
       done: typeof parsed.done === 'string' ? parsed.done : '',
       reset: typeof parsed.reset === 'string' ? parsed.reset : '',
+      success: typeof parsed.success === 'string' ? parsed.success : '',
+      error: typeof parsed.error === 'string' ? parsed.error : '',
     };
   } catch {
     return fallback;
@@ -694,14 +698,33 @@ function lib(): HtmlToImage | null {
 }
 
 const timers: Record<string, number> = {};
-function setActionTooltip(id: string, mode: 'cp' | 'dl', msg: string): void {
+function setActionTooltip(id: string, mode: 'cp' | 'dl', msg: string, ok: boolean): void {
   const selector = mode === 'cp' ? `[data-cp="${id}"]` : `[data-dl="${id}"]`;
   const btn = document.querySelector<HTMLElement>(selector);
   if (!btn) return;
 
   const baseAria = btn.dataset.baseAriaLabel ?? btn.getAttribute('aria-label') ?? '';
   btn.dataset.baseAriaLabel = baseAria;
-  btn.dataset.actionTooltip = msg;
+
+  // Render the tooltip as a real element so a react-icons SVG can sit next to
+  // the label — the CSS `::after` used before could only show plain text.
+  let tip = btn.querySelector<HTMLElement>('.action-tooltip');
+  if (!tip) {
+    tip = document.createElement('span');
+    tip.className = 'action-tooltip';
+    tip.setAttribute('aria-hidden', 'true');
+    btn.appendChild(tip);
+  }
+  tip.classList.toggle('action-tooltip--error', !ok);
+  const iconMarkup = ok ? actionIcons.success : actionIcons.error;
+  const iconWrap = document.createElement('span');
+  iconWrap.className = 'action-tooltip-icon';
+  iconWrap.setAttribute('aria-hidden', 'true');
+  iconWrap.innerHTML = iconMarkup;
+  const label = document.createElement('span');
+  label.textContent = msg;
+  tip.replaceChildren(iconWrap, label);
+
   btn.classList.add('action-tooltip-visible');
   btn.setAttribute('aria-label', msg);
 
@@ -709,7 +732,6 @@ function setActionTooltip(id: string, mode: 'cp' | 'dl', msg: string): void {
   window.clearTimeout(timers[timerKey]);
   timers[timerKey] = window.setTimeout(() => {
     btn.classList.remove('action-tooltip-visible');
-    delete btn.dataset.actionTooltip;
     if (baseAria) btn.setAttribute('aria-label', baseAria);
     else btn.removeAttribute('aria-label');
   }, 2500);
@@ -738,10 +760,10 @@ async function download(id: string): Promise<void> {
     a.download = `vg-${id}.png`;
     a.click();
     window.setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-    setActionTooltip(id, 'dl', 'Збережено');
+    setActionTooltip(id, 'dl', 'Збережено', true);
   } catch (e) {
     console.error(e);
-    setActionTooltip(id, 'dl', 'Помилка збереження');
+    setActionTooltip(id, 'dl', 'Помилка збереження', false);
   }
 }
 
@@ -751,10 +773,10 @@ async function copy(id: string): Promise<void> {
     // requirement satisfied while the image renders.
     const item = new ClipboardItem({ 'image/png': makeBlob(id) });
     await navigator.clipboard.write([item]);
-    setActionTooltip(id, 'cp', 'Скопійовано');
+    setActionTooltip(id, 'cp', 'Скопійовано', true);
   } catch (e) {
     console.error(e);
-    setActionTooltip(id, 'cp', 'Помилка копіювання');
+    setActionTooltip(id, 'cp', 'Помилка копіювання', false);
   }
 }
 
