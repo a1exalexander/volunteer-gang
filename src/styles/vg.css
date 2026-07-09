@@ -28,6 +28,7 @@
 
   /* Layout */
   --pad-x: 72px;
+  --maxw: 1200px;
   --gang-size: 132px;
 }
 
@@ -81,6 +82,15 @@ p {
 .section {
   padding: 80px var(--pad-x);
   border-bottom: 1px solid var(--border);
+}
+
+/* Centered max-width content wrapper. Lives INSIDE full-bleed blocks
+   (.section, .hero) so their background and bottom-border divider stay
+   edge-to-edge while the content is capped and centered on wide screens. */
+.container {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
 }
 
 .mono {
@@ -330,7 +340,7 @@ p {
 .member-ig:hover { color: var(--pink-hover); }
 
 /* ---------- templates teaser ---------- */
-.teaser {
+.teaser-inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
