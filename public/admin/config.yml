@@ -124,6 +124,12 @@ collections:
             label: 'Заголовки секцій'
             widget: object
             fields:
+              - name: war
+                label: 'Секція «Війна в Україні»'
+                widget: object
+                fields:
+                  - { name: num, label: 'Номер', widget: string }
+                  - { name: title, label: 'Заголовок', widget: string }
               - name: fundraiser
                 label: 'Секція «Активний збір»'
                 widget: object
@@ -142,6 +148,24 @@ collections:
                 fields:
                   - { name: num, label: 'Номер', widget: string }
                   - { name: title, label: 'Заголовок', widget: string }
+          - name: war
+            label: 'Війна в Україні'
+            widget: object
+            fields:
+              - { name: lead, label: 'Головна теза', widget: text }
+              - { name: body, label: 'Текст', widget: text }
+              - name: points
+                label: 'Заклики (3)'
+                widget: list
+                fields:
+                  - { name: title, label: 'Заголовок', widget: string }
+                  - { name: text, label: 'Текст', widget: text }
+              - name: cta
+                label: 'Кнопка'
+                widget: object
+                fields:
+                  - { name: label, label: 'Текст', widget: string }
+                  - { name: href, label: 'Посилання', widget: string }
           - name: stats
             label: 'Статистика (3)'
             widget: list

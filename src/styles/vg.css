@@ -18,6 +18,7 @@
   --card: #161413;        /* inputs / dark cards */
   --muted-ink: #55504c;   /* muted text on light cards */
   --report-stripe: #f96faf;
+  --blood: #a30d12;       /* Кров — war section background */
 
   /* Fonts */
   --font-display: 'Unbounded', sans-serif;
@@ -306,6 +307,63 @@ p {
 .gang .drip1 { left: 150px; bottom: -34px; width: 10px; height: 46px; border-radius: 0 0 6px 6px; }
 .gang .drip2 { left: 320px; bottom: -22px; width: 8px; height: 32px; border-radius: 0 0 5px 5px; }
 .gang-underline { position: absolute; left: -8px; bottom: -50px; overflow: visible; }
+
+/* ---------- war in ukraine ----------
+   The one section that breaks the dark chrome on purpose: blood-red
+   background, everything in it black. */
+.war {
+  background: var(--blood);
+  color: var(--ink);
+}
+.war .sec-num { color: var(--ink); }
+.war-lead {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 42px;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  max-width: 920px;
+  padding-left: 24px;
+  border-left: 6px solid var(--ink);
+}
+.war-body {
+  margin-top: 24px;
+  max-width: 720px;
+  font-size: 16px;
+  line-height: 1.65;
+  color: rgba(13, 12, 12, 0.82);
+}
+.war-points {
+  margin-top: 48px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.war-point {
+  border: 2px solid var(--ink);
+  padding: 24px 26px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.war-point-title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-size: 22px;
+  color: var(--ink);
+}
+.war-point-text { font-size: 14px; line-height: 1.6; color: rgba(13, 12, 12, 0.82); }
+.war-cta { margin-top: 44px; }
+.war .war-cta {
+  background: var(--ink);
+  color: var(--chalk);
+}
+.war .war-cta:hover {
+  background: #262120;
+  color: var(--chalk);
+}
 
 /* ---------- active fundraiser ---------- */
 .fund-grid {
@@ -933,6 +991,8 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   .hero-v { font-size: 72px; }
   .hero-top { margin-bottom: 56px; }
   .members { grid-template-columns: repeat(2, 1fr); }
+  .war-lead { font-size: 30px; }
+  .war-points { grid-template-columns: 1fr; }
   .fund-card { width: 100%; }
   .fund-side { min-width: 0; }
   .studio { flex-direction: column; }
@@ -1068,6 +1128,8 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   }
   .hero-v { font-size: 52px; }
   .sec-title { font-size: 26px; }
+  .war-lead { font-size: 24px; padding-left: 16px; }
+  .war-cta { width: 100%; text-align: center; white-space: normal; }
   .members { grid-template-columns: 1fr; }
   .field-row { grid-template-columns: 1fr; }
   .teaser-body { margin-left: 0; }
