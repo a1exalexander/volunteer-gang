@@ -1,0 +1,75 @@
+seo:
+  title: VG — Шаблони Instagram
+  description: Генератор постів і сторіз у фірмовому стилі Volunteer Gang.
+    Заповни дані збору один раз — і забери готові картинки для Instagram одним
+    кліком.
+studio:
+  drawerToggle: ✎ ДАНІ ЗБОРУ
+  panelAriaLabel: Дані збору
+  closePanelAriaLabel: Закрити панель
+  panelTitle: Дані збору
+  panelIntro: Заповни один раз — оновляться всі шаблони. Потім «PNG» або
+    «Копіювати» під потрібним.
+  titleMainLabel: ЗАГОЛОВОК (рядки — з нового рядка)
+  titleAccentLabel: АКЦЕНТНИЙ РЯДОК (бригада / підрозділ)
+  descLabel: ОПИС
+  goalLabel: ЦІЛЬ, ₴
+  raisedLabel: ЗІБРАНО, ₴
+  photoLabel: ФОТО · ОДНЕ ДЛЯ ВСІХ ШАБЛОНІВ (за бажанням)
+  dropzoneTitleEmpty: Перетягни фото сюди
+  dropzoneHintEmpty: або натисни, щоб обрати
+  dropzoneTitleFilled: Фото завантажено
+  dropzoneHintFilled: натисни або перетягни, щоб замінити
+  clearPhotoLabel: ✕ Прибрати
+  colorsTitle: КОЛЬОРИ ШАБЛОНІВ
+  labelsTitle: ПІДПИСИ ШАБЛОНІВ
+  labelsIntro: Статуси й кікери на шаблонах. Стрілки та ✕ додаються автоматично.
+  labelsResetLabel: ↺ Скинути
+  colorsResetLabel: ↺ Скинути
+  swatchInkLabel: Фон
+  swatchChalkLabel: Світлий
+  swatchPinkLabel: Основний
+  swatchAcidLabel: Акцент
+  swatchBubbleLabel: Бабл
+  alertLead: Фото — за бажанням.
+  alertBody: "Пунктирне місце під фото видно лише у прев'ю: якщо фото не завантажено, шаблон скачається або скопіюється без цього плейсхолдера."
+  actions:
+    download: PNG
+    copy: Копіювати
+    edit: Редагувати
+    done: Готово
+    reset: Скинути
+    resetAll: Скинути все
+    formatGroupAriaLabel: Формат
+    formatPostLabel: Пост
+    formatStoryLabel: Сторіз
+    saved: Збережено
+    saveError: Помилка збереження
+    copied: Скопійовано
+    copyError: Помилка копіювання
+    resizeElementAriaLabel: Змінити розмір елемента
+    removeElementAriaLabel: Видалити елемент
+  labels:
+    collect: ЗБІР НА
+    active: АКТИВНИЙ ЗБІР
+    urgent: ТЕРМІНОВО · ЗБІР
+    checks: ЧЕКИ ✓ ФОТО ✓
+    handover: ПЕРЕДАНО
+    closedKicker: ЗБІР ЗАКРИТО
+    closed: ЗАКРИТО
+    collected: ВЖЕ ЗІБРАНО
+    thermo: ТЕРМОМЕТР ЗБОРУ
+    equator: ЕКВАТОР ЗБОРУ
+    deadline: ЗАКРИВАЄМО СЬОГОДНІ
+    lastDay: останній день збору
+    checksWeekly: ЧЕКИ ✓
+    giftKicker: ПОДАРУНКИ ЗА ДОНАТИ
+    giftHeadline: Які подарунки
+    giftPreview: ПРЕВʼЮ ПОДАРУНКІВ
+    giftList: СПИСОК ПОДАРУНКІВ
+    giftItem1: ПОЗИЦІЯ 01
+    giftItem2: ПОЗИЦІЯ 02
+    giftItem3: ПОЗИЦІЯ 03
+    giftItem4: ПОЗИЦІЯ 04
+    giftFor: Подарунки за донат
+    giftBrigade: ПОДАРУНКИ ЗА ДОНАТ

@@ -200,3 +200,120 @@ collections:
             fields:
               - { name: body, label: 'Текст', widget: text }
               - { name: cta, label: 'Кнопка', widget: string }
+
+  - name: templatesPage
+    label: 'Сторінка шаблонів'
+    files:
+      - name: templates
+        label: 'Шаблони Instagram'
+        file: 'src/content/pages/templates.yml'
+        extension: 'yml'
+        format: 'yml'
+        fields:
+          - name: seo
+            label: 'SEO'
+            widget: object
+            fields:
+              - { name: title, label: 'Title', widget: string }
+              - { name: description, label: 'Description', widget: text }
+          - name: studio
+            label: 'Тексти редактора шаблонів'
+            widget: object
+            fields:
+              - { name: drawerToggle, label: 'Кнопка відкриття панелі', widget: string }
+              - { name: panelAriaLabel, label: 'ARIA назва панелі', widget: string }
+              - { name: closePanelAriaLabel, label: 'ARIA кнопки закриття', widget: string }
+              - { name: panelTitle, label: 'Заголовок панелі', widget: string }
+              - { name: panelIntro, label: 'Опис панелі', widget: text }
+              - { name: titleMainLabel, label: 'Лейбл заголовка', widget: string }
+              - { name: titleAccentLabel, label: 'Лейбл акцентного рядка', widget: string }
+              - { name: descLabel, label: 'Лейбл опису', widget: string }
+              - { name: goalLabel, label: 'Лейбл цілі', widget: string }
+              - { name: raisedLabel, label: 'Лейбл зібрано', widget: string }
+              - { name: photoLabel, label: 'Лейбл фото', widget: string }
+              - { name: dropzoneTitleEmpty, label: 'Фото: заголовок (порожньо)', widget: string }
+              - { name: dropzoneHintEmpty, label: 'Фото: підказка (порожньо)', widget: string }
+              - { name: dropzoneTitleFilled, label: 'Фото: заголовок (завантажено)', widget: string }
+              - { name: dropzoneHintFilled, label: 'Фото: підказка (завантажено)', widget: string }
+              - { name: clearPhotoLabel, label: 'Кнопка очистки фото', widget: string }
+              - { name: colorsTitle, label: 'Заголовок секції кольорів', widget: string }
+              - { name: labelsTitle, label: 'Заголовок секції підписів', widget: string }
+              - { name: labelsIntro, label: 'Пояснення секції підписів', widget: text }
+              - { name: labelsResetLabel, label: 'Кнопка скидання підписів', widget: string }
+              - { name: colorsResetLabel, label: 'Кнопка скидання кольорів', widget: string }
+              - { name: swatchInkLabel, label: 'Назва кольору: ink', widget: string }
+              - { name: swatchChalkLabel, label: 'Назва кольору: chalk', widget: string }
+              - { name: swatchPinkLabel, label: 'Назва кольору: pink', widget: string }
+              - { name: swatchAcidLabel, label: 'Назва кольору: acid', widget: string }
+              - { name: swatchBubbleLabel, label: 'Назва кольору: bubble', widget: string }
+              - { name: alertLead, label: 'Попередження: перше речення', widget: string }
+              - { name: alertBody, label: 'Попередження: текст', widget: text }
+              - name: actions
+                label: 'Тексти кнопок і тултіпів'
+                widget: object
+                fields:
+                  - { name: download, label: 'Кнопка завантаження', widget: string }
+                  - { name: copy, label: 'Кнопка копіювання', widget: string }
+                  - { name: edit, label: 'Кнопка редагувати', widget: string }
+                  - { name: done, label: 'Кнопка готово', widget: string }
+                  - { name: reset, label: 'Кнопка скинути', widget: string }
+                  - { name: resetAll, label: 'Кнопка скинути все', widget: string }
+                  - { name: formatGroupAriaLabel, label: 'ARIA групи форматів', widget: string }
+                  - { name: formatPostLabel, label: 'Формат пост', widget: string }
+                  - { name: formatStoryLabel, label: 'Формат сторіз', widget: string }
+                  - { name: saved, label: 'Тултіп успіху збереження', widget: string }
+                  - { name: saveError, label: 'Тултіп помилки збереження', widget: string }
+                  - { name: copied, label: 'Тултіп успіху копіювання', widget: string }
+                  - { name: copyError, label: 'Тултіп помилки копіювання', widget: string }
+                  - { name: resizeElementAriaLabel, label: 'ARIA масштабування елемента', widget: string }
+                  - { name: removeElementAriaLabel, label: 'ARIA видалення елемента', widget: string }
+              - name: labels
+                label: 'Базові підписи шаблонів'
+                widget: object
+                fields:
+                  - { name: collect, label: 'collect', widget: string }
+                  - { name: active, label: 'active', widget: string }
+                  - { name: urgent, label: 'urgent', widget: string }
+                  - { name: checks, label: 'checks', widget: string }
+                  - { name: handover, label: 'handover', widget: string }
+                  - { name: closedKicker, label: 'closedKicker', widget: string }
+                  - { name: closed, label: 'closed', widget: string }
+                  - { name: collected, label: 'collected', widget: string }
+                  - { name: thermo, label: 'thermo', widget: string }
+                  - { name: equator, label: 'equator', widget: string }
+                  - { name: deadline, label: 'deadline', widget: string }
+                  - { name: lastDay, label: 'lastDay', widget: string }
+                  - { name: checksWeekly, label: 'checksWeekly', widget: string }
+                  - { name: giftKicker, label: 'giftKicker', widget: string }
+                  - { name: giftHeadline, label: 'giftHeadline', widget: string }
+                  - { name: giftPreview, label: 'giftPreview', widget: string }
+                  - { name: giftList, label: 'giftList', widget: string }
+                  - { name: giftItem1, label: 'giftItem1', widget: string }
+                  - { name: giftItem2, label: 'giftItem2', widget: string }
+                  - { name: giftItem3, label: 'giftItem3', widget: string }
+                  - { name: giftItem4, label: 'giftItem4', widget: string }
+                  - { name: giftFor, label: 'giftFor', widget: string }
+                  - { name: giftBrigade, label: 'giftBrigade', widget: string }
+
+  - name: ui
+    label: 'Спільні тексти інтерфейсу'
+    files:
+      - name: shared
+        label: 'Header / Footer / Consent'
+        file: 'src/content/ui/shared.yml'
+        extension: 'yml'
+        format: 'yml'
+        fields:
+          - { name: templatesHeaderTag, label: 'Шапка: тег на сторінці шаблонів', widget: string }
+          - { name: backHomeLabel, label: 'Шапка: посилання на головну', widget: string }
+          - { name: templatesResetAllLabel, label: 'Шапка: кнопка скинути все', widget: string }
+          - { name: templatesResetAllAriaLabel, label: 'Шапка: ARIA кнопки скинути все', widget: string }
+          - { name: footerBrandBookLabel, label: 'Футер: бренд-бук', widget: string }
+          - name: consent
+            label: 'Банер аналітики'
+            widget: object
+            fields:
+              - { name: kicker, label: 'Kicker', widget: string }
+              - { name: body, label: 'Текст', widget: text }
+              - { name: acceptLabel, label: 'Кнопка прийняти', widget: string }
+              - { name: declineLabel, label: 'Кнопка відхилити', widget: string }

@@ -4,9 +4,10 @@ import Logo from './brand/Logo.astro';
 
 interface Props {
   settings: CollectionEntry<'site'>['data'];
+  ui: CollectionEntry<'ui'>['data'];
 }
 
-const { settings } = Astro.props;
+const { settings, ui } = Astro.props;
 ---
 
 <footer class="site-footer">
@@ -23,7 +24,7 @@ const { settings } = Astro.props;
       />
     </div>
     <div class="footer-right">
-      <a href="/brand" class="footer-link" rel="nofollow">БРЕНД-БУК</a>
+      <a href="/brand" class="footer-link" rel="nofollow">{ui.footerBrandBookLabel}</a>
       <div class="footer-tag">{settings.footerTagline}</div>
     </div>
   </div>

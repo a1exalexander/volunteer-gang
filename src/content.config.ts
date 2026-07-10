@@ -76,7 +76,7 @@ const activeJar = defineCollection({
 
 // ---------- PAGES (home singleton) ----------
 const pages = defineCollection({
-  loader: glob({ pattern: '**/*.yml', base: './src/content/pages' }),
+  loader: glob({ pattern: 'home.yml', base: './src/content/pages' }),
   schema: z
     .object({
       seo,
@@ -114,4 +114,110 @@ const pages = defineCollection({
     .strict(),
 });
 
-export const collections = { site, fundraiser, pages, activeJar };
+// ---------- TEMPLATES PAGE (templates singleton) ----------
+const templatesPage = defineCollection({
+  loader: glob({ pattern: 'templates.yml', base: './src/content/pages' }),
+  schema: z
+    .object({
+      seo,
+      studio: z
+        .object({
+          drawerToggle: z.string(),
+          panelAriaLabel: z.string(),
+          closePanelAriaLabel: z.string(),
+          panelTitle: z.string(),
+          panelIntro: z.string(),
+          titleMainLabel: z.string(),
+          titleAccentLabel: z.string(),
+          descLabel: z.string(),
+          goalLabel: z.string(),
+          raisedLabel: z.string(),
+          photoLabel: z.string(),
+          dropzoneTitleEmpty: z.string(),
+          dropzoneHintEmpty: z.string(),
+          dropzoneTitleFilled: z.string(),
+          dropzoneHintFilled: z.string(),
+          clearPhotoLabel: z.string(),
+          colorsTitle: z.string(),
+          labelsTitle: z.string(),
+          labelsIntro: z.string(),
+          labelsResetLabel: z.string(),
+          colorsResetLabel: z.string(),
+          swatchInkLabel: z.string(),
+          swatchChalkLabel: z.string(),
+          swatchPinkLabel: z.string(),
+          swatchAcidLabel: z.string(),
+          swatchBubbleLabel: z.string(),
+          alertLead: z.string(),
+          alertBody: z.string(),
+          actions: z.object({
+            download: z.string(),
+            copy: z.string(),
+            edit: z.string(),
+            done: z.string(),
+            reset: z.string(),
+            resetAll: z.string(),
+            formatGroupAriaLabel: z.string(),
+            formatPostLabel: z.string(),
+            formatStoryLabel: z.string(),
+            saved: z.string(),
+            saveError: z.string(),
+            copied: z.string(),
+            copyError: z.string(),
+            resizeElementAriaLabel: z.string(),
+            removeElementAriaLabel: z.string(),
+          }),
+          labels: z.object({
+            collect: z.string(),
+            active: z.string(),
+            urgent: z.string(),
+            checks: z.string(),
+            handover: z.string(),
+            closedKicker: z.string(),
+            closed: z.string(),
+            collected: z.string(),
+            thermo: z.string(),
+            equator: z.string(),
+            deadline: z.string(),
+            lastDay: z.string(),
+            checksWeekly: z.string(),
+            giftKicker: z.string(),
+            giftHeadline: z.string(),
+            giftPreview: z.string(),
+            giftList: z.string(),
+            giftItem1: z.string(),
+            giftItem2: z.string(),
+            giftItem3: z.string(),
+            giftItem4: z.string(),
+            giftFor: z.string(),
+            giftBrigade: z.string(),
+          }),
+        })
+        .strict(),
+    })
+    .strict(),
+});
+
+// ---------- SHARED UI COPY ----------
+const ui = defineCollection({
+  loader: glob({ pattern: '**/*.yml', base: './src/content/ui' }),
+  schema: z
+    .object({
+      templatesHeaderTag: z.string(),
+      backHomeLabel: z.string(),
+      templatesResetAllLabel: z.string(),
+      templatesResetAllAriaLabel: z.string(),
+      footerBrandBookLabel: z.string(),
+      consent: z
+        .object({
+          kicker: z.string(),
+          body: z.string(),
+          acceptLabel: z.string(),
+          declineLabel: z.string(),
+        })
+        .strict(),
+    })
+    .strict(),
+});
+
+export const collections = { site, fundraiser, pages, activeJar, templatesPage, ui };
