@@ -1401,8 +1401,28 @@ function applyBindHighlight(selector: string | null): void {
   document.querySelectorAll<HTMLElement>(scoped).forEach((el) => el.classList.add('tpl-bind-highlight'));
 }
 
-// Fields whose row (not just the control itself) should trigger a hover preview.
-const HOVER_FIELD_SELECTOR = '[data-label-input], #tpl-titleMain, #tpl-titleAccent, #tpl-desc, #tpl-goal, #tpl-raised, #tpl-photo-drop, #tpl-photo-clear';
+// Resolve any event bubbling from labels / wrappers back to the studio control
+// that owns the matching canvas content.
+const HIGHLIGHT_CONTROL_SELECTOR =
+  '[data-label-input], #tpl-titleMain, #tpl-titleAccent, #tpl-desc, #tpl-goal, #tpl-raised, #tpl-photo, #tpl-photo-drop, #tpl-photo-clear';
+
+function highlightTargetFor(el: HTMLElement): HTMLElement | null {
+  const direct = el.closest<HTMLElement>(HIGHLIGHT_CONTROL_SELECTOR);
+  if (direct) return direct;
+
+  const field = el.closest<HTMLElement>('.field');
+  if (field) {
+    const control = field.querySelector<HTMLElement>(HIGHLIGHT_CONTROL_SELECTOR);
+    if (control) return control;
+  }
+
+  const photoPanel = el.closest<HTMLElement>('.panel-photo');
+  if (photoPanel) {
+    return photoPanel.querySelector<HTMLElement>('#tpl-photo-clear, #tpl-photo-drop, #tpl-photo');
+  }
+
+  return null;
+}
 
 function bindFocusHighlight(): void {
   const panel = document.getElementById('studio-panel');
@@ -1415,11 +1435,18 @@ function bindFocusHighlight(): void {
   panel.addEventListener('focusin', (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
-    const selector = highlightSelectorFor(target);
+    const selector = highlightSelectorFor(highlightTargetFor(target) ?? target);
     focusLocked = !!selector;
     applyBindHighlight(selector);
   });
-  panel.addEventListener('focusout', () => {
+  panel.addEventListener('focusout', (event) => {
+    const next = event.relatedTarget;
+    if (next instanceof HTMLElement && panel.contains(next)) {
+      const selector = highlightSelectorFor(highlightTargetFor(next) ?? next);
+      focusLocked = !!selector;
+      applyBindHighlight(selector);
+      return;
+    }
     focusLocked = false;
     applyBindHighlight(null);
   });
@@ -1428,7 +1455,7 @@ function bindFocusHighlight(): void {
     if (focusLocked) return;
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
-    const field = target.closest<HTMLElement>(HOVER_FIELD_SELECTOR);
+    const field = highlightTargetFor(target);
     applyBindHighlight(field ? highlightSelectorFor(field) : null);
   });
   panel.addEventListener('pointerleave', () => {
