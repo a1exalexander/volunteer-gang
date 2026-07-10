@@ -25,20 +25,6 @@ const { active, settings, jarActive = false } = Astro.props;
       />
     </a>
 
-    {
-      active === 'templates' && (
-        <button
-          type="button"
-          id="tpl-global-reset"
-          class="header-reset"
-          aria-label="Скинути всі зміни шаблонів"
-          hidden
-        >
-          Скинути все
-        </button>
-      )
-    }
-
     <nav class="site-nav">
       {
         active === 'templates' ? (
@@ -69,3 +55,21 @@ const { active, settings, jarActive = false } = Astro.props;
     </nav>
   </div>
 </header>
+
+{
+  /* Lives outside <header>: its backdrop-filter would otherwise become the
+     containing block for the pill's `position: fixed` (used on both desktop,
+     where it's centred over the header, and mobile, where it anchors to the
+     bottom of the viewport — see .header-reset in vg.css). */
+  active === 'templates' && (
+    <button
+      type="button"
+      id="tpl-global-reset"
+      class="header-reset"
+      aria-label="Скинути всі зміни шаблонів"
+      hidden
+    >
+      Скинути все
+    </button>
+  )
+}
