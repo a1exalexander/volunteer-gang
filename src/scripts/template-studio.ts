@@ -198,7 +198,12 @@ function pick(obj: Record<string, unknown>): Partial<State> {
 // load, so it doubles as the target the header "Скинути все" button restores
 // to and as the yardstick for detecting whether anything was edited.
 function readSeed(): State {
-  const base: State = { ...FALLBACK, colors: { ...DEFAULT_COLORS }, labels: { ...DEFAULT_LABELS } };
+  const base: State = {
+    ...FALLBACK,
+    colors: { ...DEFAULT_COLORS },
+    // Keep CMS-configured default labels available during seed bootstrapping.
+    labels: { ...DEFAULT_LABELS_FALLBACK, ...readStudioUi().labels },
+  };
   const el = document.getElementById('vg-tpl-initial');
   try {
     if (el?.textContent) {
