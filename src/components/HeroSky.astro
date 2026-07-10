@@ -1,0 +1,440 @@
+---
+/**
+ * HeroSky — decorative animated backdrop for the home hero.
+ *
+ * Cycles day ↔ night every 5 seconds; each phase re-enters with the next
+ * weather from its pool, so all six scenes rotate:
+ *   day:   sun → clouds → rain
+ *   night: stars → snow → storm
+ *
+ * The particle fields (stars / rain / snow) are scattered once at build
+ * time; the runtime script only flips data-phase / data-weather and the
+ * CSS crossfades the layers. Honors prefers-reduced-motion (static scene).
+ */
+const rnd = (min: number, max: number) => +(min + Math.random() * (max - min)).toFixed(2);
+
+const stars = Array.from({ length: 54 }, () => ({
+  left: rnd(0, 100),
+  top: rnd(2, 62),
+  size: rnd(1, 2.6),
+  dur: rnd(1.6, 3.8),
+  delay: rnd(0, 4),
+}));
+
+const drops = Array.from({ length: 44 }, () => ({
+  left: rnd(-4, 104),
+  h: rnd(34, 68),
+  dur: rnd(0.55, 0.95),
+  delay: rnd(0, 1),
+  o: rnd(0.35, 0.75),
+}));
+
+const flakes = Array.from({ length: 34 }, () => ({
+  left: rnd(0, 100),
+  size: rnd(3, 6.5),
+  sx: rnd(-70, 70),
+  dur: rnd(5, 9),
+  delay: rnd(0, 9),
+  o: rnd(0.5, 0.95),
+}));
+---
+
+<div id="vg-sky" class="sky" data-phase="day" data-weather="sun" aria-hidden="true">
+  <div class="layer bg-day"></div>
+  <div class="layer bg-night"></div>
+  <div class="layer gloom"></div>
+
+  <div class="layer stars">
+    {
+      stars.map((s) => (
+        <i
+          class="star"
+          style={`left:${s.left}%;top:${s.top}%;width:${s.size}px;height:${s.size}px;animation-duration:${s.dur}s;animation-delay:-${s.delay}s`}
+        />
+      ))
+    }
+  </div>
+
+  <div class="celestial sun-wrap"><div class="sun"></div></div>
+  <div class="celestial moon-wrap"><div class="moon"></div></div>
+
+  <div class="layer clouds">
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="cloud c3"></div>
+    <div class="cloud c4"></div>
+  </div>
+
+  <div class="layer w-rain">
+    {
+      drops.map((d) => (
+        <i
+          class="drop"
+          style={`left:${d.left}%;height:${d.h}px;opacity:${d.o};animation-duration:${d.dur}s;animation-delay:-${d.delay}s`}
+        />
+      ))
+    }
+  </div>
+
+  <div class="layer w-snow">
+    {
+      flakes.map((f) => (
+        <i
+          class="flake"
+          style={`left:${f.left}%;width:${f.size}px;height:${f.size}px;opacity:${f.o};--sx:${f.sx}px;animation-duration:${f.dur}s;animation-delay:-${f.delay}s`}
+        />
+      ))
+    }
+  </div>
+
+  <div class="layer w-storm">
+    <svg class="bolt" viewBox="0 0 48 96" fill="none">
+      <polygon points="30,0 10,44 21,44 6,92 42,36 26,36 42,0" fill="#ffec9e"></polygon>
+    </svg>
+    <div class="flash"></div>
+  </div>
+
+  <div class="layer scrim"></div>
+
+  <div class="sky-status">
+    <span class="sky-status-dot"></span>
+    <span class="sky-status-text">ДЕНЬ · ЯСНО</span>
+  </div>
+</div>
+
+<script>
+  const sky = document.getElementById('vg-sky');
+  if (sky) {
+    const POOLS: Record<'day' | 'night', string[]> = {
+      day: ['sun', 'clouds', 'rain'],
+      night: ['stars', 'snow', 'storm'],
+    };
+    const LABELS: Record<string, string> = {
+      sun: 'ЯСНО',
+      clouds: 'ХМАРНО',
+      rain: 'ДОЩ',
+      stars: 'ЗОРЯНО',
+      snow: 'СНІГ',
+      storm: 'ГРОЗА',
+    };
+    const statusEl = sky.querySelector('.sky-status-text');
+
+    let phase: 'day' | 'night' = 'day';
+    const idx = { day: 0, night: -1 };
+
+    const apply = () => {
+      const weather = POOLS[phase][idx[phase]];
+      sky.dataset.phase = phase;
+      sky.dataset.weather = weather;
+      if (statusEl) {
+        statusEl.textContent = `${phase === 'day' ? 'ДЕНЬ' : 'НІЧ'} · ${LABELS[weather]}`;
+      }
+    };
+
+    const tick = () => {
+      if (document.hidden) return; // hold the scene while the tab is away
+      phase = phase === 'day' ? 'night' : 'day';
+      idx[phase] = (idx[phase] + 1) % POOLS[phase].length;
+      apply();
+    };
+
+    apply();
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setInterval(tick, 5000);
+    }
+  }
+</script>
+
+<style>
+  .sky {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: linear-gradient(172deg, #060609 0%, #0c0e1c 55%, #191231 100%);
+  }
+
+  .layer {
+    position: absolute;
+    inset: 0;
+    transition: opacity 1s ease;
+  }
+
+  /* ---------- sky backdrops ---------- */
+  .bg-day {
+    background: linear-gradient(168deg, #274b79 0%, #3e6ea8 48%, #8f6ba0 78%, #c98bb4 100%);
+    opacity: 0;
+    transition-duration: 1.4s;
+  }
+  .sky[data-phase='day'] .bg-day { opacity: 1; }
+
+  .bg-night {
+    background: linear-gradient(172deg, #060609 0%, #0c0e1c 55%, #191231 100%);
+    opacity: 0;
+    transition-duration: 1.4s;
+  }
+  .sky[data-phase='night'] .bg-night { opacity: 1; }
+
+  /* Overcast dimmer for bad weather */
+  .gloom { background: #0e1119; opacity: 0; }
+  .sky[data-weather='rain'] .gloom { opacity: 0.42; }
+  .sky[data-weather='storm'] .gloom { opacity: 0.5; }
+
+  /* ---------- stars ---------- */
+  .stars { opacity: 0; }
+  .sky[data-phase='night'] .stars { opacity: 1; }
+  .sky[data-weather='snow'] .stars { opacity: 0.5; }
+  .sky[data-weather='storm'] .stars { opacity: 0.12; }
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--chalk);
+    animation: vg-twinkle 2.4s ease-in-out infinite;
+  }
+  @keyframes vg-twinkle {
+    0%, 100% { opacity: 0.15; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1); }
+  }
+
+  /* ---------- sun & moon ---------- */
+  .celestial {
+    position: absolute;
+    opacity: 0;
+    transform: translateY(46px) scale(0.86);
+    transition: opacity 1.1s ease, transform 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .sun-wrap { top: 140px; right: 10%; }
+  .moon-wrap { top: 152px; right: 12%; }
+  .sky[data-phase='day'] .sun-wrap { opacity: 1; transform: none; }
+  .sky[data-phase='night'] .moon-wrap { opacity: 1; transform: none; }
+  /* weather overrides (after the phase rules so they win) */
+  .sky[data-weather='clouds'] .sun-wrap { opacity: 0.55; }
+  .sky[data-weather='rain'] .sun-wrap { opacity: 0; transform: translateY(24px) scale(0.92); }
+  .sky[data-weather='snow'] .moon-wrap { opacity: 0.7; }
+  .sky[data-weather='storm'] .moon-wrap { opacity: 0; transform: translateY(24px) scale(0.92); }
+
+  .sun {
+    position: relative;
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 34%, #ffe9a3, #ffd158 62%, #f7b733);
+    box-shadow: 0 0 54px 16px rgba(255, 205, 90, 0.38);
+    animation: vg-sun-throb 4s ease-in-out infinite;
+  }
+  .sun::before {
+    content: '';
+    position: absolute;
+    inset: -34px;
+    border-radius: 50%;
+    background: repeating-conic-gradient(rgba(255, 214, 110, 0.4) 0deg 7deg, transparent 7deg 30deg);
+    -webkit-mask: radial-gradient(circle, transparent 46%, #000 47%, #000 68%, transparent 69%);
+    mask: radial-gradient(circle, transparent 46%, #000 47%, #000 68%, transparent 69%);
+    animation: vg-sun-spin 26s linear infinite;
+  }
+  @keyframes vg-sun-spin { to { transform: rotate(360deg); } }
+  @keyframes vg-sun-throb {
+    0%, 100% { box-shadow: 0 0 54px 16px rgba(255, 205, 90, 0.38); }
+    50% { box-shadow: 0 0 72px 24px rgba(255, 205, 90, 0.5); }
+  }
+
+  .moon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    box-shadow:
+      inset -17px 9px 0 1px #f2ecdd,
+      0 0 44px 8px rgba(242, 236, 221, 0.16);
+    animation: vg-moon-bob 6s ease-in-out infinite;
+  }
+  @keyframes vg-moon-bob {
+    0%, 100% { transform: rotate(-14deg) translateY(0); }
+    50% { transform: rotate(-14deg) translateY(-8px); }
+  }
+
+  /* ---------- clouds ---------- */
+  .sky { --cloud: #e9edf4; }
+  .sky[data-weather='rain'] { --cloud: #aeb7c9; }
+  .sky[data-weather='storm'] { --cloud: #363c52; }
+
+  .clouds { opacity: 0; }
+  .sky[data-weather='clouds'] .clouds,
+  .sky[data-weather='rain'] .clouds,
+  .sky[data-weather='storm'] .clouds { opacity: 1; }
+
+  .cloud {
+    position: absolute;
+    width: 150px;
+    height: 44px;
+    border-radius: 999px;
+    background: var(--cloud);
+    transition: background 1s ease;
+    animation: vg-cloud-drift 9s ease-in-out infinite alternate;
+  }
+  .cloud::before,
+  .cloud::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: inherit;
+  }
+  .cloud::before { width: 62px; height: 62px; top: -30px; left: 24px; }
+  .cloud::after { width: 46px; height: 46px; top: -20px; right: 26px; }
+  .c1 { top: 150px; right: 7%; --cs: 1.15; }
+  .c2 { top: 236px; right: 24%; --cs: 0.85; animation-duration: 11s; animation-delay: -3s; }
+  .c3 { top: 128px; right: 33%; --cs: 0.7; animation-duration: 8s; animation-delay: -6s; }
+  .c4 { top: 292px; right: 2%; --cs: 0.6; animation-duration: 10s; animation-delay: -2s; }
+  @keyframes vg-cloud-drift {
+    from { transform: translate3d(-14px, 0, 0) scale(var(--cs, 1)); }
+    to { transform: translate3d(26px, 0, 0) scale(var(--cs, 1)); }
+  }
+
+  /* ---------- rain (shared by day rain + night storm) ---------- */
+  .w-rain {
+    inset: 0 -12%;
+    transform: skewX(-9deg);
+    opacity: 0;
+  }
+  .sky[data-weather='rain'] .w-rain,
+  .sky[data-weather='storm'] .w-rain { opacity: 1; }
+  .drop {
+    position: absolute;
+    top: -80px;
+    width: 2px;
+    border-radius: 999px;
+    background: linear-gradient(to bottom, rgba(186, 214, 255, 0), rgba(186, 214, 255, 0.6));
+    animation: vg-rain-fall 0.8s linear infinite;
+  }
+  @keyframes vg-rain-fall { to { transform: translateY(110vh); } }
+
+  /* ---------- snow ---------- */
+  .w-snow { opacity: 0; }
+  .sky[data-weather='snow'] .w-snow { opacity: 1; }
+  .flake {
+    position: absolute;
+    top: -12px;
+    border-radius: 50%;
+    background: #eef2f8;
+    animation: vg-snow-fall 7s linear infinite;
+  }
+  @keyframes vg-snow-fall {
+    0% { transform: translate3d(0, -4vh, 0); }
+    50% { transform: translate3d(calc(var(--sx, 40px) * -0.5), 50vh, 0); }
+    100% { transform: translate3d(var(--sx, 40px), 108vh, 0); }
+  }
+
+  /* ---------- storm ---------- */
+  .w-storm { opacity: 0; }
+  .sky[data-weather='storm'] .w-storm { opacity: 1; }
+  .flash {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse at 74% 16%,
+      rgba(214, 226, 255, 0.85),
+      rgba(214, 226, 255, 0.18) 55%,
+      transparent 75%
+    );
+    opacity: 0;
+  }
+  .sky[data-weather='storm'] .flash { animation: vg-flash 5s linear infinite; }
+  @keyframes vg-flash {
+    0%, 6%, 9%, 11%, 13%, 52%, 56%, 100% { opacity: 0; }
+    7% { opacity: 0.95; }
+    8% { opacity: 0.2; }
+    10% { opacity: 0.75; }
+    12% { opacity: 0.35; }
+    53.5% { opacity: 0.85; }
+    55% { opacity: 0.3; }
+  }
+  .bolt {
+    position: absolute;
+    top: 190px;
+    right: 22%;
+    width: 52px;
+    filter: drop-shadow(0 0 14px rgba(255, 236, 158, 0.8));
+    opacity: 0;
+  }
+  .sky[data-weather='storm'] .bolt { animation: vg-bolt 5s linear infinite; }
+  @keyframes vg-bolt {
+    0%, 6.5%, 12.5%, 52.5%, 55.5%, 100% { opacity: 0; }
+    7%, 12% { opacity: 1; }
+    53%, 55% { opacity: 1; }
+  }
+
+  /* ---------- readability scrim ----------
+     Keeps the left column (headline, tagline, intro) on near-ink so the
+     chalk text — and the ink paint-drips over the GANG underline — read
+     exactly as they do on the plain dark page. The scene shows through
+     on the right and fades back to ink at the bottom section divider. */
+  .scrim {
+    background:
+      linear-gradient(0deg, var(--ink) 0%, rgba(13, 12, 12, 0) 18%),
+      linear-gradient(180deg, rgba(13, 12, 12, 0.55) 0%, rgba(13, 12, 12, 0) 26%),
+      linear-gradient(
+        97deg,
+        var(--ink) 22%,
+        rgba(13, 12, 12, 0.86) 40%,
+        rgba(13, 12, 12, 0.42) 62%,
+        rgba(13, 12, 12, 0.05) 86%,
+        rgba(13, 12, 12, 0) 100%
+      );
+  }
+
+  /* ---------- status chip ---------- */
+  .sky-status {
+    position: absolute;
+    right: 22px;
+    bottom: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--dust);
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--ink) 78%, transparent);
+  }
+  .sky-status-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--acid);
+    transition: background 1s ease;
+  }
+  .sky[data-phase='night'] .sky-status-dot { background: var(--bubble); }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 900px) {
+    .sun-wrap { top: 104px; right: 5%; }
+    .moon-wrap { top: 112px; right: 7%; }
+    .sun { width: 72px; height: 72px; }
+    .sun::before { inset: -26px; }
+    .moon { width: 56px; height: 56px; box-shadow: inset -14px 7px 0 1px #f2ecdd, 0 0 36px 6px rgba(242, 236, 221, 0.16); }
+    .c1 { top: 118px; }
+    .c2 { top: 190px; }
+    .c3 { display: none; }
+    .c4 { top: 236px; }
+    .bolt { top: 150px; right: 12%; }
+    /* Text spans the full width on small screens — dim the whole scene a bit. */
+    .scrim {
+      background:
+        linear-gradient(0deg, var(--ink) 0%, rgba(13, 12, 12, 0) 20%),
+        linear-gradient(180deg, rgba(13, 12, 12, 0.6) 0%, rgba(13, 12, 12, 0.2) 32%, rgba(13, 12, 12, 0) 55%),
+        linear-gradient(97deg, rgba(13, 12, 12, 0.9) 8%, rgba(13, 12, 12, 0.55) 45%, rgba(13, 12, 12, 0.2) 100%);
+    }
+  }
+  @media (max-width: 720px) {
+    .sky-status { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sky *,
+    .sky *::before,
+    .sky *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>
