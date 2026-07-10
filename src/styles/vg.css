@@ -262,6 +262,11 @@ p {
   position: relative;
   overflow: hidden;
 }
+/* Hero content sits above the animated day/night sky (HeroSky.astro). */
+.hero > .container {
+  position: relative;
+  z-index: 1;
+}
 .hero-top {
   display: flex;
   justify-content: space-between;
