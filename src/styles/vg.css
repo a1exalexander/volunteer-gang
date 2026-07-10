@@ -307,6 +307,52 @@ p {
 .gang .drip2 { left: 320px; bottom: -22px; width: 8px; height: 32px; border-radius: 0 0 5px 5px; }
 .gang-underline { position: absolute; left: -8px; bottom: -50px; overflow: visible; }
 
+/* ---------- war in ukraine ---------- */
+.war-lead {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 38px;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  max-width: 880px;
+  padding-left: 24px;
+  border-left: 4px solid var(--pink);
+}
+.war-body {
+  margin-top: 24px;
+  max-width: 720px;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--dust);
+}
+.war-points {
+  margin-top: 48px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.war-point {
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--bubble);
+  padding: 24px 26px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.war-point.a-pink { border-top-color: var(--pink); }
+.war-point.a-acid { border-top-color: var(--acid); }
+.war-point.a-bubble { border-top-color: var(--bubble); }
+.war-point.a-chalk { border-top-color: var(--chalk); }
+.war-point-title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-size: 22px;
+  color: var(--chalk);
+}
+.war-point-text { font-size: 14px; line-height: 1.6; color: var(--dust); }
+.war-cta { margin-top: 44px; }
+
 /* ---------- active fundraiser ---------- */
 .fund-grid {
   display: flex;
@@ -933,6 +979,8 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   .hero-v { font-size: 72px; }
   .hero-top { margin-bottom: 56px; }
   .members { grid-template-columns: repeat(2, 1fr); }
+  .war-lead { font-size: 30px; }
+  .war-points { grid-template-columns: 1fr; }
   .fund-card { width: 100%; }
   .fund-side { min-width: 0; }
   .studio { flex-direction: column; }
@@ -1068,6 +1116,8 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   }
   .hero-v { font-size: 52px; }
   .sec-title { font-size: 26px; }
+  .war-lead { font-size: 24px; padding-left: 16px; }
+  .war-cta { width: 100%; text-align: center; white-space: normal; }
   .members { grid-template-columns: 1fr; }
   .field-row { grid-template-columns: 1fr; }
   .teaser-body { margin-left: 0; }

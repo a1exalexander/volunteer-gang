@@ -55,6 +55,39 @@ const gang = settings.brand.word2;
     </div>
   </section>
 
+  <!-- ============ WAR IN UKRAINE ============ -->
+  <section class="section war" id="war">
+    <div class="container">
+      <div class="sec-head">
+        <span class="sec-num">{home.sections.war.num}</span>
+        <h2 class="sec-title">{home.sections.war.title}</h2>
+      </div>
+
+      <p class="war-lead">{home.war.lead}</p>
+      <p class="war-body">{home.war.body}</p>
+
+      <div class="war-points">
+        {
+          home.war.points.map((p) => (
+            <div class={`war-point a-${p.accent}`}>
+              <div class="war-point-title">{p.title}</div>
+              <p class="war-point-text">{p.text}</p>
+            </div>
+          ))
+        }
+      </div>
+
+      <a
+        class="btn btn-primary btn--lg war-cta"
+        href={home.war.cta.href}
+        data-track="cta_click"
+        data-evt-cta-location="home_war"
+      >
+        {home.war.cta.label}
+      </a>
+    </div>
+  </section>
+
   <!-- ============ ACTIVE FUNDRAISER ============ -->
   <section class="section" id="zbir">
     <div class="container">

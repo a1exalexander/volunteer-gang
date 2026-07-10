@@ -78,9 +78,16 @@ const pages = defineCollection({
         intro: z.string(),
       }),
       sections: z.object({
+        war: z.object({ num: z.string(), title: z.string() }),
         fundraiser: z.object({ num: z.string(), title: z.string() }),
         members: z.object({ num: z.string(), title: z.string() }),
         templates: z.object({ num: z.string(), title: z.string() }),
+      }),
+      war: z.object({
+        lead: z.string(),
+        body: z.string(),
+        points: z.array(z.object({ title: z.string(), text: z.string(), accent })),
+        cta: z.object({ label: z.string(), href: z.string() }),
       }),
       stats: z.array(z.object({ k: z.string(), v: z.string(), color: accent })),
       proofLine: z.string(),
