@@ -12,15 +12,17 @@ const firstSentence = (s: string): string => {
 // One OG image per page, populated from content (single source of truth) so the
 // cards never drift from the live site. Add an entry here for a new page.
 async function buildPages(): Promise<Record<string, OgInput>> {
-  const [settingsEntry, homeEntry] = await Promise.all([
+  const [settingsEntry, homeEntry, templatesEntry] = await Promise.all([
     getEntry('site', 'settings'),
     getEntry('pages', 'home'),
+    getEntry('templatesPage', 'templates'),
   ]);
-  if (!settingsEntry || !homeEntry) {
-    throw new Error('Missing content for OG images (site/settings, pages/home)');
+  if (!settingsEntry || !homeEntry || !templatesEntry) {
+    throw new Error('Missing content for OG images (site/settings, pages/home, templatesPage/templates)');
   }
   const settings = settingsEntry.data;
   const home = homeEntry.data;
+  const templates = templatesEntry.data;
   const { word1, word2 } = settings.brand;
 
   return {
@@ -35,8 +37,8 @@ async function buildPages(): Promise<Record<string, OgInput>> {
       word1,
       word2,
       eyebrow: `${word1} ${word2} · ШАБЛОНИ`,
-      title: home.sections.templates.title,
-      subtitle: firstSentence(home.teaser.body),
+      title: templates.seo.title,
+      subtitle: firstSentence(templates.seo.description),
     },
   };
 }

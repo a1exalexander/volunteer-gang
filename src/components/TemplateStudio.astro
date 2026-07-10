@@ -10,8 +10,9 @@ import TplPhotoSlot from './TplPhotoSlot.astro';
 
 interface Props {
   fund: CollectionEntry<'fundraiser'>['data'];
+  page: CollectionEntry<'templatesPage'>['data'];
 }
-const { fund } = Astro.props;
+const { fund, page } = Astro.props;
 
 // Server-rendered initial values so the canvases look correct before the
 // client script hydrates. The client then merges any localStorage overrides.
@@ -27,6 +28,7 @@ const initial = {
   goal: fund.goal,
   raised: fund.raised,
   photo: null,
+  labels: page.studio.labels,
 };
 
 const iconMarkup = (icon: IconType) =>
@@ -54,45 +56,45 @@ const actionIcons = {
 
 <div class="studio">
   <!-- Mobile-only: floating opener + backdrop for the fields drawer -->
-  <button type="button" id="studio-drawer-toggle" class="drawer-toggle" aria-controls="studio-panel" aria-expanded="false">✎ ДАНІ ЗБОРУ</button>
+  <button type="button" id="studio-drawer-toggle" class="drawer-toggle" aria-controls="studio-panel" aria-expanded="false">{page.studio.drawerToggle}</button>
   <div id="studio-drawer-backdrop" class="drawer-backdrop"></div>
 
   <!-- ============ FIELDS PANEL ============ -->
-  <aside id="studio-panel" class="studio-panel" aria-label="Дані збору">
+  <aside id="studio-panel" class="studio-panel" aria-label={page.studio.panelAriaLabel}>
     <div class="drawer-head">
       <span class="drawer-grip" aria-hidden="true"></span>
-      <button type="button" id="studio-drawer-close" class="drawer-close" aria-label="Закрити панель">✕</button>
+      <button type="button" id="studio-drawer-close" class="drawer-close" aria-label={page.studio.closePanelAriaLabel}>✕</button>
     </div>
 
     <div class="field">
-      <h1 class="panel-title">Дані збору</h1>
+      <h1 class="panel-title">{page.studio.panelTitle}</h1>
       <p class="panel-intro">
-        Заповни один раз — оновляться всі шаблони. Потім «PNG» або «Копіювати» під потрібним.
+        {page.studio.panelIntro}
       </p>
     </div>
 
     <div class="field">
-      <label class="field-label" for="tpl-titleMain">ЗАГОЛОВОК (рядки — з нового рядка)</label>
+      <label class="field-label" for="tpl-titleMain">{page.studio.titleMainLabel}</label>
       <textarea class="input" id="tpl-titleMain" rows="2">{fund.titleMain}</textarea>
     </div>
 
     <div class="field">
-      <label class="field-label" for="tpl-titleAccent">АКЦЕНТНИЙ РЯДОК (бригада / підрозділ)</label>
+      <label class="field-label" for="tpl-titleAccent">{page.studio.titleAccentLabel}</label>
       <input class="input input--accent" id="tpl-titleAccent" type="text" value={fund.titleAccent} />
     </div>
 
     <div class="field">
-      <label class="field-label" for="tpl-desc">ОПИС</label>
+      <label class="field-label" for="tpl-desc">{page.studio.descLabel}</label>
       <textarea class="input" id="tpl-desc" rows="3">{fund.desc}</textarea>
     </div>
 
     <div class="field-row">
       <div class="field">
-        <label class="field-label" for="tpl-goal">ЦІЛЬ, ₴</label>
+        <label class="field-label" for="tpl-goal">{page.studio.goalLabel}</label>
         <input class="input" id="tpl-goal" type="number" value={fund.goal} />
       </div>
       <div class="field">
-        <label class="field-label" for="tpl-raised">ЗІБРАНО, ₴</label>
+        <label class="field-label" for="tpl-raised">{page.studio.raisedLabel}</label>
         <input class="input" id="tpl-raised" type="number" value={fund.raised} />
       </div>
     </div>
@@ -105,7 +107,7 @@ const actionIcons = {
     </div>
 
     <div class="panel-photo">
-      <span class="field-label">ФОТО · ОДНЕ ДЛЯ ВСІХ ШАБЛОНІВ (за бажанням)</span>
+      <span class="field-label">{page.studio.photoLabel}</span>
       <label class="dropzone" id="tpl-photo-drop">
         <input id="tpl-photo" type="file" accept="image/*" class="dropzone-input" />
         <span class="dropzone-thumb" id="tpl-photo-thumb" aria-hidden="true"></span>
@@ -116,132 +118,132 @@ const actionIcons = {
             <line x1="12" y1="3" x2="12" y2="15"></line>
           </svg>
           <span class="dropzone-text dropzone-text--empty">
-            <span class="dropzone-title">Перетягни фото сюди</span>
-            <span class="dropzone-hint">або натисни, щоб обрати</span>
+            <span class="dropzone-title">{page.studio.dropzoneTitleEmpty}</span>
+            <span class="dropzone-hint">{page.studio.dropzoneHintEmpty}</span>
           </span>
           <span class="dropzone-text dropzone-text--filled">
-            <span class="dropzone-title">Фото завантажено</span>
-            <span class="dropzone-hint">натисни або перетягни, щоб замінити</span>
+            <span class="dropzone-title">{page.studio.dropzoneTitleFilled}</span>
+            <span class="dropzone-hint">{page.studio.dropzoneHintFilled}</span>
           </span>
         </span>
       </label>
       <div class="panel-photo-row">
-        <button type="button" id="tpl-photo-clear" class="ghost-btn" style="display:none">✕ Прибрати</button>
+        <button type="button" id="tpl-photo-clear" class="ghost-btn" style="display:none">{page.studio.clearPhotoLabel}</button>
       </div>
     </div>
 
     <div class="panel-colors">
       <div class="panel-colors-head">
-        <span class="field-label">КОЛЬОРИ ШАБЛОНІВ</span>
-        <button type="button" id="tpl-colors-reset" class="ghost-btn ghost-btn--mini">↺ Скинути</button>
+        <span class="field-label">{page.studio.colorsTitle}</span>
+        <button type="button" id="tpl-colors-reset" class="ghost-btn ghost-btn--mini">{page.studio.colorsResetLabel}</button>
       </div>
       <div class="swatch-grid">
-        <label class="swatch"><input type="color" data-color="ink" value="#0d0c0c" /><span>Фон</span></label>
-        <label class="swatch"><input type="color" data-color="chalk" value="#f5f1ec" /><span>Світлий</span></label>
-        <label class="swatch"><input type="color" data-color="pink" value="#ff2e88" /><span>Основний</span></label>
-        <label class="swatch"><input type="color" data-color="acid" value="#c9e400" /><span>Акцент</span></label>
-        <label class="swatch"><input type="color" data-color="bubble" value="#f4a6e3" /><span>Бабл</span></label>
+        <label class="swatch"><input type="color" data-color="ink" value="#0d0c0c" /><span>{page.studio.swatchInkLabel}</span></label>
+        <label class="swatch"><input type="color" data-color="chalk" value="#f5f1ec" /><span>{page.studio.swatchChalkLabel}</span></label>
+        <label class="swatch"><input type="color" data-color="pink" value="#ff2e88" /><span>{page.studio.swatchPinkLabel}</span></label>
+        <label class="swatch"><input type="color" data-color="acid" value="#c9e400" /><span>{page.studio.swatchAcidLabel}</span></label>
+        <label class="swatch"><input type="color" data-color="bubble" value="#f4a6e3" /><span>{page.studio.swatchBubbleLabel}</span></label>
       </div>
     </div>
 
     <div class="panel-labels">
       <div class="panel-labels-head">
-        <span class="field-label">ПІДПИСИ ШАБЛОНІВ</span>
-        <button type="button" id="tpl-labels-reset" class="ghost-btn ghost-btn--mini">↺ Скинути</button>
+        <span class="field-label">{page.studio.labelsTitle}</span>
+        <button type="button" id="tpl-labels-reset" class="ghost-btn ghost-btn--mini">{page.studio.labelsResetLabel}</button>
       </div>
-      <p class="panel-intro panel-intro--mini">Статуси й кікери на шаблонах. Стрілки та ✕ додаються автоматично.</p>
+      <p class="panel-intro panel-intro--mini">{page.studio.labelsIntro}</p>
       <div class="label-grid">
         <div class="field">
           <label class="field-label" for="tpl-label-collect">БЕЙДЖ «ЗБІР НА»</label>
-          <input class="input" id="tpl-label-collect" type="text" data-label-input="collect" value="ЗБІР НА" />
+          <input class="input" id="tpl-label-collect" type="text" data-label-input="collect" value={page.studio.labels.collect} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-active">КІКЕР «АКТИВНИЙ ЗБІР»</label>
-          <input class="input" id="tpl-label-active" type="text" data-label-input="active" value="АКТИВНИЙ ЗБІР" />
+          <input class="input" id="tpl-label-active" type="text" data-label-input="active" value={page.studio.labels.active} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-urgent">КІКЕР «ТЕРМІНОВО»</label>
-          <input class="input" id="tpl-label-urgent" type="text" data-label-input="urgent" value="ТЕРМІНОВО · ЗБІР" />
+          <input class="input" id="tpl-label-urgent" type="text" data-label-input="urgent" value={page.studio.labels.urgent} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-checks">БЕЙДЖ «ЧЕКИ · ФОТО»</label>
-          <input class="input" id="tpl-label-checks" type="text" data-label-input="checks" value="ЧЕКИ ✓ ФОТО ✓" />
+          <input class="input" id="tpl-label-checks" type="text" data-label-input="checks" value={page.studio.labels.checks} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-handover">БЕЙДЖ «ПЕРЕДАНО»</label>
-          <input class="input" id="tpl-label-handover" type="text" data-label-input="handover" value="ПЕРЕДАНО" />
+          <input class="input" id="tpl-label-handover" type="text" data-label-input="handover" value={page.studio.labels.handover} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-closedKicker">КІКЕР «ЗБІР ЗАКРИТО»</label>
-          <input class="input" id="tpl-label-closedKicker" type="text" data-label-input="closedKicker" value="ЗБІР ЗАКРИТО" />
+          <input class="input" id="tpl-label-closedKicker" type="text" data-label-input="closedKicker" value={page.studio.labels.closedKicker} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-closed">БЕЙДЖ «ЗАКРИТО»</label>
-          <input class="input" id="tpl-label-closed" type="text" data-label-input="closed" value="ЗАКРИТО" />
+          <input class="input" id="tpl-label-closed" type="text" data-label-input="closed" value={page.studio.labels.closed} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-collected">КІКЕР «ВЖЕ ЗІБРАНО»</label>
-          <input class="input" id="tpl-label-collected" type="text" data-label-input="collected" value="ВЖЕ ЗІБРАНО" />
+          <input class="input" id="tpl-label-collected" type="text" data-label-input="collected" value={page.studio.labels.collected} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-thermo">КІКЕР «ТЕРМОМЕТР»</label>
-          <input class="input" id="tpl-label-thermo" type="text" data-label-input="thermo" value="ТЕРМОМЕТР ЗБОРУ" />
+          <input class="input" id="tpl-label-thermo" type="text" data-label-input="thermo" value={page.studio.labels.thermo} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-equator">БЕЙДЖ «ЕКВАТОР»</label>
-          <input class="input" id="tpl-label-equator" type="text" data-label-input="equator" value="ЕКВАТОР ЗБОРУ" />
+          <input class="input" id="tpl-label-equator" type="text" data-label-input="equator" value={page.studio.labels.equator} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-deadline">КІКЕР «ЗАКРИВАЄМО СЬОГОДНІ»</label>
-          <input class="input" id="tpl-label-deadline" type="text" data-label-input="deadline" value="ЗАКРИВАЄМО СЬОГОДНІ" />
+          <input class="input" id="tpl-label-deadline" type="text" data-label-input="deadline" value={page.studio.labels.deadline} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-lastDay">ТЕКСТ «ОСТАННІЙ ДЕНЬ»</label>
-          <input class="input" id="tpl-label-lastDay" type="text" data-label-input="lastDay" value="останній день збору" />
+          <input class="input" id="tpl-label-lastDay" type="text" data-label-input="lastDay" value={page.studio.labels.lastDay} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-checksWeekly">БЕЙДЖ «ЧЕКИ» (ЗВІТ ТИЖНЯ)</label>
-          <input class="input" id="tpl-label-checksWeekly" type="text" data-label-input="checksWeekly" value="ЧЕКИ ✓" />
+          <input class="input" id="tpl-label-checksWeekly" type="text" data-label-input="checksWeekly" value={page.studio.labels.checksWeekly} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-giftKicker">КІКЕР «ПОДАРУНКИ ЗА ДОНАТИ»</label>
-          <input class="input" id="tpl-label-giftKicker" type="text" data-label-input="giftKicker" value="ПОДАРУНКИ ЗА ДОНАТИ" />
+          <input class="input" id="tpl-label-giftKicker" type="text" data-label-input="giftKicker" value={page.studio.labels.giftKicker} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-giftHeadline">ЗАГОЛОВОК «ЯКІ ПОДАРУНКИ»</label>
-          <input class="input" id="tpl-label-giftHeadline" type="text" data-label-input="giftHeadline" value="Які подарунки" />
+          <input class="input" id="tpl-label-giftHeadline" type="text" data-label-input="giftHeadline" value={page.studio.labels.giftHeadline} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-giftPreview">КІКЕР «ПРЕВʼЮ ПОДАРУНКІВ»</label>
-          <input class="input" id="tpl-label-giftPreview" type="text" data-label-input="giftPreview" value="ПРЕВʼЮ ПОДАРУНКІВ" />
+          <input class="input" id="tpl-label-giftPreview" type="text" data-label-input="giftPreview" value={page.studio.labels.giftPreview} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-giftList">БЕЙДЖ «СПИСОК ПОДАРУНКІВ»</label>
-          <input class="input" id="tpl-label-giftList" type="text" data-label-input="giftList" value="СПИСОК ПОДАРУНКІВ" />
+          <input class="input" id="tpl-label-giftList" type="text" data-label-input="giftList" value={page.studio.labels.giftList} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-giftItem1">ПОЗИЦІЯ 01</label>
-          <input class="input" id="tpl-label-giftItem1" type="text" data-label-input="giftItem1" value="ПОЗИЦІЯ 01" />
+          <input class="input" id="tpl-label-giftItem1" type="text" data-label-input="giftItem1" value={page.studio.labels.giftItem1} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-giftItem2">ПОЗИЦІЯ 02</label>
-          <input class="input" id="tpl-label-giftItem2" type="text" data-label-input="giftItem2" value="ПОЗИЦІЯ 02" />
+          <input class="input" id="tpl-label-giftItem2" type="text" data-label-input="giftItem2" value={page.studio.labels.giftItem2} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-giftItem3">ПОЗИЦІЯ 03</label>
-          <input class="input" id="tpl-label-giftItem3" type="text" data-label-input="giftItem3" value="ПОЗИЦІЯ 03" />
+          <input class="input" id="tpl-label-giftItem3" type="text" data-label-input="giftItem3" value={page.studio.labels.giftItem3} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-giftItem4">ПОЗИЦІЯ 04</label>
-          <input class="input" id="tpl-label-giftItem4" type="text" data-label-input="giftItem4" value="ПОЗИЦІЯ 04" />
+          <input class="input" id="tpl-label-giftItem4" type="text" data-label-input="giftItem4" value={page.studio.labels.giftItem4} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-giftFor">ТЕКСТ «ПОДАРУНКИ ЗА ДОНАТ»</label>
-          <input class="input" id="tpl-label-giftFor" type="text" data-label-input="giftFor" value="Подарунки за донат" />
+          <input class="input" id="tpl-label-giftFor" type="text" data-label-input="giftFor" value={page.studio.labels.giftFor} />
         </div>
         <div class="field">
           <label class="field-label" for="tpl-label-giftBrigade">КІКЕР «ПОДАРУНКИ ЗА ДОНАТ»</label>
-          <input class="input" id="tpl-label-giftBrigade" type="text" data-label-input="giftBrigade" value="ПОДАРУНКИ ЗА ДОНАТ" />
+          <input class="input" id="tpl-label-giftBrigade" type="text" data-label-input="giftBrigade" value={page.studio.labels.giftBrigade} />
         </div>
       </div>
     </div>
@@ -256,8 +258,7 @@ const actionIcons = {
         <line x1="12" y1="8" x2="12.01" y2="8"></line>
       </svg>
       <p>
-        <strong>Фото — за бажанням.</strong> Пунктирне місце під фото видно лише у прев'ю: якщо фото не завантажено,
-        шаблон скачається або скопіюється <strong>без цього плейсхолдера</strong>.
+        <strong>{page.studio.alertLead}</strong> {page.studio.alertBody}
       </p>
     </div>
 
@@ -1018,6 +1019,7 @@ const actionIcons = {
 
 <script id="vg-tpl-initial" type="application/json" is:inline set:html={JSON.stringify(initial)}></script>
 <script id="vg-tpl-icons" type="application/json" is:inline set:html={JSON.stringify(actionIcons)}></script>
+<script id="vg-tpl-ui" type="application/json" is:inline set:html={JSON.stringify(page.studio)}></script>
 <script is:inline async src="https://unpkg.com/html-to-image@1.11.13/dist/html-to-image.js"></script>
 <script>
   import '../scripts/template-studio';

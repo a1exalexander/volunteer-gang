@@ -3,15 +3,19 @@ import Layout from '../layouts/Layout.astro';
 import TemplateStudio from '../components/TemplateStudio.astro';
 import { getEntry } from 'astro:content';
 
-const fundEntry = await getEntry('fundraiser', 'active');
-if (!fundEntry) throw new Error('Missing content: fundraiser/active');
+const [fundEntry, templatesEntry] = await Promise.all([
+  getEntry('fundraiser', 'active'),
+  getEntry('templatesPage', 'templates'),
+]);
+if (!fundEntry || !templatesEntry) throw new Error('Missing content: fundraiser/active or templatesPage/templates');
 const fund = fundEntry.data;
+const page = templatesEntry.data;
 ---
 
 <Layout
-  title="VG — Шаблони Instagram"
-  description="Генератор постів і сторіз у фірмовому стилі Volunteer Gang. Заповни дані збору один раз — і забери готові картинки для Instagram одним кліком."
+  title={page.seo.title}
+  description={page.seo.description}
   active="templates"
 >
-  <TemplateStudio fund={fund} />
+  <TemplateStudio fund={fund} page={page} />
 </Layout>

@@ -58,7 +58,7 @@ const FORMAT_DIMS: Record<CardFormat, { canvas: number; preview: number }> = {
   post: { canvas: 1350, preview: 445 },
   story: { canvas: 1920, preview: 633 },
 };
-const FORMAT_META: Record<CardFormat, { label: string; res: string }> = {
+const FORMAT_META_FALLBACK: Record<CardFormat, { label: string; res: string }> = {
   post: { label: 'ПОСТ', res: '1080×1350' },
   story: { label: 'СТОРІЗ', res: '1080×1920' },
 };
@@ -103,7 +103,7 @@ const COLOR_ROLES = Object.keys(DEFAULT_COLORS);
 // The panel edits these; each value drives every canvas that shares the role
 // (e.g. `closed` appears on three templates). Decorative glyphs (↓, ✕) live
 // outside the bound span, so they are never part of the editable text.
-const DEFAULT_LABELS: Record<string, string> = {
+const DEFAULT_LABELS_FALLBACK: Record<string, string> = {
   collect: 'ЗБІР НА',
   active: 'АКТИВНИЙ ЗБІР',
   urgent: 'ТЕРМІНОВО · ЗБІР',
@@ -128,7 +128,49 @@ const DEFAULT_LABELS: Record<string, string> = {
   giftFor: 'Подарунки за донат',
   giftBrigade: 'ПОДАРУНКИ ЗА ДОНАТ',
 };
-const LABEL_ROLES = Object.keys(DEFAULT_LABELS);
+const LABEL_ROLES = Object.keys(DEFAULT_LABELS_FALLBACK);
+
+interface StudioUiText {
+  actions: {
+    download: string;
+    copy: string;
+    edit: string;
+    done: string;
+    reset: string;
+    resetAll: string;
+    formatGroupAriaLabel: string;
+    formatPostLabel: string;
+    formatStoryLabel: string;
+    saved: string;
+    saveError: string;
+    copied: string;
+    copyError: string;
+    resizeElementAriaLabel: string;
+    removeElementAriaLabel: string;
+  };
+  labels: Record<string, string>;
+}
+
+const UI_TEXT_FALLBACK: StudioUiText = {
+  actions: {
+    download: 'PNG',
+    copy: 'Копіювати',
+    edit: 'Редагувати',
+    done: 'Готово',
+    reset: 'Скинути',
+    resetAll: 'Скинути все',
+    formatGroupAriaLabel: 'Формат',
+    formatPostLabel: 'Пост',
+    formatStoryLabel: 'Сторіз',
+    saved: 'Збережено',
+    saveError: 'Помилка збереження',
+    copied: 'Скопійовано',
+    copyError: 'Помилка копіювання',
+    resizeElementAriaLabel: 'Змінити розмір елемента',
+    removeElementAriaLabel: 'Видалити елемент',
+  },
+  labels: { ...DEFAULT_LABELS_FALLBACK },
+};
 
 const FALLBACK: State = {
   titleMain: '',
@@ -138,7 +180,7 @@ const FALLBACK: State = {
   raised: 341500,
   photo: null,
   colors: { ...DEFAULT_COLORS },
-  labels: { ...DEFAULT_LABELS },
+  labels: { ...DEFAULT_LABELS_FALLBACK },
 };
 
 // Only these keys survive merging — drops stale fields (e.g. the retired
@@ -161,10 +203,9 @@ function readSeed(): State {
   try {
     if (el?.textContent) {
       const seeded = pick(JSON.parse(el.textContent));
-      // The seed only carries fundraiser fields — colours and labels always
-      // fall back to the brand defaults, so drop any stray values.
+      // The seed carries fundraiser fields + CMS-driven default labels.
+      // Colours always fall back to the brand defaults.
       delete seeded.colors;
-      delete seeded.labels;
       return { ...base, ...seeded };
     }
   } catch {
@@ -215,6 +256,33 @@ function readActionIcons(): ActionIcons {
     return fallback;
   }
 }
+
+function readStudioUi(): StudioUiText {
+  const el = document.getElementById('vg-tpl-ui');
+  if (!el?.textContent) return UI_TEXT_FALLBACK;
+  try {
+    const parsed = JSON.parse(el.textContent) as Partial<StudioUiText>;
+    return {
+      actions: {
+        ...UI_TEXT_FALLBACK.actions,
+        ...(parsed.actions && typeof parsed.actions === 'object' ? parsed.actions : {}),
+      },
+      labels: {
+        ...DEFAULT_LABELS_FALLBACK,
+        ...(parsed.labels && typeof parsed.labels === 'object' ? parsed.labels : {}),
+      },
+    };
+  } catch {
+    return UI_TEXT_FALLBACK;
+  }
+}
+
+const studioUi = readStudioUi();
+const DEFAULT_LABELS = { ...DEFAULT_LABELS_FALLBACK, ...studioUi.labels };
+const FORMAT_META: Record<CardFormat, { label: string; res: string }> = {
+  post: { label: studioUi.actions.formatPostLabel, res: FORMAT_META_FALLBACK.post.res },
+  story: { label: studioUi.actions.formatStoryLabel, res: FORMAT_META_FALLBACK.story.res },
+};
 
 let state = readInitial();
 const actionIcons = readActionIcons();
@@ -705,7 +773,7 @@ function ensureScaleHandle(node: HTMLElement): void {
   handle.className = 'tpl-edit-handle';
   handle.dataset.tplScaleHandle = 'true';
   handle.dataset.exportIgnore = 'true';
-  handle.setAttribute('aria-label', 'Змінити розмір елемента');
+  handle.setAttribute('aria-label', studioUi.actions.resizeElementAriaLabel);
   node.append(handle);
 }
 
@@ -724,7 +792,7 @@ function ensureRemoveButton(cardId: string, node: HTMLElement): void {
   button.className = 'tpl-remove-btn';
   button.dataset.tplRemoveHandle = 'true';
   button.dataset.exportIgnore = 'true';
-  button.setAttribute('aria-label', 'Видалити елемент');
+  button.setAttribute('aria-label', studioUi.actions.removeElementAriaLabel);
   if (actionIcons.remove) {
     button.innerHTML = `<span class="tpl-btn-icon" aria-hidden="true">${actionIcons.remove}</span>`;
   } else {
@@ -843,7 +911,11 @@ function updateCardEditButton(cardId: string): void {
 
   const editing = activeCardId === cardId;
   editor.button.classList.toggle('is-active', editing);
-  setButtonLabel(editor.button, editing ? actionIcons.done : actionIcons.edit, editing ? 'Готово' : 'Редагувати');
+  setButtonLabel(
+    editor.button,
+    editing ? actionIcons.done : actionIcons.edit,
+    editing ? studioUi.actions.done : studioUi.actions.edit
+  );
   editor.button.setAttribute('aria-pressed', String(editing));
 }
 
@@ -943,13 +1015,13 @@ function bindCardEditors(): void {
     button.className = 'cp-btn tpl-edit-btn';
     button.dataset.editCard = cardId;
     button.setAttribute('aria-pressed', 'false');
-    setButtonLabel(button, actionIcons.edit, 'Редагувати');
+    setButtonLabel(button, actionIcons.edit, studioUi.actions.edit);
     button.addEventListener('click', () => setCardEditing(cardId, activeCardId !== cardId));
 
     const resetButton = document.createElement('button');
     resetButton.type = 'button';
     resetButton.className = 'ghost-btn tpl-reset-btn';
-    setButtonLabel(resetButton, actionIcons.reset, 'Скинути');
+    setButtonLabel(resetButton, actionIcons.reset, studioUi.actions.reset);
     resetButton.addEventListener('click', () => {
       const hadEdits = hasCardEdits(cardId);
       clearCardLayout(cardId);
@@ -1147,11 +1219,11 @@ async function download(id: string): Promise<void> {
     a.download = `vg-${id}.png`;
     a.click();
     window.setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-    setActionTooltip(id, 'dl', 'Збережено', true);
+    setActionTooltip(id, 'dl', studioUi.actions.saved, true);
     trackTemplateEvent('template_export', { method: 'download', card_id: id, status: 'success' });
   } catch (e) {
     console.error(e);
-    setActionTooltip(id, 'dl', 'Помилка збереження', false);
+    setActionTooltip(id, 'dl', studioUi.actions.saveError, false);
     trackTemplateEvent('template_export', { method: 'download', card_id: id, status: 'error' });
   }
 }
@@ -1162,11 +1234,11 @@ async function copy(id: string): Promise<void> {
     // requirement satisfied while the image renders.
     const item = new ClipboardItem({ 'image/png': makeBlob(id) });
     await navigator.clipboard.write([item]);
-    setActionTooltip(id, 'cp', 'Скопійовано', true);
+    setActionTooltip(id, 'cp', studioUi.actions.copied, true);
     trackTemplateEvent('template_export', { method: 'copy', card_id: id, status: 'success' });
   } catch (e) {
     console.error(e);
-    setActionTooltip(id, 'cp', 'Помилка копіювання', false);
+    setActionTooltip(id, 'cp', studioUi.actions.copyError, false);
     trackTemplateEvent('template_export', { method: 'copy', card_id: id, status: 'error' });
   }
 }
@@ -1229,7 +1301,7 @@ function bindCardFormats(): void {
     const group = document.createElement('div');
     group.className = 'tpl-format';
     group.setAttribute('role', 'group');
-    group.setAttribute('aria-label', 'Формат');
+    group.setAttribute('aria-label', studioUi.actions.formatGroupAriaLabel);
 
     const buttons = {} as Record<CardFormat, HTMLButtonElement>;
     (['post', 'story'] as CardFormat[]).forEach((fmt) => {
@@ -1237,7 +1309,7 @@ function bindCardFormats(): void {
       btn.type = 'button';
       btn.className = 'tpl-format-btn';
       btn.dataset.formatBtn = fmt;
-      btn.textContent = fmt === 'post' ? 'Пост' : 'Сторіз';
+      btn.textContent = fmt === 'post' ? studioUi.actions.formatPostLabel : studioUi.actions.formatStoryLabel;
       buttons[fmt] = btn;
       group.append(btn);
     });
@@ -1462,7 +1534,7 @@ function resetAll(): void {
 function bindGlobalReset(): void {
   globalResetBtn = document.getElementById('tpl-global-reset') as HTMLButtonElement | null;
   if (!globalResetBtn) return;
-  setButtonLabel(globalResetBtn, actionIcons.reset, 'Скинути все');
+  setButtonLabel(globalResetBtn, actionIcons.reset, studioUi.actions.resetAll);
   globalResetBtn.addEventListener('click', resetAll);
   updateGlobalReset();
 }
@@ -1470,12 +1542,12 @@ function bindGlobalReset(): void {
 function bindActions(): void {
   document.querySelectorAll<HTMLElement>('[data-dl]').forEach((btn) => {
     const id = btn.dataset.dl;
-    setButtonLabel(btn, actionIcons.download, 'PNG');
+    setButtonLabel(btn, actionIcons.download, studioUi.actions.download);
     if (id) btn.addEventListener('click', () => download(id));
   });
   document.querySelectorAll<HTMLElement>('[data-cp]').forEach((btn) => {
     const id = btn.dataset.cp;
-    setButtonLabel(btn, actionIcons.copy, 'Копіювати');
+    setButtonLabel(btn, actionIcons.copy, studioUi.actions.copy);
     if (id) btn.addEventListener('click', () => copy(id));
   });
 }

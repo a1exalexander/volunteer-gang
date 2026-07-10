@@ -5,10 +5,11 @@ import Logo from './brand/Logo.astro';
 interface Props {
   active?: 'home' | 'templates';
   settings: CollectionEntry<'site'>['data'];
+  ui: CollectionEntry<'ui'>['data'];
   jarActive?: boolean;
 }
 
-const { active, settings, jarActive = false } = Astro.props;
+const { active, settings, ui, jarActive = false } = Astro.props;
 ---
 
 <header class="site-header">
@@ -29,8 +30,8 @@ const { active, settings, jarActive = false } = Astro.props;
       {
         active === 'templates' ? (
           <Fragment>
-            <span class="nav-tag">ШАБЛОНИ INSTAGRAM</span>
-            <a href="/" class="nav-link">← НА ГОЛОВНУ</a>
+            <span class="nav-tag">{ui.templatesHeaderTag}</span>
+            <a href="/" class="nav-link">{ui.backHomeLabel}</a>
           </Fragment>
         ) : (
           <Fragment>
@@ -66,10 +67,10 @@ const { active, settings, jarActive = false } = Astro.props;
       type="button"
       id="tpl-global-reset"
       class="header-reset"
-      aria-label="Скинути всі зміни шаблонів"
+      aria-label={ui.templatesResetAllAriaLabel}
       hidden
     >
-      Скинути все
+      <span data-tpl-reset-all-label>{ui.templatesResetAllLabel}</span>
     </button>
   )
 }

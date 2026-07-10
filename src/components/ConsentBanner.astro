@@ -1,15 +1,22 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  ui: CollectionEntry<'ui'>['data'];
+}
+
+const { ui } = Astro.props;
+---
+
 <aside class="consent-banner" data-consent-banner hidden>
   <div class="consent-copy">
-    <div class="consent-kicker">VOLUNTEER GANG · ANALYTICS</div>
-    <p>
-      Ми використовуємо Google Analytics, щоб збирати лише звичні дані про сайт:
-      перегляди сторінок, джерела переходів і технічні показники.
-    </p>
+    <div class="consent-kicker">{ui.consent.kicker}</div>
+    <p>{ui.consent.body}</p>
   </div>
 
   <div class="consent-actions">
-    <button type="button" class="btn btn-primary btn--sm" data-consent-accept>Добре</button>
-    <button type="button" class="consent-btn" data-consent-decline>Ні, дякую</button>
+    <button type="button" class="btn btn-primary btn--sm" data-consent-accept>{ui.consent.acceptLabel}</button>
+    <button type="button" class="consent-btn" data-consent-decline>{ui.consent.declineLabel}</button>
   </div>
 </aside>
 

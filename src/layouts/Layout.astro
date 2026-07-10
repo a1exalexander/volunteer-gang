@@ -15,9 +15,13 @@ interface Props {
   noindex?: boolean;
 }
 
-const settingsEntry = await getEntry('site', 'settings');
-if (!settingsEntry) throw new Error('Missing content: site/settings');
+const [settingsEntry, uiEntry] = await Promise.all([
+  getEntry('site', 'settings'),
+  getEntry('ui', 'shared'),
+]);
+if (!settingsEntry || !uiEntry) throw new Error('Missing content: site/settings or ui/shared');
 const settings = settingsEntry.data;
+const ui = uiEntry.data;
 
 const jarEntry = await getEntry('activeJar', 'active');
 const jarActive = jarEntry?.data.isActive ?? false;
@@ -105,14 +109,14 @@ const serializeJsonLd = (data: object) => JSON.stringify(data).replace(/</g, '\\
   </head>
 
   <body>
-    <Header active={active} settings={settings} jarActive={jarActive} />
+    <Header active={active} settings={settings} ui={ui} jarActive={jarActive} />
 
     <main>
       <slot />
     </main>
 
-    <Footer settings={settings} />
-    <ConsentBanner />
+    <Footer settings={settings} ui={ui} />
+    <ConsentBanner ui={ui} />
 
     <script>
       import { initAnalytics } from '../lib/analytics';
