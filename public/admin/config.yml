@@ -160,7 +160,6 @@ collections:
                 fields:
                   - { name: title, label: 'Заголовок', widget: string }
                   - { name: text, label: 'Текст', widget: text }
-                  - { name: accent, label: 'Колір', widget: select, options: ['pink', 'acid', 'bubble', 'chalk'], default: 'pink' }
               - name: cta
                 label: 'Кнопка'
                 widget: object

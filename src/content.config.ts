@@ -86,7 +86,7 @@ const pages = defineCollection({
       war: z.object({
         lead: z.string(),
         body: z.string(),
-        points: z.array(z.object({ title: z.string(), text: z.string(), accent })),
+        points: z.array(z.object({ title: z.string(), text: z.string() })),
         cta: z.object({ label: z.string(), href: z.string() }),
       }),
       stats: z.array(z.object({ k: z.string(), v: z.string(), color: accent })),
