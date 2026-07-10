@@ -53,14 +53,14 @@ type CardFormat = 'post' | 'story';
 /** cardId → chosen format (absent = the card's native format) */
 type FormatStore = Record<string, CardFormat>;
 // Preview boxes are the 1080px canvas scaled by .tpl-scale (0.32963), so the
-// preview height is the canvas height × that factor (1080→356, 1350→445).
+// preview height is the canvas height × that factor (1350→445, 1920→633).
 const FORMAT_DIMS: Record<CardFormat, { canvas: number; preview: number }> = {
-  post: { canvas: 1080, preview: 356 },
-  story: { canvas: 1350, preview: 445 },
+  post: { canvas: 1350, preview: 445 },
+  story: { canvas: 1920, preview: 633 },
 };
 const FORMAT_META: Record<CardFormat, { label: string; res: string }> = {
-  post: { label: 'ПОСТ', res: '1080×1080' },
-  story: { label: 'СТОРІЗ', res: '1080×1350' },
+  post: { label: 'ПОСТ', res: '1080×1350' },
+  story: { label: 'СТОРІЗ', res: '1080×1920' },
 };
 
 interface CardEditor {
@@ -1206,9 +1206,9 @@ function bindDrawer(): void {
 }
 
 // ---------- per-card post/story format toggle ----------
-// Each canvas ships with an inline height of 1080 (post) or 1350 (story).
+// Each canvas ships with an inline height of 1350 (post) or 1920 (story).
 function nativeFormat(canvas: HTMLElement): CardFormat {
-  return canvas.style.height.trim() === '1350px' ? 'story' : 'post';
+  return canvas.style.height.trim() === '1920px' ? 'story' : 'post';
 }
 
 function bindCardFormats(): void {
@@ -1219,7 +1219,7 @@ function bindCardFormats(): void {
     const cardId = card.querySelector<HTMLElement>('[data-dl]')?.dataset.dl;
     if (!canvas || !preview || !cardId || !CANVAS_IDS.includes(cardId)) return;
 
-    // Caption reads "ПОСТ · <NAME> · 1080×1080"; keep <NAME> to rebuild it
+    // Caption reads "ПОСТ · <NAME> · 1080×1350"; keep <NAME> to rebuild it
     // as the format flips (prefix + resolution become dynamic).
     const capParts = (cap?.textContent ?? '').split(' · ');
     const capName = capParts.length >= 3 ? capParts.slice(1, -1).join(' · ') : '';
