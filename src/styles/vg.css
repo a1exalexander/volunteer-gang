@@ -193,13 +193,18 @@ p {
   color: var(--acid);
 }
 
-/* Global reset pill (studio only): absolutely centred in the header so it
-   sits dead-centre regardless of the logo / nav widths. Shown by JS only
-   once the studio has unsaved edits (see template-studio.ts). */
+/* Global reset pill (studio only): on desktop it's centred over the header
+   so it sits dead-centre regardless of the logo / nav widths; on mobile it
+   re-anchors to the bottom of the viewport next to the drawer toggle (see
+   the max-width: 900px block). Shown by JS only once the studio has unsaved
+   edits (see template-studio.ts). */
 .header-reset {
-  position: absolute;
+  /* Fixed (the sticky header always hugs the viewport top) and vertically
+     centred on the header's live height, published as --studio-header-h by
+     template-studio.ts (fallback = the desktop header). */
+  position: fixed;
   left: 50%;
-  top: 50%;
+  top: calc(var(--studio-header-h, 71px) / 2);
   transform: translate(-50%, -50%);
   display: inline-flex;
   align-items: center;
@@ -215,7 +220,7 @@ p {
   letter-spacing: 0.08em;
   white-space: nowrap;
   cursor: pointer;
-  z-index: 1;
+  z-index: 60; /* over the sticky header (z-index: 50) */
   animation: header-reset-in 0.24s cubic-bezier(0.22, 1, 0.36, 1);
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
@@ -232,9 +237,9 @@ p {
 .header-reset[hidden] { display: none; }
 .header-reset .tpl-btn-icon { width: 13px; height: 13px; display: inline-flex; }
 .header-reset .tpl-btn-icon svg { width: 13px; height: 13px; display: block; }
-/* Opacity-only so it plays cleanly whether the pill is absolutely centred
-   (desktop) or in normal flex flow (mobile) — a transform keyframe would
-   fight the centring translate. */
+/* Opacity-only so it plays cleanly whether the pill is centred over the
+   header (desktop) or fixed at the bottom (mobile) — a transform keyframe
+   would fight the centring translate. */
 @keyframes header-reset-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -243,10 +248,11 @@ p {
   .header-reset { animation: none; transition: none; }
 }
 /* The section tag is wide; below full-desktop widths it would sit under the
-   centred pill. Drop it only while the pill is actually showing, so an
-   un-edited studio keeps its tag. (`:has` is already relied on elsewhere.) */
+   centred pill (or crowd the logo on phones). Drop it only while the pill is
+   actually showing, so an un-edited studio keeps its tag. (`:has` is already
+   relied on elsewhere; the pill is now the header's next sibling.) */
 @media (max-width: 1200px) {
-  .site-header-inner:has(#tpl-global-reset:not([hidden])) .nav-tag { display: none; }
+  .site-header:has(+ #tpl-global-reset:not([hidden])) .nav-tag { display: none; }
 }
 
 /* ---------- hero ---------- */
@@ -398,6 +404,30 @@ p {
 .fund-target .label { font-family: var(--font-mono); font-size: 12px; color: var(--muted-ink); letter-spacing: 0.1em; }
 .fund-target .val { font-family: var(--font-display); font-weight: 800; font-size: 44px; line-height: 1; }
 .fund-donate { align-self: stretch; text-align: center; }
+/* Mini alert shown in place of the jar card while no fundraiser is live:
+   points visitors to UAnimals, since animals suffer from the war too. */
+.fund-alert {
+  flex-basis: 100%;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1px dashed var(--border);
+  background: #17110f;
+  padding: 14px 18px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--dust);
+}
+.fund-alert p { margin: 0; }
+.fund-alert strong { color: var(--chalk); font-weight: 500; }
+.fund-alert-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: var(--acid);
+  margin-top: 1px;
+}
 .fund-side {
   flex: 1;
   min-width: 380px;
@@ -998,7 +1028,7 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   .studio { flex-direction: column; }
 
   /* "Дані збору" becomes a bottom drawer: slides up over the page and
-     covers 75% of the viewport, so it can be opened from anywhere. */
+     covers 60% of the viewport, so it can be opened from anywhere. */
   .studio-panel {
     width: 100%;
     position: fixed;
@@ -1006,8 +1036,8 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
     left: 0;
     right: 0;
     bottom: 0;
-    height: 75vh;
-    height: 75dvh;
+    height: 60vh;
+    height: 60dvh;
     max-height: none;
     z-index: 100;
     border-right: none;
@@ -1022,6 +1052,8 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
     visibility: visible;
     transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   }
+  /* iOS Safari auto-zooms on focus when an input's font-size is under 16px. */
+  .studio-panel .input { font-size: 16px; }
   .drawer-head {
     display: flex;
     align-items: center;
@@ -1087,6 +1119,19 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
   }
   .drawer-toggle:hover { background: #ec93d8; }
+  /* The global reset pill leaves the header on mobile: it sits fixed at the
+     bottom edge, before (left of) the centred drawer toggle, and gets an
+     opaque backdrop + shadow so it reads over the scrolling gallery. */
+  .header-reset {
+    position: fixed;
+    left: var(--pad-x);
+    top: auto;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    transform: none;
+    z-index: 98;
+    background: color-mix(in srgb, var(--acid) 16%, var(--ink));
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  }
   @media (prefers-reduced-motion: reduce) {
     .studio-panel,
     .drawer-backdrop { transition: none; }
@@ -1105,13 +1150,10 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   .site-header { padding: 16px var(--pad-x); }
   .site-nav { gap: 16px; }
   .nav-link, .nav-tag { font-size: 11px; letter-spacing: 0.08em; }
-  /* Phones are too narrow to absolutely centre the pill without it landing
-     on the wide logo. Drop it into the header's flex flow instead: with the
-     section tag hidden it sits evenly between the logo and the back link.
-     Shrink to an icon-only tap target (name stays in aria-label). */
+  /* Phones are too narrow for the label next to the centred drawer toggle —
+     shrink the fixed reset pill to an icon-only tap target (name stays in
+     aria-label). Positioning comes from the 900px block above. */
   .header-reset {
-    position: static;
-    transform: none;
     padding: 0;
     gap: 0;
     min-width: 40px;

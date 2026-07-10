@@ -95,6 +95,16 @@ collections:
           - { name: goal, label: 'Ціль, ₴', widget: number, value_type: int, min: 1 }
           - { name: jar, label: 'Лінк на банку', widget: string }
           - { name: jarLabel, label: 'Текст кнопки', widget: string, default: 'Докинути в банку →' }
+          - name: noActiveAlert
+            label: 'Повідомлення, коли збору немає'
+            widget: object
+            collapsed: true
+            hint: 'Показується замість картки збору, коли секцію вимкнено (наприклад, заклик підтримати UAnimals)'
+            fields:
+              - { name: lead, label: 'Перше речення (жирним)', widget: string, default: 'Зараз активних зборів немає.' }
+              - { name: body, label: 'Текст', widget: text, hint: 'Продовження після жирного речення, до посилання' }
+              - { name: linkLabel, label: 'Текст посилання', widget: string, default: 'UAnimals →' }
+              - { name: linkHref, label: 'Посилання (повне, з https://)', widget: string, default: 'https://uanimals.org/how-to-help' }
 
   # ---------- PAGES ----------
   - name: pages

@@ -62,6 +62,14 @@ const activeJar = defineCollection({
       goal: z.number().int().positive(),
       jar: z.string(),
       jarLabel: z.string(),
+      // Mini alert shown in place of the jar card while isActive is off
+      // (e.g. a nudge to donate to UAnimals between our own fundraisers).
+      noActiveAlert: z.object({
+        lead: z.string(), // bold opener
+        body: z.string(),
+        linkLabel: z.string(),
+        linkHref: z.string().url(),
+      }),
     })
     .strict(),
 });
