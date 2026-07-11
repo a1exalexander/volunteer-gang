@@ -11,6 +11,7 @@
   --bubble: #f4a6e3;      /* Бабл — primary */
   --bubble-hover: #ec93d8; /* Бабл darker — hover */
   --acid: #c9e400;        /* Кислота — lime accents */
+  --acid-hover: #b4cc00;  /* Кислота darker — hover */
   --ink: #0d0c0c;         /* Балаклава — background & outlines */
   --chalk: #f5f1ec;       /* Крейда — primary text */
   --dust: #8a8580;        /* Пил — secondary text */
@@ -469,7 +470,15 @@ p {
 .fund-target { display: flex; flex-direction: column; gap: 8px; border-top: 2px solid var(--ink); padding-top: 20px; }
 .fund-target .label { font-family: var(--font-mono); font-size: 12px; color: var(--muted-ink); letter-spacing: 0.1em; }
 .fund-target .val { font-family: var(--font-display); font-weight: 800; font-size: 44px; line-height: 1; }
-.fund-donate { align-self: stretch; text-align: center; }
+/* The card behind it is bubble-pink — same as the default primary button —
+   so this one switches to acid to stay visible. */
+.fund-donate {
+  align-self: stretch;
+  text-align: center;
+  background: var(--acid);
+  color: var(--ink);
+}
+.fund-donate:hover { background: var(--acid-hover); color: var(--ink); }
 .fund-side {
   flex: 1;
   min-width: 380px;
