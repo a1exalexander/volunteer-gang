@@ -193,6 +193,67 @@ p {
   color: var(--acid);
 }
 
+/* Burger toggle (home header only): hidden on desktop, replaces the inline
+   nav links + CTA on narrow screens. aria-expanded doubles as the styling
+   hook for the open (×) state. */
+.nav-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 9px;
+  background: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.nav-burger-bar {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--chalk);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.nav-burger[aria-expanded='true'] .nav-burger-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.nav-burger[aria-expanded='true'] .nav-burger-bar:nth-child(2) { opacity: 0; }
+.nav-burger[aria-expanded='true'] .nav-burger-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-burger-bar { transition: none; }
+}
+
+/* On narrow screens the home nav (3 links + CTA) no longer fits next to the
+   logo, so it collapses into a dropdown under the sticky header, toggled by
+   the burger. The templates header (tag + back link) stays inline. Selectors
+   are `.site-header`-qualified to beat the 560px inline-nav shrink rules. */
+@media (max-width: 860px) {
+  .nav-burger { display: flex; }
+  .site-header .site-nav--collapsible {
+    display: none;
+    position: absolute; /* relative to the sticky .site-header */
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 24px var(--pad-x) 28px;
+    background: rgba(13, 12, 12, 0.97);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .site-header .site-nav--collapsible.is-open { display: flex; }
+  .site-header .site-nav--collapsible .nav-link {
+    font-size: 13px;
+    letter-spacing: 0.12em;
+  }
+}
+
 /* Global reset pill (studio only): on desktop it's centred over the header
    so it sits dead-centre regardless of the logo / nav widths; on mobile it
    re-anchors to the bottom of the viewport next to the drawer toggle (see

@@ -25,7 +25,7 @@ const { active, settings, ui } = Astro.props;
       />
     </a>
 
-    <nav class="site-nav">
+    <nav class:list={['site-nav', active !== 'templates' && 'site-nav--collapsible']} id="site-nav">
       {
         active === 'templates' ? (
           <Fragment>
@@ -51,8 +51,43 @@ const { active, settings, ui } = Astro.props;
         )
       }
     </nav>
+
+    {
+      active !== 'templates' && (
+        <button
+          type="button"
+          class="nav-burger"
+          aria-expanded="false"
+          aria-controls="site-nav"
+          aria-label={ui.menuToggleAriaLabel}
+        >
+          <span class="nav-burger-bar" />
+          <span class="nav-burger-bar" />
+          <span class="nav-burger-bar" />
+        </button>
+      )
+    }
   </div>
 </header>
+
+<script>
+  const burger = document.querySelector<HTMLButtonElement>('.nav-burger');
+  const nav = document.getElementById('site-nav');
+  if (burger && nav) {
+    const setOpen = (open: boolean) => {
+      nav.classList.toggle('is-open', open);
+      burger.setAttribute('aria-expanded', String(open));
+    };
+    burger.addEventListener('click', () => setOpen(!nav.classList.contains('is-open')));
+    // Anchor links keep the page in place, so collapse the menu ourselves.
+    nav.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a')) setOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+  }
+</script>
 
 {
   /* Lives outside <header>: its backdrop-filter would otherwise become the

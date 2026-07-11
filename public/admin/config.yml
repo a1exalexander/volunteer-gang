@@ -104,7 +104,7 @@ collections:
             hint: 'Постійна нецільова банка на ЗСУ. Показується замість картки збору, коли активний збір вимкнено, і змінює заголовок секції'
             fields:
               - { name: sectionTitle, label: 'Заголовок секції', widget: string, default: 'Збір на ЗСУ' }
-              - { name: cardId, label: 'Підпис картки', widget: string, default: 'VG · СПІЛЬНА БАНКА' }
+              - { name: cardId, label: 'Підпис картки', widget: string, default: 'СПІЛЬНА БАНКА' }
               - { name: statusLabel, label: 'Статус (бейдж)', widget: string, default: 'ПОСТІЙНИЙ' }
               - { name: cardTitle, label: 'Заголовок картки', widget: string, default: 'Спільна банка на ЗСУ' }
               - { name: cardBody, label: 'Опис картки', widget: text }
@@ -312,6 +312,7 @@ collections:
         fields:
           - { name: templatesHeaderTag, label: 'Шапка: тег на сторінці шаблонів', widget: string }
           - { name: backHomeLabel, label: 'Шапка: посилання на головну', widget: string }
+          - { name: menuToggleAriaLabel, label: 'Шапка: ARIA кнопки меню (мобільна)', widget: string }
           - { name: templatesResetAllLabel, label: 'Шапка: кнопка скинути все', widget: string }
           - { name: templatesResetAllAriaLabel, label: 'Шапка: ARIA кнопки скинути все', widget: string }
           - { name: footerBrandBookLabel, label: 'Футер: бренд-бук', widget: string }

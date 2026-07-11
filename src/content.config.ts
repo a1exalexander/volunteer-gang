@@ -66,7 +66,7 @@ const activeJar = defineCollection({
       // (with its own section title) while isActive is off.
       commonJar: z.object({
         sectionTitle: z.string(), // replaces «Активний збір» in the fallback state
-        cardId: z.string(), // kicker, e.g. "VG · СПІЛЬНА БАНКА"
+        cardId: z.string(), // kicker, e.g. "СПІЛЬНА БАНКА"
         statusLabel: z.string(), // badge
         cardTitle: z.string(),
         cardBody: z.string(),
@@ -209,6 +209,7 @@ const ui = defineCollection({
     .object({
       templatesHeaderTag: z.string(),
       backHomeLabel: z.string(),
+      menuToggleAriaLabel: z.string(),
       templatesResetAllLabel: z.string(),
       templatesResetAllAriaLabel: z.string(),
       footerBrandBookLabel: z.string(),

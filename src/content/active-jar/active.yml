@@ -11,7 +11,7 @@ jar: https://send.monobank.ua/jar/XXXXXXXX
 jarLabel: Докинути в банку →
 commonJar:
   sectionTitle: Збір на ЗСУ
-  cardId: VG · СПІЛЬНА БАНКА
+  cardId: СПІЛЬНА БАНКА
   statusLabel: ПОСТІЙНИЙ
   cardTitle: Спільна банка на ЗСУ
   cardBody: Загальний, нецільовий збір на потреби бригад ЗСУ. Кошти йдуть туди,
