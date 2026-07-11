@@ -41,13 +41,14 @@ npm run preview      # serve dist/
 | File | Edited in CMS as | Drives |
 |---|---|---|
 | `src/content/site/settings.yml` | Налаштування сайту | brand, nav, header CTA, footer, SEO |
-| `src/content/active-jar/active.yml` | Активний збір | home fundraiser block + `isActive` toggle (also shows/hides the header CTA) |
+| `src/content/active-jar/active.yml` | Активний збір | home fundraiser block + `isActive` toggle + common ZSU jar fallback |
 | `src/content/fundraiser/active.yml` | Дані для шаблонів | defaults for the `/templates` generator |
 | `src/content/pages/home.yml` | Сторінки → Головна | hero, section headings, stats, team members, teaser |
 
 The `/templates` generator prefills from `fundraiser/active.yml`, while the home
-"Активний збір" block and the header donate button are driven by
-`active-jar/active.yml` (hidden entirely when `isActive: false`).
+"Активний збір" block is driven by `active-jar/active.yml`. When
+`isActive: false`, the section falls back to the permanent non-targeted ZSU jar
+(`commonJar`) and its own section title («Збір на ЗСУ»).
 
 ## Deploy (Netlify)
 

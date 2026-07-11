@@ -6,10 +6,9 @@ interface Props {
   active?: 'home' | 'templates';
   settings: CollectionEntry<'site'>['data'];
   ui: CollectionEntry<'ui'>['data'];
-  jarActive?: boolean;
 }
 
-const { active, settings, ui, jarActive = false } = Astro.props;
+const { active, settings, ui } = Astro.props;
 ---
 
 <header class="site-header">
@@ -26,7 +25,7 @@ const { active, settings, ui, jarActive = false } = Astro.props;
       />
     </a>
 
-    <nav class="site-nav">
+    <nav class:list={['site-nav', active !== 'templates' && 'site-nav--collapsible']} id="site-nav">
       {
         active === 'templates' ? (
           <Fragment>
@@ -40,22 +39,55 @@ const { active, settings, ui, jarActive = false } = Astro.props;
                 {n.label}
               </a>
             ))}
-            {jarActive && (
-              <a
-                href={settings.cta.href}
-                class="btn btn-primary btn--sm"
-                data-track="cta_click"
-                data-evt-cta-location="header"
-              >
-                {settings.cta.label}
-              </a>
-            )}
+            <a
+              href={settings.cta.href}
+              class="btn btn-primary btn--sm"
+              data-track="cta_click"
+              data-evt-cta-location="header"
+            >
+              {settings.cta.label}
+            </a>
           </Fragment>
         )
       }
     </nav>
+
+    {
+      active !== 'templates' && (
+        <button
+          type="button"
+          class="nav-burger"
+          aria-expanded="false"
+          aria-controls="site-nav"
+          aria-label={ui.menuToggleAriaLabel}
+        >
+          <span class="nav-burger-bar" />
+          <span class="nav-burger-bar" />
+          <span class="nav-burger-bar" />
+        </button>
+      )
+    }
   </div>
 </header>
+
+<script>
+  const burger = document.querySelector<HTMLButtonElement>('.nav-burger');
+  const nav = document.getElementById('site-nav');
+  if (burger && nav) {
+    const setOpen = (open: boolean) => {
+      nav.classList.toggle('is-open', open);
+      burger.setAttribute('aria-expanded', String(open));
+    };
+    burger.addEventListener('click', () => setOpen(!nav.classList.contains('is-open')));
+    // Anchor links keep the page in place, so collapse the menu ourselves.
+    nav.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a')) setOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+  }
+</script>
 
 {
   /* Lives outside <header>: its backdrop-filter would otherwise become the

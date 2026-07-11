@@ -77,6 +77,8 @@ collections:
 
   # ---------- ACTIVE JAR (home «Активний збір» section) ----------
   # Drives the home «Активний збір» section: toggle, target and donate button.
+  # While the toggle is off, the section shows the common (non-targeted) ZSU jar
+  # instead, with its own section title.
   - name: activeJar
     label: 'Активний збір'
     files:
@@ -95,16 +97,20 @@ collections:
           - { name: goal, label: 'Ціль, ₴', widget: number, value_type: int, min: 1 }
           - { name: jar, label: 'Лінк на банку', widget: string }
           - { name: jarLabel, label: 'Текст кнопки', widget: string, default: 'Докинути в банку →' }
-          - name: noActiveAlert
-            label: 'Повідомлення, коли збору немає'
+          - name: commonJar
+            label: 'Спільна банка (коли збору немає)'
             widget: object
             collapsed: true
-            hint: 'Показується замість картки збору, коли секцію вимкнено (наприклад, заклик підтримати UAnimals)'
+            hint: 'Постійна нецільова банка на ЗСУ. Показується замість картки збору, коли активний збір вимкнено, і змінює заголовок секції'
             fields:
-              - { name: lead, label: 'Перше речення (жирним)', widget: string, default: 'Зараз активних зборів немає.' }
-              - { name: body, label: 'Текст', widget: text, hint: 'Продовження після жирного речення, до посилання' }
-              - { name: linkLabel, label: 'Текст посилання', widget: string, default: 'UAnimals →' }
-              - { name: linkHref, label: 'Посилання (повне, з https://)', widget: string, default: 'https://uanimals.org/how-to-help' }
+              - { name: sectionTitle, label: 'Заголовок секції', widget: string, default: 'Збір на ЗСУ' }
+              - { name: cardId, label: 'Підпис картки', widget: string, default: 'СПІЛЬНА БАНКА' }
+              - { name: statusLabel, label: 'Статус (бейдж)', widget: string, default: 'ПОСТІЙНИЙ' }
+              - { name: cardTitle, label: 'Заголовок картки', widget: string, default: 'Спільна банка на ЗСУ' }
+              - { name: cardBody, label: 'Опис картки', widget: text }
+              - { name: overview, label: 'Текст праворуч', widget: text }
+              - { name: jar, label: 'Лінк на банку (повний, з https://)', widget: string, default: 'https://send.monobank.ua/jar/8VcZqbvkZS' }
+              - { name: jarLabel, label: 'Текст кнопки', widget: string, default: 'Докинути в банку →' }
 
   # ---------- PAGES ----------
   - name: pages
@@ -306,6 +312,7 @@ collections:
         fields:
           - { name: templatesHeaderTag, label: 'Шапка: тег на сторінці шаблонів', widget: string }
           - { name: backHomeLabel, label: 'Шапка: посилання на головну', widget: string }
+          - { name: menuToggleAriaLabel, label: 'Шапка: ARIA кнопки меню (мобільна)', widget: string }
           - { name: templatesResetAllLabel, label: 'Шапка: кнопка скинути все', widget: string }
           - { name: templatesResetAllAriaLabel, label: 'Шапка: ARIA кнопки скинути все', widget: string }
           - { name: footerBrandBookLabel, label: 'Футер: бренд-бук', widget: string }

@@ -62,13 +62,17 @@ const activeJar = defineCollection({
       goal: z.number().int().positive(),
       jar: z.string(),
       jarLabel: z.string(),
-      // Mini alert shown in place of the jar card while isActive is off
-      // (e.g. a nudge to donate to UAnimals between our own fundraisers).
-      noActiveAlert: z.object({
-        lead: z.string(), // bold opener
-        body: z.string(),
-        linkLabel: z.string(),
-        linkHref: z.string().url(),
+      // Permanent, non-targeted ZSU jar shown in place of the fundraiser card
+      // (with its own section title) while isActive is off.
+      commonJar: z.object({
+        sectionTitle: z.string(), // replaces «Активний збір» in the fallback state
+        cardId: z.string(), // kicker, e.g. "СПІЛЬНА БАНКА"
+        statusLabel: z.string(), // badge
+        cardTitle: z.string(),
+        cardBody: z.string(),
+        overview: z.string(), // right-hand column text
+        jar: z.string().url(),
+        jarLabel: z.string(),
       }),
     })
     .strict(),
@@ -205,6 +209,7 @@ const ui = defineCollection({
     .object({
       templatesHeaderTag: z.string(),
       backHomeLabel: z.string(),
+      menuToggleAriaLabel: z.string(),
       templatesResetAllLabel: z.string(),
       templatesResetAllAriaLabel: z.string(),
       footerBrandBookLabel: z.string(),

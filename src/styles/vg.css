@@ -11,6 +11,7 @@
   --bubble: #f4a6e3;      /* Бабл — primary */
   --bubble-hover: #ec93d8; /* Бабл darker — hover */
   --acid: #c9e400;        /* Кислота — lime accents */
+  --acid-hover: #b4cc00;  /* Кислота darker — hover */
   --ink: #0d0c0c;         /* Балаклава — background & outlines */
   --chalk: #f5f1ec;       /* Крейда — primary text */
   --dust: #8a8580;        /* Пил — secondary text */
@@ -191,6 +192,67 @@ p {
   font-size: 13px;
   letter-spacing: 0.12em;
   color: var(--acid);
+}
+
+/* Burger toggle (home header only): hidden on desktop, replaces the inline
+   nav links + CTA on narrow screens. aria-expanded doubles as the styling
+   hook for the open (×) state. */
+.nav-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 9px;
+  background: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.nav-burger-bar {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--chalk);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.nav-burger[aria-expanded='true'] .nav-burger-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.nav-burger[aria-expanded='true'] .nav-burger-bar:nth-child(2) { opacity: 0; }
+.nav-burger[aria-expanded='true'] .nav-burger-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-burger-bar { transition: none; }
+}
+
+/* On narrow screens the home nav (3 links + CTA) no longer fits next to the
+   logo, so it collapses into a dropdown under the sticky header, toggled by
+   the burger. The templates header (tag + back link) stays inline. Selectors
+   are `.site-header`-qualified to beat the 560px inline-nav shrink rules. */
+@media (max-width: 860px) {
+  .nav-burger { display: flex; }
+  .site-header .site-nav--collapsible {
+    display: none;
+    position: absolute; /* relative to the sticky .site-header */
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 24px var(--pad-x) 28px;
+    background: rgba(13, 12, 12, 0.97);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .site-header .site-nav--collapsible.is-open { display: flex; }
+  .site-header .site-nav--collapsible .nav-link {
+    font-size: 13px;
+    letter-spacing: 0.12em;
+  }
 }
 
 /* Global reset pill (studio only): on desktop it's centred over the header
@@ -408,31 +470,15 @@ p {
 .fund-target { display: flex; flex-direction: column; gap: 8px; border-top: 2px solid var(--ink); padding-top: 20px; }
 .fund-target .label { font-family: var(--font-mono); font-size: 12px; color: var(--muted-ink); letter-spacing: 0.1em; }
 .fund-target .val { font-family: var(--font-display); font-weight: 800; font-size: 44px; line-height: 1; }
-.fund-donate { align-self: stretch; text-align: center; }
-/* Mini alert shown in place of the jar card while no fundraiser is live:
-   points visitors to UAnimals, since animals suffer from the war too. */
-.fund-alert {
-  flex-basis: 100%;
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  border: 1px dashed var(--border);
-  background: #17110f;
-  padding: 14px 18px;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  line-height: 1.6;
-  color: var(--dust);
+/* The card behind it is bubble-pink — same as the default primary button —
+   so this one switches to acid to stay visible. */
+.fund-donate {
+  align-self: stretch;
+  text-align: center;
+  background: var(--acid);
+  color: var(--ink);
 }
-.fund-alert p { margin: 0; }
-.fund-alert strong { color: var(--chalk); font-weight: 500; }
-.fund-alert-icon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  color: var(--acid);
-  margin-top: 1px;
-}
+.fund-donate:hover { background: var(--acid-hover); color: var(--ink); }
 .fund-side {
   flex: 1;
   min-width: 380px;
