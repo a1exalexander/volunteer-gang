@@ -409,30 +409,6 @@ p {
 .fund-target .label { font-family: var(--font-mono); font-size: 12px; color: var(--muted-ink); letter-spacing: 0.1em; }
 .fund-target .val { font-family: var(--font-display); font-weight: 800; font-size: 44px; line-height: 1; }
 .fund-donate { align-self: stretch; text-align: center; }
-/* Mini alert shown in place of the jar card while no fundraiser is live:
-   points visitors to UAnimals, since animals suffer from the war too. */
-.fund-alert {
-  flex-basis: 100%;
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  border: 1px dashed var(--border);
-  background: #17110f;
-  padding: 14px 18px;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  line-height: 1.6;
-  color: var(--dust);
-}
-.fund-alert p { margin: 0; }
-.fund-alert strong { color: var(--chalk); font-weight: 500; }
-.fund-alert-icon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  color: var(--acid);
-  margin-top: 1px;
-}
 .fund-side {
   flex: 1;
   min-width: 380px;

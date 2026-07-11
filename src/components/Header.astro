@@ -6,10 +6,9 @@ interface Props {
   active?: 'home' | 'templates';
   settings: CollectionEntry<'site'>['data'];
   ui: CollectionEntry<'ui'>['data'];
-  jarActive?: boolean;
 }
 
-const { active, settings, ui, jarActive = false } = Astro.props;
+const { active, settings, ui } = Astro.props;
 ---
 
 <header class="site-header">
@@ -40,16 +39,14 @@ const { active, settings, ui, jarActive = false } = Astro.props;
                 {n.label}
               </a>
             ))}
-            {jarActive && (
-              <a
-                href={settings.cta.href}
-                class="btn btn-primary btn--sm"
-                data-track="cta_click"
-                data-evt-cta-location="header"
-              >
-                {settings.cta.label}
-              </a>
-            )}
+            <a
+              href={settings.cta.href}
+              class="btn btn-primary btn--sm"
+              data-track="cta_click"
+              data-evt-cta-location="header"
+            >
+              {settings.cta.label}
+            </a>
           </Fragment>
         )
       }

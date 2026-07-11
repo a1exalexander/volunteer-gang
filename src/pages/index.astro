@@ -21,6 +21,10 @@ const jar = jarEntry.data;
 
 const goalFmt = fmtUAH(jar.goal);
 const jarHref = jar.jar.startsWith('http') ? jar.jar : `https://${jar.jar}`;
+const commonJarHref = jar.commonJar.jar.startsWith('http')
+  ? jar.commonJar.jar
+  : `https://${jar.commonJar.jar}`;
+const fundraiserTitle = jar.isActive ? home.sections.fundraiser.title : jar.commonJar.sectionTitle;
 const gang = settings.brand.word2;
 ---
 
@@ -95,7 +99,7 @@ const gang = settings.brand.word2;
     <div class="container">
     <div class="sec-head">
       <span class="sec-num">{home.sections.fundraiser.num}</span>
-      <h2 class="sec-title">{home.sections.fundraiser.title}</h2>
+      <h2 class="sec-title">{fundraiserTitle}</h2>
     </div>
 
     <div class="fund-grid">
@@ -128,37 +132,29 @@ const gang = settings.brand.word2;
 
       {
         !jar.isActive && (
-          <div class="fund-alert" role="note">
-            <svg
-              class="fund-alert-icon"
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+          <div class="fund-card">
+            <div class="fund-card-head">
+              <div class="fund-card-id">{jar.commonJar.cardId}</div>
+              <div class="fund-badge">{jar.commonJar.statusLabel}</div>
+            </div>
+            <div class="fund-title">{jar.commonJar.cardTitle}</div>
+            <p class="fund-desc">{jar.commonJar.cardBody}</p>
+            <a
+              class="btn btn-primary btn--lg fund-donate"
+              href={commonJarHref}
+              target="_blank"
+              rel="noopener"
+              data-track="cta_click"
+              data-evt-cta-location="home_common_jar"
             >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-            <p>
-              <strong>{jar.noActiveAlert.lead}</strong> {jar.noActiveAlert.body}{' '}
-              <a
-                href={jar.noActiveAlert.linkHref}
-                target="_blank"
-                rel="noopener"
-                data-track="cta_click"
-                data-evt-cta-location="home_uanimals"
-              >
-                {jar.noActiveAlert.linkLabel}
-              </a>
-            </p>
+              {jar.commonJar.jarLabel}
+            </a>
           </div>
         )
       }
 
       <div class="fund-side">
-        {jar.isActive && <p>{jar.overview}</p>}
+        <p>{jar.isActive ? jar.overview : jar.commonJar.overview}</p>
         <div class="fund-stats">
           {
             home.stats.map((s) => (

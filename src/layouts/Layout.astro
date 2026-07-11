@@ -23,9 +23,6 @@ if (!settingsEntry || !uiEntry) throw new Error('Missing content: site/settings 
 const settings = settingsEntry.data;
 const ui = uiEntry.data;
 
-const jarEntry = await getEntry('activeJar', 'active');
-const jarActive = jarEntry?.data.isActive ?? false;
-
 const {
   title,
   description = settings.seo.description,
@@ -109,7 +106,7 @@ const serializeJsonLd = (data: object) => JSON.stringify(data).replace(/</g, '\\
   </head>
 
   <body>
-    <Header active={active} settings={settings} ui={ui} jarActive={jarActive} />
+    <Header active={active} settings={settings} ui={ui} />
 
     <main>
       <slot />
