@@ -68,7 +68,27 @@ interface CardEditor {
   canvas: HTMLElement;
   button: HTMLButtonElement;
   resetButton: HTMLButtonElement;
+  hint: HTMLElement;
   status: HTMLElement | null;
+}
+
+// Editing snaps to a virtual grid so a nudged element never ends up a stray
+// pixel off. Offsets travel in GRID_STEP jumps (canvas pixels — i.e. of the
+// 1080px export, not of the shrunken preview), and an element's edges and
+// centre magnetise to the canvas frame, its padding box and its centre lines
+// whenever they come within SNAP_TOLERANCE. Holding Alt drags freely.
+const GRID_STEP = 16;
+const SNAP_TOLERANCE = 10;
+const SCALE_STEP = 0.05;
+const SCALE_MIN = 0.35;
+const SCALE_MAX = 3;
+
+/** the canvas box in its own pixels, plus the lines elements snap to */
+interface CanvasFrame {
+  borderLeft: number;
+  borderTop: number;
+  guidesX: number[];
+  guidesY: number[];
 }
 
 interface DragState {
@@ -76,6 +96,8 @@ interface DragState {
   cardId: string;
   key: string;
   node: HTMLElement;
+  canvas: HTMLElement;
+  frame: CanvasFrame;
   pointerId: number;
   startX: number;
   startY: number;
@@ -83,6 +105,11 @@ interface DragState {
   originY: number;
   originScale: number;
   scale: number;
+  /** the node's on-canvas box with its current offset taken out */
+  baseX: number;
+  baseY: number;
+  width: number;
+  height: number;
   centerX: number;
   centerY: number;
   startDistance: number;
@@ -147,6 +174,7 @@ interface StudioUiText {
     copyError: string;
     resizeElementAriaLabel: string;
     removeElementAriaLabel: string;
+    editHint: string;
   };
   labels: Record<string, string>;
 }
@@ -168,6 +196,7 @@ const UI_TEXT_FALLBACK: StudioUiText = {
     copyError: 'Помилка копіювання',
     resizeElementAriaLabel: 'Змінити розмір елемента',
     removeElementAriaLabel: 'Видалити елемент',
+    editHint: 'Елементи рухаються кроком 16 px і прилипають до країв, полів і центру. Alt — рухати вільно, стрілки — крок, Shift+стрілки — 4 кроки.',
   },
   labels: { ...DEFAULT_LABELS_FALLBACK },
 };
@@ -760,6 +789,105 @@ function setLayoutValue(cardId: string, key: string, value: LayoutValue): void {
   };
 }
 
+// ---------- grid + guide snapping ----------
+interface AxisSnap {
+  offset: number;
+  /** the canvas line the element locked onto, if any (drives the guide line) */
+  guide: number | null;
+}
+
+// Prefers a magnetised guide when one of the element's three anchors (start,
+// centre, end) is close enough; otherwise falls back to the plain grid, which
+// also keeps the untouched position (offset 0) reachable and sticky.
+function snapOffset(raw: number, base: number, size: number, guides: number[]): AxisSnap {
+  const start = base + raw;
+  const anchors = [start, start + size / 2, start + size];
+
+  let best: AxisSnap | null = null;
+  let bestDelta = Infinity;
+  for (const guide of guides) {
+    for (const anchor of anchors) {
+      const delta = guide - anchor;
+      if (Math.abs(delta) <= SNAP_TOLERANCE && Math.abs(delta) < Math.abs(bestDelta)) {
+        bestDelta = delta;
+        // Rounded to the rendered precision so measurement noise can't leave
+        // an untouched element with a 0.0001px "edit".
+        best = { offset: Math.round((raw + delta) * 10) / 10, guide };
+      }
+    }
+  }
+
+  return best ?? { offset: Math.round(raw / GRID_STEP) * GRID_STEP, guide: null };
+}
+
+function clampScale(value: number): number {
+  return Math.min(SCALE_MAX, Math.max(SCALE_MIN, value));
+}
+
+function snapScale(value: number): number {
+  return Math.round((Math.round(value / SCALE_STEP) * SCALE_STEP) * 100) / 100;
+}
+
+function readCanvasFrame(canvas: HTMLElement): CanvasFrame {
+  const style = getComputedStyle(canvas);
+  const num = (value: string): number => parseFloat(value) || 0;
+  const borderLeft = num(style.borderLeftWidth);
+  const borderTop = num(style.borderTopWidth);
+  const width = canvas.offsetWidth;
+  const height = canvas.offsetHeight;
+  const contentLeft = borderLeft + num(style.paddingLeft);
+  const contentRight = width - num(style.borderRightWidth) - num(style.paddingRight);
+  const contentTop = borderTop + num(style.paddingTop);
+  const contentBottom = height - num(style.borderBottomWidth) - num(style.paddingBottom);
+
+  return {
+    borderLeft,
+    borderTop,
+    guidesX: [0, contentLeft, width / 2, contentRight, width],
+    guidesY: [0, contentTop, height / 2, contentBottom, height],
+  };
+}
+
+// One pair of guide lines per canvas, created on first drag and kept out of
+// the export (data-export-ignore) — they only exist to show what snapped.
+const canvasGuides = new WeakMap<HTMLElement, { v: HTMLElement; h: HTMLElement }>();
+
+function guideLines(canvas: HTMLElement): { v: HTMLElement; h: HTMLElement } {
+  const existing = canvasGuides.get(canvas);
+  if (existing) return existing;
+
+  const make = (modifier: string): HTMLElement => {
+    const line = document.createElement('div');
+    line.className = `tpl-guide tpl-guide--${modifier}`;
+    line.dataset.exportIgnore = 'true';
+    line.setAttribute('aria-hidden', 'true');
+    line.hidden = true;
+    canvas.append(line);
+    return line;
+  };
+
+  const lines = { v: make('v'), h: make('h') };
+  canvasGuides.set(canvas, lines);
+  return lines;
+}
+
+function showGuides(canvas: HTMLElement, frame: CanvasFrame, x: number | null, y: number | null): void {
+  const lines = guideLines(canvas);
+  // Absolutely positioned children start at the padding box, so shift the
+  // border-box coordinates the guides are measured in.
+  lines.v.hidden = x == null;
+  if (x != null) lines.v.style.left = `${x - frame.borderLeft}px`;
+  lines.h.hidden = y == null;
+  if (y != null) lines.h.style.top = `${y - frame.borderTop}px`;
+}
+
+function hideGuides(canvas: HTMLElement): void {
+  const lines = canvasGuides.get(canvas);
+  if (!lines) return;
+  lines.v.hidden = true;
+  lines.h.hidden = true;
+}
+
 function formatTransform(base: string, value: LayoutValue): string {
   const move = value.x === 0 && value.y === 0 ? '' : `translate(${value.x.toFixed(1)}px, ${value.y.toFixed(1)}px)`;
   const scale = value.scale === 1 ? '' : `scale(${value.scale.toFixed(3)})`;
@@ -874,6 +1002,17 @@ function applyOffset(cardId: string, node: HTMLElement): void {
   node.style.transform = formatTransform(base, getLayoutValue(cardId, key));
 }
 
+// Repaints every node under one layout key — a photo and its placeholder
+// share a key, so both halves of a slot follow the same drag.
+function applyLayoutKey(cardId: string, key: string): void {
+  const editor = cardEditors.get(cardId);
+  if (!editor) return;
+
+  editor.canvas.querySelectorAll<HTMLElement>(`[data-tpl-edit-node="${key}"]`).forEach((node) => {
+    applyOffset(cardId, node);
+  });
+}
+
 function applyCardLayout(cardId: string): void {
   const editor = cardEditors.get(cardId);
   if (!editor) return;
@@ -941,9 +1080,42 @@ function clearCardLayout(cardId: string): void {
   persistLayouts();
 }
 
+// A photo slot is one thing to the editor: the picture, the dashed
+// placeholder standing in for it and the frame drawn around them must never
+// come apart while being dragged or scaled.
+function isPhotoLayer(el: HTMLElement): boolean {
+  return el.dataset.photo !== undefined || el.dataset.nophoto !== undefined;
+}
+
+/** the picture itself, the placeholder's hint text — never a separate element */
+function isInsidePhotoLayer(el: HTMLElement): boolean {
+  return !!el.parentElement?.closest('[data-photo],[data-nophoto]');
+}
+
+function isInsideEditableBox(el: HTMLElement, canvas: HTMLElement, editable: Set<HTMLElement>): boolean {
+  let parent = el.parentElement;
+  while (parent && parent !== canvas) {
+    if (editable.has(parent)) return true;
+    parent = parent.parentElement;
+  }
+  return false;
+}
+
+// A full-bleed slot has no box of its own — the picture and its placeholder
+// are plain siblings. Giving them one layout key keeps whichever half is
+// visible under the same transform (and removes them together).
+function pairedPhotoKey(el: HTMLElement): string | null {
+  if (el.dataset.nophoto === undefined) return null;
+  const photo = Array.from(el.parentElement?.children ?? []).find(
+    (sibling): sibling is HTMLElement =>
+      sibling instanceof HTMLElement && sibling.dataset.photo !== undefined && !!sibling.dataset.tplEditNode
+  );
+  return photo?.dataset.tplEditNode ?? null;
+}
+
 function registerEditableNodes(cardId: string, canvas: HTMLElement): void {
   const walker = document.createTreeWalker(canvas, NodeFilter.SHOW_ELEMENT);
-  const editableNodes: HTMLElement[] = [];
+  const candidates: HTMLElement[] = [];
 
   while (walker.nextNode()) {
     const node = walker.currentNode;
@@ -951,11 +1123,20 @@ function registerEditableNodes(cardId: string, canvas: HTMLElement): void {
     if (!isEditableCandidate(node, canvas)) continue;
     if (shouldSkipNestedEditable(node)) continue;
 
-    editableNodes.push(node);
+    candidates.push(node);
   }
 
+  // Photo layers sitting inside an editable box belong to that box, so only
+  // the box itself stays draggable — and nothing inside a layer ever is.
+  const candidateSet = new Set(candidates);
+  const editableNodes = candidates.filter((node) => {
+    if (isInsidePhotoLayer(node)) return false;
+    return !(isPhotoLayer(node) && isInsideEditableBox(node, canvas, candidateSet));
+  });
+
   for (const node of editableNodes) {
-    node.dataset.tplEditNode = nodePath(canvas, node);
+    // Document order guarantees the picture is keyed before its placeholder.
+    node.dataset.tplEditNode = pairedPhotoKey(node) ?? nodePath(canvas, node);
     node.dataset.tplEditBaseTransform = node.style.transform;
     ensureScaleHandle(node);
     ensureRemoveButton(cardId, node);
@@ -978,6 +1159,8 @@ function setCardEditing(cardId: string, editing: boolean): void {
   if (!editing) clearSelection(cardId);
 
   editor.canvas.classList.toggle('canvas--editing', editing);
+  editor.hint.hidden = !editing;
+  if (!editing) hideGuides(editor.canvas);
   activeCardId = editing ? cardId : activeCardId === cardId ? null : activeCardId;
   updateCardControls(cardId);
   trackTemplateEvent('card_edit_mode_changed', { card_id: cardId, enabled: editing });
@@ -995,6 +1178,7 @@ function finishDragging(): void {
   if (dragState.node.hasPointerCapture(dragState.pointerId)) {
     dragState.node.releasePointerCapture(dragState.pointerId);
   }
+  hideGuides(dragState.canvas);
   persistLayouts();
   dragState = null;
   if (changed) {
@@ -1004,6 +1188,14 @@ function finishDragging(): void {
     });
   }
 }
+
+/** arrow key → [x, y] direction of a one-step nudge */
+const ARROW_NUDGE: Record<string, [number, number]> = {
+  ArrowLeft: [-1, 0],
+  ArrowRight: [1, 0],
+  ArrowUp: [0, -1],
+  ArrowDown: [0, 1],
+};
 
 function bindCardEditors(): void {
   document.querySelectorAll<HTMLElement>('.tpl').forEach((card) => {
@@ -1041,6 +1233,14 @@ function bindCardEditors(): void {
       actions.append(button);
     }
 
+    // Spelling out the grid step / free-drag keys only while the card is
+    // actually in edit mode, so the gallery stays uncluttered otherwise.
+    const hint = document.createElement('p');
+    hint.className = 'tpl-edit-hint';
+    hint.textContent = studioUi.actions.editHint;
+    hint.hidden = true;
+    card.append(hint);
+
     canvas.addEventListener('pointerdown', (event) => {
       if (activeCardId !== cardId) return;
       const target = event.target;
@@ -1064,6 +1264,8 @@ function bindCardEditors(): void {
 
       const layoutValue = getLayoutValue(cardId, key);
       const rect = node.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      const viewScale = getCanvasScale(canvas);
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
       const startDistance = Math.max(1, Math.hypot(event.clientX - centerX, event.clientY - centerY));
@@ -1073,13 +1275,19 @@ function bindCardEditors(): void {
         cardId,
         key,
         node,
+        canvas,
+        frame: readCanvasFrame(canvas),
         pointerId: event.pointerId,
         startX: event.clientX,
         startY: event.clientY,
         originX: layoutValue.x,
         originY: layoutValue.y,
         originScale: layoutValue.scale,
-        scale: getCanvasScale(canvas),
+        scale: viewScale,
+        baseX: (rect.left - canvasRect.left) / viewScale - layoutValue.x,
+        baseY: (rect.top - canvasRect.top) / viewScale - layoutValue.y,
+        width: rect.width / viewScale,
+        height: rect.height / viewScale,
         centerX,
         centerY,
         startDistance,
@@ -1090,7 +1298,7 @@ function bindCardEditors(): void {
       event.preventDefault();
     });
 
-    cardEditors.set(cardId, { actions, canvas, button, resetButton, status });
+    cardEditors.set(cardId, { actions, canvas, button, resetButton, hint, status });
     applyRemovedState(cardId);
     updateCardControls(cardId);
   });
@@ -1098,19 +1306,32 @@ function bindCardEditors(): void {
   document.addEventListener('pointermove', (event) => {
     if (!dragState || event.pointerId !== dragState.pointerId) return;
 
+    // Alt suspends the grid for the rare pixel-exact tweak.
+    const free = event.altKey;
     let layoutValue: LayoutValue;
+
     if (dragState.mode === 'scale') {
       const distance = Math.max(1, Math.hypot(event.clientX - dragState.centerX, event.clientY - dragState.centerY));
-      const nextScale = Math.min(3, Math.max(0.35, dragState.originScale * (distance / dragState.startDistance)));
-      layoutValue = { x: dragState.originX, y: dragState.originY, scale: nextScale };
+      const raw = clampScale(dragState.originScale * (distance / dragState.startDistance));
+      layoutValue = { x: dragState.originX, y: dragState.originY, scale: free ? raw : snapScale(raw) };
+      hideGuides(dragState.canvas);
     } else {
-      const dx = (event.clientX - dragState.startX) / dragState.scale;
-      const dy = (event.clientY - dragState.startY) / dragState.scale;
-      layoutValue = { x: dragState.originX + dx, y: dragState.originY + dy, scale: dragState.originScale };
+      const rawX = dragState.originX + (event.clientX - dragState.startX) / dragState.scale;
+      const rawY = dragState.originY + (event.clientY - dragState.startY) / dragState.scale;
+
+      if (free) {
+        layoutValue = { x: rawX, y: rawY, scale: dragState.originScale };
+        hideGuides(dragState.canvas);
+      } else {
+        const snapX = snapOffset(rawX, dragState.baseX, dragState.width, dragState.frame.guidesX);
+        const snapY = snapOffset(rawY, dragState.baseY, dragState.height, dragState.frame.guidesY);
+        layoutValue = { x: snapX.offset, y: snapY.offset, scale: dragState.originScale };
+        showGuides(dragState.canvas, dragState.frame, snapX.guide, snapY.guide);
+      }
     }
 
     setLayoutValue(dragState.cardId, dragState.key, layoutValue);
-    applyOffset(dragState.cardId, dragState.node);
+    applyLayoutKey(dragState.cardId, dragState.key);
     updateCardControls(dragState.cardId);
   });
 
@@ -1121,10 +1342,12 @@ function bindCardEditors(): void {
     if (dragState && event.pointerId === dragState.pointerId) finishDragging();
   });
 
-  // Delete / Backspace removes the currently selected element, unless the
-  // user is typing in a form field (where those keys must edit text).
+  // Delete / Backspace removes the currently selected element and the arrow
+  // keys nudge it by whole grid steps — unless the user is typing in a form
+  // field, where those keys must edit text.
   document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+    const nudge = ARROW_NUDGE[event.key];
+    if (event.key !== 'Delete' && event.key !== 'Backspace' && !nudge) return;
     if (!activeCardId) return;
 
     const target = event.target;
@@ -1138,7 +1361,23 @@ function bindCardEditors(): void {
     if (!key) return;
 
     event.preventDefault();
-    removeNode(activeCardId, key, 'keyboard');
+
+    if (!nudge) {
+      removeNode(activeCardId, key, 'keyboard');
+      return;
+    }
+
+    const step = event.shiftKey ? GRID_STEP * 4 : GRID_STEP;
+    const current = getLayoutValue(activeCardId, key);
+    setLayoutValue(activeCardId, key, {
+      x: current.x + nudge[0] * step,
+      y: current.y + nudge[1] * step,
+      scale: current.scale,
+    });
+    applyLayoutKey(activeCardId, key);
+    updateCardControls(activeCardId);
+    persistLayouts();
+    trackTemplateEvent('card_element_transformed', { card_id: activeCardId, mode: 'nudge' });
   });
 }
 

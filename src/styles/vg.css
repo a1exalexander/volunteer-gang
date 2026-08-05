@@ -1014,6 +1014,29 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
 .tpl-node-removed { display: none !important; }
 .canvas--exporting .tpl-remove-btn { display: none !important; }
 
+/* snap guides — shown mid-drag when an element locks onto a canvas edge,
+   its padding box or a centre line (template-studio.ts positions them) */
+.tpl-guide {
+  position: absolute;
+  z-index: 8;
+  pointer-events: none;
+  background: var(--acid);
+  box-shadow: 0 0 0 2px rgba(13, 12, 12, 0.45);
+}
+.tpl-guide--v { top: 0; bottom: 0; width: 4px; margin-left: -2px; }
+.tpl-guide--h { left: 0; right: 0; height: 4px; margin-top: -2px; }
+.canvas--exporting .tpl-guide { display: none !important; }
+
+.tpl-edit-hint {
+  margin: 0;
+  max-width: 356px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--dust);
+}
+
 /* ---------- panel field → canvas highlight ----------
    Focusing/hovering a field in the studio panel rings every canvas element it
    drives (template-studio.ts adds .tpl-bind-highlight). Fixed brand colours —

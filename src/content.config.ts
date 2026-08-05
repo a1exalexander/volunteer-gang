@@ -170,6 +170,7 @@ const templatesPage = defineCollection({
             copyError: z.string(),
             resizeElementAriaLabel: z.string(),
             removeElementAriaLabel: z.string(),
+            editHint: z.string(),
           }),
           labels: z.object({
             collect: z.string(),

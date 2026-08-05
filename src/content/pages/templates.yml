@@ -49,6 +49,7 @@ studio:
     copyError: Помилка копіювання
     resizeElementAriaLabel: Змінити розмір елемента
     removeElementAriaLabel: Видалити елемент
+    editHint: "Елементи рухаються кроком 16 px і прилипають до країв, полів і центру. Alt — рухати вільно, стрілки — крок, Shift+стрілки — 4 кроки."
   labels:
     collect: ЗБІР НА
     active: АКТИВНИЙ ЗБІР
