@@ -13,6 +13,11 @@ const REMOVED_STORAGE_KEY = 'vg-tpl-removed-v1';
 const FORMAT_STORAGE_KEY = 'vg-tpl-format-v1';
 const CANVAS_IDS = ['announce', 'progress', 'urgent', 'push', 'report', 'thanks', 'closed', 'milestone', 'remaining', 'thermo', 'goalpost', 'photopost', 'photostory', 'halfway', 'deadline', 'share', 'weekly', 'quote', 'minimal', 'sos', 'closedstory', 'giftpost', 'giftstory', 'giftgrid', 'giftcountdown'];
 
+/** How the shared photo sits in every slot: `cover` crops to fill the frame
+ *  (no empty gaps), `contain` fits the whole photo inside it. */
+type PhotoFit = 'cover' | 'contain';
+const DEFAULT_PHOTO_FIT: PhotoFit = 'contain';
+
 interface State {
   titleMain: string;
   titleAccent: string;
@@ -21,6 +26,8 @@ interface State {
   raised: number;
   /** the single uploaded photo, shared by every template's photo slot */
   photo: string | null;
+  /** cover ⇄ contain for that photo, applied to every slot at once */
+  photoFit: PhotoFit;
   colors: Record<string, string>;
   /** editable status/kicker labels, keyed by the canvases' data-label roles */
   labels: Record<string, string>;
@@ -179,13 +186,14 @@ const FALLBACK: State = {
   goal: 500000,
   raised: 341500,
   photo: null,
+  photoFit: DEFAULT_PHOTO_FIT,
   colors: { ...DEFAULT_COLORS },
   labels: { ...DEFAULT_LABELS_FALLBACK },
 };
 
 // Only these keys survive merging — drops stale fields (e.g. the retired
 // `no`/`jar`/`gift`) from old localStorage payloads and from the JSON seed.
-const ALLOWED_KEYS: (keyof State)[] = ['titleMain', 'titleAccent', 'desc', 'goal', 'raised', 'photo', 'colors', 'labels'];
+const ALLOWED_KEYS: (keyof State)[] = ['titleMain', 'titleAccent', 'desc', 'goal', 'raised', 'photo', 'photoFit', 'colors', 'labels'];
 
 function pick(obj: Record<string, unknown>): Partial<State> {
   const out: Partial<State> = {};
@@ -232,6 +240,8 @@ function readInitial(): State {
   const merged = { ...base, ...pick(saved) };
   // Migration: the retired separate goods photo (`gift`) becomes the shared one.
   if (!merged.photo && typeof saved.gift === 'string') merged.photo = saved.gift;
+  // A stale/hand-edited payload can't smuggle a bogus background-size in.
+  if (merged.photoFit !== 'cover' && merged.photoFit !== 'contain') merged.photoFit = DEFAULT_PHOTO_FIT;
   // Deep-merge colours so a partial/stale saved object can't drop roles.
   const savedColors = merged.colors && typeof merged.colors === 'object' ? merged.colors : {};
   merged.colors = { ...DEFAULT_COLORS, ...savedColors };
@@ -485,6 +495,7 @@ function render(): void {
   document.querySelectorAll<HTMLElement>('[data-photo]').forEach((el) => {
     el.style.backgroundImage = hasPhoto ? `url("${state.photo}")` : 'none';
     el.style.display = hasPhoto ? 'block' : 'none';
+    el.style.backgroundSize = state.photoFit;
   });
   document.querySelectorAll<HTMLElement>('[data-nophoto]').forEach((el) => {
     el.style.display = hasPhoto ? 'none' : 'flex';
@@ -502,6 +513,32 @@ function updatePhotoControls(): void {
 
   const thumb = document.getElementById('tpl-photo-thumb');
   if (thumb) thumb.style.backgroundImage = state.photo ? `url("${state.photo}")` : 'none';
+
+  updatePhotoFitControls();
+}
+
+// ---------- cover ⇄ contain switch for the shared photo ----------
+function updatePhotoFitControls(): void {
+  document.querySelectorAll<HTMLButtonElement>('[data-photo-fit]').forEach((btn) => {
+    const active = btn.dataset.photoFit === state.photoFit;
+    btn.classList.toggle('is-active', active);
+    btn.setAttribute('aria-pressed', String(active));
+  });
+}
+
+function bindPhotoFit(): void {
+  document.querySelectorAll<HTMLButtonElement>('[data-photo-fit]').forEach((btn) => {
+    const fit = btn.dataset.photoFit;
+    if (fit !== 'cover' && fit !== 'contain') return;
+    btn.addEventListener('click', () => {
+      if (state.photoFit === fit) return;
+      state.photoFit = fit;
+      persist();
+      render();
+      trackTemplateEvent('photo_fit_changed', { fit });
+    });
+  });
+  updatePhotoFitControls();
 }
 
 type FieldEl = HTMLInputElement | HTMLTextAreaElement;
@@ -1481,6 +1518,7 @@ function fieldsMatchSeed(): boolean {
     Number(state.goal) === Number(SEED.goal) &&
     Number(state.raised) === Number(SEED.raised) &&
     state.photo === SEED.photo &&
+    state.photoFit === SEED.photoFit &&
     COLOR_ROLES.every((role) => state.colors[role] === SEED.colors[role]) &&
     LABEL_ROLES.every((role) => state.labels[role] === SEED.labels[role])
   );
@@ -1591,6 +1629,7 @@ function init(): void {
   bindField('tpl-goal', 'goal', true);
   bindField('tpl-raised', 'raised', true);
   bindImage('tpl-photo', 'tpl-photo-clear');
+  bindPhotoFit();
   bindColors();
   bindLabels();
   bindActions();

@@ -21,6 +21,11 @@ studio:
   dropzoneTitleFilled: Фото завантажено
   dropzoneHintFilled: натисни або перетягни, щоб замінити
   clearPhotoLabel: ✕ Прибрати
+  photoFitLabel: ЯК ВМІСТИТИ ФОТО
+  photoFitHint: "«Заповнити» — фото займає весь блок, без пустих місць (краї
+    обріжуться). «Вмістити» — фото видно повністю, можуть лишитись поля."
+  photoFitCoverLabel: Заповнити
+  photoFitContainLabel: Вмістити
   colorsTitle: КОЛЬОРИ ШАБЛОНІВ
   labelsTitle: ПІДПИСИ ШАБЛОНІВ
   labelsIntro: Статуси й кікери на шаблонах. Стрілки та ✕ додаються автоматично.
