@@ -1,15 +1,9 @@
 // Client-side export/copy for the /brand asset kit.
-// Mirrors src/scripts/template-studio.ts: html-to-image is loaded as a global
-// via CDN (see brand.astro), a framed node is captured to PNG for download or
-// clipboard, while colours and type samples copy as plain text. Feedback is the
-// inline [data-status] span pattern, auto-cleared after 2.5s.
-type HtmlToImage = {
-  toBlob: (node: HTMLElement, opts?: Record<string, unknown>) => Promise<Blob | null>;
-};
-
-function lib(): HtmlToImage | null {
-  return (window as unknown as { htmlToImage?: HtmlToImage }).htmlToImage ?? null;
-}
+// Mirrors src/scripts/template-studio.ts: a framed node is captured to PNG via
+// src/lib/dom-to-png for download or clipboard, while colours and type samples
+// copy as plain text. Feedback is the inline [data-status] span pattern,
+// auto-cleared after 2.5s.
+import { nodeToBlob } from '../lib/dom-to-png';
 
 const timers: Record<string, number> = {};
 function setStatus(id: string, msg: string): void {
@@ -24,29 +18,13 @@ function setStatus(id: string, msg: string): void {
   }
 }
 
-// The graffiti marks depend on Sedgwick Ave Display (Google Fonts); wait for
-// fonts before the first capture so exports don't fall back to `cursive`.
-let fontsReady = false;
-async function ensureFonts(): Promise<void> {
-  if (fontsReady) return;
-  try {
-    await document.fonts.ready;
-  } catch {
-    /* older browsers without the Font Loading API — skip */
-  }
-  fontsReady = true;
-}
-
 async function makeBlob(id: string): Promise<Blob> {
-  const htmlToImage = lib();
-  if (!htmlToImage) throw new Error('html-to-image not loaded');
   const node = document.getElementById('dl-' + id);
   if (!node) throw new Error('missing node: ' + id);
-  await ensureFonts();
   // pixelRatio 3 — the brand marks are small, so upscale for a crisp asset.
-  const blob = await htmlToImage.toBlob(node, { pixelRatio: 3 });
-  if (!blob) throw new Error('empty blob');
-  return blob;
+  // (nodeToBlob awaits document.fonts.ready itself, so the graffiti marks never
+  // fall back to `cursive` on a cold first capture.)
+  return nodeToBlob(node, { pixelRatio: 3 });
 }
 
 async function download(id: string): Promise<void> {

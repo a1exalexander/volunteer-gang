@@ -1,11 +1,12 @@
 // Client logic for the Instagram template studio (/templates).
 // Ported from the Claude Design DCLogic prototype: one shared fundraiser
 // state drives 25 fixed-size (1080px) export canvases; each can be downloaded
-// as PNG or copied to the clipboard via html-to-image. State persists to
+// as PNG or copied to the clipboard via src/lib/dom-to-png. State persists to
 // localStorage and is seeded from the CMS "active fundraiser" on first visit.
 
 import { fmtUAH, percentOf } from '../lib/format';
 import { trackEvent } from '../lib/analytics';
+import { nodeToBlob } from '../lib/dom-to-png';
 
 const STORAGE_KEY = 'vg-tpl-state-v1';
 const LAYOUT_STORAGE_KEY = 'vg-tpl-layout-v1';
@@ -1419,22 +1420,16 @@ function bindCardEditors(): void {
 }
 
 // ---------- export (PNG download / clipboard copy) ----------
-type HtmlToImage = { toBlob: (node: HTMLElement, opts?: Record<string, unknown>) => Promise<Blob | null> };
-
 // Photo slots are optional: elements marked data-export-optional="photo"
 // are placeholder-hints for the preview only. When no photo was uploaded
 // they are dropped from the export clone, so the downloaded or copied PNG
 // comes out without the placeholder (see the alert on /templates).
-function exportFilter(node: Node): boolean {
+function exportFilter(node: Element): boolean {
   if (!(node instanceof HTMLElement)) return true;
   if (node.classList.contains('tpl-node-removed')) return false;
   if (node.dataset.exportOptional === 'photo') return !!state.photo;
   if (node.dataset.exportIgnore === 'true') return false;
   return true;
-}
-
-function lib(): HtmlToImage | null {
-  return (window as unknown as { htmlToImage?: HtmlToImage }).htmlToImage ?? null;
 }
 
 const timers: Record<string, number> = {};
@@ -1478,15 +1473,14 @@ function setActionTooltip(id: string, mode: 'cp' | 'dl', msg: string, ok: boolea
 }
 
 async function makeBlob(id: string): Promise<Blob> {
-  const htmlToImage = lib();
-  if (!htmlToImage) throw new Error('html-to-image not loaded');
   const node = document.getElementById('vgx-' + id);
   if (!node) throw new Error('missing canvas: ' + id);
+  // `.canvas--exporting` hides the editor chrome (drag rings, handles) for the
+  // duration of the capture — the clone is taken from the live node, so the
+  // class has to be on before nodeToBlob() reads it.
   node.classList.add('canvas--exporting');
   try {
-    const blob = await htmlToImage.toBlob(node, { pixelRatio: 1, filter: exportFilter });
-    if (!blob) throw new Error('empty blob');
-    return blob;
+    return await nodeToBlob(node, { pixelRatio: 1, filter: exportFilter });
   } finally {
     node.classList.remove('canvas--exporting');
   }
