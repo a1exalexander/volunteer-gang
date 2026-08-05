@@ -277,6 +277,7 @@ collections:
                   - { name: copyError, label: 'Тултіп помилки копіювання', widget: string }
                   - { name: resizeElementAriaLabel, label: 'ARIA масштабування елемента', widget: string }
                   - { name: removeElementAriaLabel, label: 'ARIA видалення елемента', widget: string }
+                  - { name: editHint, label: 'Підказка в режимі редагування', widget: text }
               - name: labels
                 label: 'Базові підписи шаблонів'
                 widget: object
