@@ -1,4 +1,7 @@
 ---
+// Self-hosted brand webfonts (scripts/gen-fonts.mjs). Same files Google Fonts
+// served, but same-origin — which is what lets the PNG export inline them.
+import '../styles/fonts.css';
 import '../styles/vg.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -90,13 +93,6 @@ const serializeJsonLd = (data: object) => JSON.stringify(data).replace(/</g, '\\
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800;900&family=Oswald:wght@500;600;700&family=Sedgwick+Ave+Display&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
 
     <script
       type="application/ld+json"
