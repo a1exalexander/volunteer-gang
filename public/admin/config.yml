@@ -242,6 +242,10 @@ collections:
               - { name: dropzoneTitleFilled, label: 'Фото: заголовок (завантажено)', widget: string }
               - { name: dropzoneHintFilled, label: 'Фото: підказка (завантажено)', widget: string }
               - { name: clearPhotoLabel, label: 'Кнопка очистки фото', widget: string }
+              - { name: photoFitLabel, label: 'Фото: лейбл перемикача вписування', widget: string }
+              - { name: photoFitHint, label: 'Фото: підказка перемикача вписування', widget: text }
+              - { name: photoFitCoverLabel, label: 'Фото: варіант «заповнити» (cover)', widget: string }
+              - { name: photoFitContainLabel, label: 'Фото: варіант «вмістити» (fit)', widget: string }
               - { name: colorsTitle, label: 'Заголовок секції кольорів', widget: string }
               - { name: labelsTitle, label: 'Заголовок секції підписів', widget: string }
               - { name: labelsIntro, label: 'Пояснення секції підписів', widget: text }

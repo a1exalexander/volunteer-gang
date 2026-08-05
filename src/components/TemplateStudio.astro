@@ -127,6 +127,17 @@ const actionIcons = {
           </span>
         </span>
       </label>
+      <!-- cover ⇄ contain for the shared photo: `cover` fills every slot with
+           no empty gaps (edges get cropped), `contain` fits the whole photo in.
+           The client script mirrors the choice onto every [data-photo] slot. -->
+      <div class="panel-photo-fit">
+        <span class="field-label" id="tpl-photo-fit-label">{page.studio.photoFitLabel}</span>
+        <div class="photo-fit" id="tpl-photo-fit" role="group" aria-labelledby="tpl-photo-fit-label">
+          <button type="button" class="photo-fit-btn" data-photo-fit="cover" aria-pressed="false">{page.studio.photoFitCoverLabel}</button>
+          <button type="button" class="photo-fit-btn is-active" data-photo-fit="contain" aria-pressed="true">{page.studio.photoFitContainLabel}</button>
+        </div>
+        <p class="panel-intro panel-intro--mini">{page.studio.photoFitHint}</p>
+      </div>
       <div class="panel-photo-row">
         <button type="button" id="tpl-photo-clear" class="ghost-btn" style="display:none">{page.studio.clearPhotoLabel}</button>
       </div>

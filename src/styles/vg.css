@@ -695,6 +695,34 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
 .panel-photo { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--border); padding-top: 20px; }
 .panel-photo-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .panel-photo-row:empty { display: none; }
+
+/* cover ⇄ contain switch for the shared photo (sits under the dropzone) */
+.panel-photo-fit { display: flex; flex-direction: column; gap: 8px; }
+.photo-fit {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 2px;
+  padding: 3px;
+  background: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.photo-fit-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dust);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.photo-fit-btn:not(.is-active):hover { color: var(--chalk); }
+.photo-fit-btn.is-active { background: var(--bubble); color: var(--ink); }
+.photo-fit-btn:focus-visible { outline: 2px solid var(--bubble); outline-offset: 2px; }
 .dropzone {
   position: relative;
   display: flex;
