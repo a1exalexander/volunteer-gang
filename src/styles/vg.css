@@ -970,6 +970,32 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
 
 /* the fixed-size export canvases keep their exact pixel dimensions */
 .canvas { position: relative; box-sizing: border-box; }
+
+/* ---- card layering ----------------------------------------------------
+   A photo is a card's backdrop: neither a fixed slot nor one the user has
+   dragged across the canvas may bury the copy. Photos stay on layer 0 and
+   every other box in the card is lifted to layer 1. Flex and grid items take
+   z-index on their own; the `position: relative` is there for the plain
+   blocks and only lands where a template doesn't already position the box
+   inline, so it moves nothing.
+
+   A box that *holds* a photo is deliberately left unlifted: a z-index would
+   make it a stacking context and trap its photo inside, so a slot nested in
+   one column could still cover the next one. Left alone, every photo in the
+   card competes in the canvas's own stacking context — under all of the copy,
+   wherever the user parks it. Photo-holders carry no paint of their own (no
+   background, no border) in any of the templates.
+
+   The :where() keeps these rules at single-class specificity: the editing
+   rules below (a dragged layer, the branch it hangs off) have to stay able to
+   override them, and the editor chrome — handles, remove buttons, snap
+   guides, all [data-export-ignore] — keeps the layers it sets itself. */
+.canvas :where([data-photo], [data-nophoto], [data-photo-slot]) { z-index: 0; }
+.canvas :not(:where([data-photo], [data-nophoto], [data-photo-slot], [data-export-ignore])):not(:has(:where([data-photo], [data-nophoto], [data-photo-slot]))) {
+  position: relative;
+  z-index: 1;
+}
+
 .canvas--editing { user-select: none; }
 .canvas--editing [data-tpl-edit-node] {
   cursor: grab;
@@ -979,6 +1005,9 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
 .canvas--editing [data-tpl-edit-node]:hover {
   box-shadow: inset 0 0 0 6px rgba(255, 46, 136, 0.75), 0 0 0 3px rgba(13, 12, 12, 0.45);
 }
+/* Only while it is being moved does a layer climb over the copy — a photo you
+   are dragging has to stay visible under the cursor. It drops back to its own
+   layer the moment the pointer goes up. */
 .canvas--editing [data-tpl-edit-node].is-dragging {
   cursor: grabbing;
   z-index: 5;
@@ -987,6 +1016,10 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   cursor: nwse-resize;
   z-index: 5;
 }
+/* …and so does the branch it hangs off, so a photo nested in a column can be
+   dragged across the whole canvas instead of sliding under its column's
+   neighbours. */
+.canvas--editing :has(.is-dragging, .is-scaling) { z-index: 4; }
 .tpl-edit-handle {
   position: absolute;
   right: 10px;
