@@ -4,6 +4,9 @@
 // slot with the single shared photo when one is uploaded, and its export
 // filter drops the whole slot (via data-export-optional) when the photo is
 // missing, so the downloaded/copied PNG never contains the placeholder.
+// `data-photo-slot` puts the slot on the card's photo layer (see the card
+// layering rules in vg.css): wherever the user drags it, it stays under the
+// copy — except while the drag itself is in flight.
 interface Props {
   /** absolute-position fragment, e.g. "top:300px;right:100px;" */
   pos: string;
@@ -21,7 +24,7 @@ const w = width ?? size;
 const h = height ?? size;
 ---
 
-<div data-export-optional="photo" style={`position:absolute;${pos}width:${w}px;height:${h}px;transform:rotate(${rotate}deg);`}>
+<div data-photo-slot data-export-optional="photo" style={`position:absolute;${pos}width:${w}px;height:${h}px;transform:rotate(${rotate}deg);`}>
   <div
     role="img"
     aria-label="Фото"
