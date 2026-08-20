@@ -258,6 +258,8 @@ collections:
               - { name: swatchBubbleLabel, label: 'Назва кольору: bubble', widget: string }
               - { name: alertLead, label: 'Попередження: перше речення', widget: string }
               - { name: alertBody, label: 'Попередження: текст', widget: text }
+              - { name: reportSectionTitle, label: 'Звіти: заголовок секції', widget: string }
+              - { name: reportSectionHint, label: 'Звіти: опис секції', widget: text }
               - name: actions
                 label: 'Тексти кнопок і тултіпів'
                 widget: object
@@ -305,6 +307,20 @@ collections:
                   - { name: giftItem4, label: 'giftItem4', widget: string }
                   - { name: giftFor, label: 'giftFor', widget: string }
                   - { name: giftBrigade, label: 'giftBrigade', widget: string }
+                  - { name: reportKicker, label: 'reportKicker', widget: string }
+                  - { name: reportRaisedTitle, label: 'reportRaisedTitle', widget: string }
+                  - { name: reportBoughtTitle, label: 'reportBoughtTitle', widget: string }
+                  - { name: reportBought1, label: 'reportBought1', widget: string }
+                  - { name: reportBought2, label: 'reportBought2', widget: string }
+                  - { name: reportBought3, label: 'reportBought3', widget: string }
+                  - { name: reportBought4, label: 'reportBought4', widget: string }
+                  - { name: reportSourceTitle, label: 'reportSourceTitle', widget: string }
+                  - { name: reportSource1, label: 'reportSource1', widget: string }
+                  - { name: reportSource2, label: 'reportSource2', widget: string }
+                  - { name: reportSource3, label: 'reportSource3', widget: string }
+                  - { name: reportDelivered, label: 'reportDelivered', widget: string }
+                  - { name: reportThanks, label: 'reportThanks', widget: string }
+                  - { name: reportThanksBody, label: 'reportThanksBody', widget: text }
 
   - name: ui
     label: 'Спільні тексти інтерфейсу'
