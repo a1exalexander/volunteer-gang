@@ -38,6 +38,8 @@ studio:
   swatchBubbleLabel: Бабл
   alertLead: Фото — за бажанням.
   alertBody: "Пунктирне місце під фото видно лише у прев'ю: якщо фото не завантажено, шаблон скачається або скопіюється без цього плейсхолдера."
+  reportSectionTitle: ЗВІТИ ЗБОРУ
+  reportSectionHint: "Чотири шаблони для звіту після збору: скільки зібрали, що придбали та звідки прийшли гроші. Велике фото — те саме, з панелі даних."
   actions:
     download: PNG
     copy: Копіювати
@@ -79,3 +81,17 @@ studio:
     giftItem4: ПОЗИЦІЯ 04
     giftFor: Подарунки за донат
     giftBrigade: ПОДАРУНКИ ЗА ДОНАТ
+    reportKicker: ЗВІТ ПРО ЗБІР
+    reportRaisedTitle: ЗІБРАЛИ РАЗОМ
+    reportBoughtTitle: ЩО ПРИДБАЛИ
+    reportBought1: Позиція 01 · 1 шт
+    reportBought2: Позиція 02 · 1 шт
+    reportBought3: Позиція 03 · 1 шт
+    reportBought4: Позиція 04 · 1 шт
+    reportSourceTitle: ЗВІДКИ ЗІБРАЛИ
+    reportSource1: Банка monobank
+    reportSource2: Instagram · донати
+    reportSource3: Готівка · офлайн
+    reportDelivered: ПЕРЕДАНО БРИГАДІ
+    reportThanks: Дякуємо, банда
+    reportThanksBody: "Кожен донат став справою: гроші закрили збір і поїхали на фронт."

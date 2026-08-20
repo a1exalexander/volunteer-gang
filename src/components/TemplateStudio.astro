@@ -256,6 +256,62 @@ const actionIcons = {
           <label class="field-label" for="tpl-label-giftBrigade">КІКЕР «ПОДАРУНКИ ЗА ДОНАТ»</label>
           <input class="input" id="tpl-label-giftBrigade" type="text" data-label-input="giftBrigade" value={page.studio.labels.giftBrigade} />
         </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-reportKicker">КІКЕР «ЗВІТ ПРО ЗБІР»</label>
+          <input class="input" id="tpl-label-reportKicker" type="text" data-label-input="reportKicker" value={page.studio.labels.reportKicker} />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-reportRaisedTitle">ПІДПИС «ЗІБРАЛИ РАЗОМ»</label>
+          <input class="input" id="tpl-label-reportRaisedTitle" type="text" data-label-input="reportRaisedTitle" value={page.studio.labels.reportRaisedTitle} />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-reportBoughtTitle">ПІДПИС «ЩО ПРИДБАЛИ»</label>
+          <input class="input" id="tpl-label-reportBoughtTitle" type="text" data-label-input="reportBoughtTitle" value={page.studio.labels.reportBoughtTitle} />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-reportBought1">ПРИДБАЛИ · ПОЗИЦІЯ 01</label>
+          <input class="input" id="tpl-label-reportBought1" type="text" data-label-input="reportBought1" value={page.studio.labels.reportBought1} />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-reportBought2">ПРИДБАЛИ · ПОЗИЦІЯ 02</label>
+          <input class="input" id="tpl-label-reportBought2" type="text" data-label-input="reportBought2" value={page.studio.labels.reportBought2} />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-reportBought3">ПРИДБАЛИ · ПОЗИЦІЯ 03</label>
+          <input class="input" id="tpl-label-reportBought3" type="text" data-label-input="reportBought3" value={page.studio.labels.reportBought3} />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-reportBought4">ПРИДБАЛИ · ПОЗИЦІЯ 04</label>
+          <input class="input" id="tpl-label-reportBought4" type="text" data-label-input="reportBought4" value={page.studio.labels.reportBought4} />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-reportSourceTitle">ПІДПИС «ЗВІДКИ ЗІБРАЛИ»</label>
+          <input class="input" id="tpl-label-reportSourceTitle" type="text" data-label-input="reportSourceTitle" value={page.studio.labels.reportSourceTitle} />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-reportSource1">ДЖЕРЕЛО 01</label>
+          <input class="input" id="tpl-label-reportSource1" type="text" data-label-input="reportSource1" value={page.studio.labels.reportSource1} />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-reportSource2">ДЖЕРЕЛО 02</label>
+          <input class="input" id="tpl-label-reportSource2" type="text" data-label-input="reportSource2" value={page.studio.labels.reportSource2} />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-reportSource3">ДЖЕРЕЛО 03</label>
+          <input class="input" id="tpl-label-reportSource3" type="text" data-label-input="reportSource3" value={page.studio.labels.reportSource3} />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-reportDelivered">БЕЙДЖ «ПЕРЕДАНО БРИГАДІ»</label>
+          <input class="input" id="tpl-label-reportDelivered" type="text" data-label-input="reportDelivered" value={page.studio.labels.reportDelivered} />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-reportThanks">ЗАГОЛОВОК ПОДЯКИ У ЗВІТІ</label>
+          <input class="input" id="tpl-label-reportThanks" type="text" data-label-input="reportThanks" value={page.studio.labels.reportThanks} />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tpl-label-reportThanksBody">ТЕКСТ ПОДЯКИ У ЗВІТІ</label>
+          <textarea class="input" id="tpl-label-reportThanksBody" rows="2" data-label-input="reportThanksBody">{page.studio.labels.reportThanksBody}</textarea>
+        </div>
       </div>
     </div>
   </aside>
@@ -1023,6 +1079,186 @@ const actionIcons = {
         <button type="button" class="dl-btn" data-dl="giftcountdown">↓ PNG</button>
         <button type="button" class="cp-btn" data-cp="giftcountdown">⧉ Копіювати</button>
         <span class="tpl-status" data-status="giftcountdown"></span>
+      </div>
+    </div>
+
+    <!-- ============ ЗВІТИ ЗБОРУ ============ -->
+    <!-- A separate pack of four post-fundraiser report templates: each one
+         carries the big photo, the raised sum and what the money bought. -->
+    <div class="gallery-section">
+      <h2 class="gallery-section-title">{page.studio.reportSectionTitle}</h2>
+      <p class="gallery-section-hint">{page.studio.reportSectionHint}</p>
+    </div>
+
+    <!-- POST: REPORT · WHAT WE BOUGHT -->
+    <div class="tpl">
+      <div class="tpl-cap">ПОСТ · ЗВІТ: ЩО ПРИДБАЛИ · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-reportbuy" class="canvas" style="width:1080px;height:1350px;background:var(--c-acid);padding:72px;display:flex;flex-direction:column;gap:34px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateLockup layout="inline" color="var(--c-ink)" vSize={28} gSize={32} />
+              <div style="background:var(--c-ink);color:var(--c-acid);font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;padding:12px 20px;letter-spacing:0.12em;"><span data-label="reportKicker">ЗВІТ ПРО ЗБІР</span></div>
+            </div>
+            <div style="position:relative;flex:1;min-height:0;">
+              <div role="img" aria-label="Фото придбаного" data-photo style="position:absolute;inset:0;border:10px solid var(--c-ink);background-size:contain;background-position:center;background-repeat:no-repeat;display:none;"></div>
+              <div data-nophoto data-export-optional="photo" style="position:absolute;inset:0;border:6px dashed rgba(13,12,12,0.55);background:repeating-linear-gradient(45deg,rgba(13,12,12,0.06),rgba(13,12,12,0.06) 24px,rgba(13,12,12,0.14) 24px,rgba(13,12,12,0.14) 48px);display:flex;align-items:center;justify-content:center;text-align:center;padding:30px;">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:28px;line-height:1.5;color:rgba(13,12,12,0.66);">ВЕЛИКЕ ФОТО ПРИДБАНОГО<br /><span style="font-size:22px;">· за бажанням ·</span></span>
+              </div>
+              <div style="position:absolute;left:0;bottom:0;background:var(--c-ink);color:var(--c-acid);font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.06em;font-size:30px;padding:16px 26px;"><span data-label="reportDelivered">ПЕРЕДАНО БРИГАДІ</span> ✓</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:30px;">
+              <div style="display:flex;flex-direction:column;gap:10px;min-width:0;">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;letter-spacing:0.14em;color:rgba(13,12,12,0.7);"><span data-label="reportRaisedTitle">ЗІБРАЛИ РАЗОМ</span></div>
+                <div style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:76px;line-height:1;color:var(--c-ink);" data-bind="raisedFmt">{raisedFmt}</div>
+              </div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:26px;line-height:1.5;color:rgba(13,12,12,0.7);text-align:right;">ціль <span data-bind="goalFmt">{goalFmt}</span><br /><span data-bind="titleAccent">{fund.titleAccent}</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;letter-spacing:0.14em;color:rgba(13,12,12,0.7);"><span data-label="reportBoughtTitle">ЩО ПРИДБАЛИ</span></div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;align-items:center;gap:18px;background:var(--c-ink);padding:14px 22px;font-family:'IBM Plex Mono',monospace;font-size:28px;color:var(--c-chalk);"><span style="color:var(--c-acid);font-weight:500;">01</span><span data-label="reportBought1">Позиція 01 · 1 шт</span></div>
+                <div style="display:flex;align-items:center;gap:18px;background:var(--c-ink);padding:14px 22px;font-family:'IBM Plex Mono',monospace;font-size:28px;color:var(--c-chalk);"><span style="color:var(--c-acid);font-weight:500;">02</span><span data-label="reportBought2">Позиція 02 · 1 шт</span></div>
+                <div style="display:flex;align-items:center;gap:18px;background:var(--c-ink);padding:14px 22px;font-family:'IBM Plex Mono',monospace;font-size:28px;color:var(--c-chalk);"><span style="color:var(--c-acid);font-weight:500;">03</span><span data-label="reportBought3">Позиція 03 · 1 шт</span></div>
+                <div style="display:flex;align-items:center;gap:18px;background:var(--c-ink);padding:14px 22px;font-family:'IBM Plex Mono',monospace;font-size:28px;color:var(--c-chalk);"><span style="color:var(--c-acid);font-weight:500;">04</span><span data-label="reportBought4">Позиція 04 · 1 шт</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="reportbuy">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="reportbuy">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="reportbuy"></span>
+      </div>
+    </div>
+
+    <!-- STORY: REPORT · THANK YOU -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · ЗВІТ: ДЯКУЄМО · 1080×1920</div>
+      <div class="tpl-preview" style="width:356px;height:633px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-reportthanks" class="canvas" style="width:1080px;height:1920px;background:var(--c-pink);display:flex;flex-direction:column;">
+            <!-- percentage height so the photo keeps its share when the card is
+                 flipped between the post and story formats -->
+            <div style="position:relative;height:47%;flex-shrink:0;">
+              <div role="img" aria-label="Фото звіту" data-photo style="position:absolute;inset:0;background-size:contain;background-position:center;background-repeat:no-repeat;display:none;"></div>
+              <div data-nophoto data-export-optional="photo" style="position:absolute;inset:0;border-bottom:10px solid var(--c-chalk);background:repeating-linear-gradient(45deg,rgba(13,12,12,0.1),rgba(13,12,12,0.1) 24px,rgba(13,12,12,0.2) 24px,rgba(13,12,12,0.2) 48px);display:flex;align-items:center;justify-content:center;text-align:center;padding:40px;">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:32px;line-height:1.5;color:var(--c-chalk);">ВЕЛИКЕ ФОТО ЗВІТУ<br /><span style="font-size:24px;">· за бажанням ·</span></span>
+              </div>
+              <div style="position:absolute;left:70px;bottom:-34px;background:var(--c-chalk);color:var(--c-ink);font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.06em;font-size:38px;padding:20px 34px;transform:rotate(-3deg);"><span data-label="reportDelivered">ПЕРЕДАНО БРИГАДІ</span> ✓</div>
+            </div>
+            <div style="flex:1;min-height:0;padding:90px 80px 80px;display:flex;flex-direction:column;justify-content:space-between;gap:36px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:32px;letter-spacing:0.2em;color:var(--c-chalk);"><span data-label="reportKicker">ЗВІТ ПРО ЗБІР</span></div>
+                <TemplateLockup layout="inline" color="var(--c-chalk)" vSize={28} gSize={32} />
+              </div>
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:130px;line-height:0.96;color:var(--c-chalk);"><span data-label="reportThanks">Дякуємо, банда</span></div>
+              <div style="background:var(--c-chalk);color:var(--c-ink);padding:34px 44px;display:flex;justify-content:space-between;align-items:baseline;gap:24px;">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:30px;letter-spacing:0.12em;"><span data-label="reportRaisedTitle">ЗІБРАЛИ РАЗОМ</span></span>
+                <span style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:60px;line-height:1;" data-bind="raisedFmt">{raisedFmt}</span>
+              </div>
+              <p style="margin:0;font-family:'IBM Plex Mono',monospace;font-size:34px;line-height:1.6;color:var(--c-chalk);"><span data-label="reportThanksBody">Кожен донат став справою: гроші закрили збір і поїхали на фронт.</span></p>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:30px;line-height:1.6;color:var(--c-chalk);"><span data-label="reportSourceTitle">ЗВІДКИ ЗІБРАЛИ</span>: <span data-label="reportSource1">Банка monobank</span> · <span data-label="reportSource2">Instagram · донати</span> · <span data-label="reportSource3">Готівка · офлайн</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="reportthanks">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="reportthanks">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="reportthanks"></span>
+      </div>
+    </div>
+
+    <!-- POST: REPORT · WHERE THE MONEY CAME FROM -->
+    <div class="tpl">
+      <div class="tpl-cap">ПОСТ · ЗВІТ: ЗВІДКИ ЗІБРАЛИ · 1080×1350</div>
+      <div class="tpl-preview" style="width:356px;height:445px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-reportsources" class="canvas" style="width:1080px;height:1350px;background:var(--c-chalk);padding:72px;display:flex;flex-direction:column;gap:32px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateLockup layout="inline" color="var(--c-ink)" vSize={28} gSize={32} />
+              <div style="background:var(--c-ink);color:var(--c-chalk);font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;padding:12px 20px;letter-spacing:0.12em;"><span data-label="reportKicker">ЗВІТ ПРО ЗБІР</span></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:28px;border-bottom:8px solid var(--c-ink);padding-bottom:24px;">
+              <div style="display:flex;flex-direction:column;gap:10px;min-width:0;">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;letter-spacing:0.14em;color:rgba(13,12,12,0.65);"><span data-label="reportRaisedTitle">ЗІБРАЛИ РАЗОМ</span></div>
+                <div style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:92px;line-height:1;color:var(--c-ink);" data-bind="raisedFmt">{raisedFmt}</div>
+              </div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:26px;line-height:1.5;color:rgba(13,12,12,0.65);text-align:right;">ціль <span data-bind="goalFmt">{goalFmt}</span><br /><span data-bind="percent">{percent}</span>% закрито</div>
+            </div>
+            <div style="display:flex;gap:34px;flex:1;min-height:0;">
+              <div style="width:440px;flex-shrink:0;display:flex;flex-direction:column;gap:18px;">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;letter-spacing:0.14em;color:rgba(13,12,12,0.65);"><span data-label="reportSourceTitle">ЗВІДКИ ЗІБРАЛИ</span></div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;border-bottom:3px solid rgba(13,12,12,0.2);padding-bottom:14px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:30px;color:var(--c-ink);" data-label="reportSource1">Банка monobank</span><span style="font-family:'IBM Plex Mono',monospace;font-size:22px;color:rgba(13,12,12,0.5);">01</span></div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;border-bottom:3px solid rgba(13,12,12,0.2);padding-bottom:14px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:30px;color:var(--c-ink);" data-label="reportSource2">Instagram · донати</span><span style="font-family:'IBM Plex Mono',monospace;font-size:22px;color:rgba(13,12,12,0.5);">02</span></div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;border-bottom:3px solid rgba(13,12,12,0.2);padding-bottom:14px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:30px;color:var(--c-ink);" data-label="reportSource3">Готівка · офлайн</span><span style="font-family:'IBM Plex Mono',monospace;font-size:22px;color:rgba(13,12,12,0.5);">03</span></div>
+                <div style="margin-top:auto;font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:52px;line-height:1.05;color:var(--c-ink);"><span data-label="reportThanks">Дякуємо, банда</span></div>
+              </div>
+              <div style="position:relative;flex:1;min-width:0;">
+                <div role="img" aria-label="Фото звіту" data-photo style="position:absolute;inset:0;border:10px solid var(--c-ink);background-size:contain;background-position:center;background-repeat:no-repeat;display:none;"></div>
+                <div data-nophoto data-export-optional="photo" style="position:absolute;inset:0;border:6px dashed rgba(13,12,12,0.5);background:repeating-linear-gradient(45deg,rgba(13,12,12,0.05),rgba(13,12,12,0.05) 24px,rgba(13,12,12,0.12) 24px,rgba(13,12,12,0.12) 48px);display:flex;align-items:center;justify-content:center;text-align:center;padding:26px;">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:26px;line-height:1.5;color:rgba(13,12,12,0.6);">ВЕЛИКЕ ФОТО<br />ЗВІТУ<br /><span style="font-size:20px;">· за бажанням ·</span></span>
+                </div>
+                <div style="position:absolute;left:0;bottom:0;background:var(--c-ink);color:var(--c-chalk);font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;padding:12px 20px;letter-spacing:0.08em;"><span data-label="reportDelivered">ПЕРЕДАНО БРИГАДІ</span> ✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="reportsources">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="reportsources">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="reportsources"></span>
+      </div>
+    </div>
+
+    <!-- STORY: REPORT · FULL -->
+    <div class="tpl">
+      <div class="tpl-cap">СТОРІЗ · ЗВІТ: ПОВНИЙ · 1080×1920</div>
+      <div class="tpl-preview" style="width:356px;height:633px;border:1px solid var(--c-line);">
+        <div class="tpl-scale">
+          <div id="vgx-reportfull" class="canvas" style="width:1080px;height:1920px;background:var(--c-ink);border:24px solid var(--c-acid);padding:80px 72px;display:flex;flex-direction:column;gap:36px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <TemplateLockup layout="inline" color="var(--c-chalk)" vSize={30} gSize={34} />
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:26px;letter-spacing:0.18em;color:var(--c-acid);"><span data-label="reportKicker">ЗВІТ ПРО ЗБІР</span></div>
+            </div>
+            <div style="position:relative;flex:1;min-height:0;">
+              <div role="img" aria-label="Фото звіту" data-photo style="position:absolute;inset:0;border:10px solid var(--c-acid);background-size:contain;background-position:center;background-repeat:no-repeat;display:none;"></div>
+              <div data-nophoto data-export-optional="photo" style="position:absolute;inset:0;border:6px dashed rgba(245,241,236,0.45);background:repeating-linear-gradient(45deg,rgba(245,241,236,0.05),rgba(245,241,236,0.05) 24px,rgba(245,241,236,0.12) 24px,rgba(245,241,236,0.12) 48px);display:flex;align-items:center;justify-content:center;text-align:center;padding:30px;">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:30px;line-height:1.5;color:var(--c-dust);">ВЕЛИКЕ ФОТО ЗВІТУ<br /><span style="font-size:22px;">· за бажанням ·</span></span>
+              </div>
+              <div style="position:absolute;left:0;bottom:0;background:var(--c-acid);color:var(--c-ink);font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.06em;font-size:32px;padding:16px 28px;"><span data-label="reportDelivered">ПЕРЕДАНО БРИГАДІ</span> ✓</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--c-line);border:1px solid var(--c-line);">
+              <div style="background:var(--c-ink);padding:30px 34px;display:flex;flex-direction:column;gap:12px;">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;letter-spacing:0.14em;color:var(--c-dust);"><span data-label="reportRaisedTitle">ЗІБРАЛИ РАЗОМ</span></div>
+                <div style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:54px;line-height:1;color:var(--c-acid);" data-bind="raisedFmt">{raisedFmt}</div>
+              </div>
+              <div style="background:var(--c-ink);padding:30px 34px;display:flex;flex-direction:column;gap:12px;">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;letter-spacing:0.14em;color:var(--c-dust);">ЦІЛЬ</div>
+                <div style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:54px;line-height:1;color:var(--c-chalk);" data-bind="goalFmt">{goalFmt}</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:26px;letter-spacing:0.14em;color:var(--c-dust);"><span data-label="reportBoughtTitle">ЩО ПРИДБАЛИ</span></div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;align-items:center;gap:20px;border-left:8px solid var(--c-acid);padding:10px 20px;font-family:'IBM Plex Mono',monospace;font-size:32px;color:var(--c-chalk);"><span data-label="reportBought1">Позиція 01 · 1 шт</span></div>
+                <div style="display:flex;align-items:center;gap:20px;border-left:8px solid var(--c-acid);padding:10px 20px;font-family:'IBM Plex Mono',monospace;font-size:32px;color:var(--c-chalk);"><span data-label="reportBought2">Позиція 02 · 1 шт</span></div>
+                <div style="display:flex;align-items:center;gap:20px;border-left:8px solid var(--c-acid);padding:10px 20px;font-family:'IBM Plex Mono',monospace;font-size:32px;color:var(--c-chalk);"><span data-label="reportBought3">Позиція 03 · 1 шт</span></div>
+                <div style="display:flex;align-items:center;gap:20px;border-left:8px solid var(--c-acid);padding:10px 20px;font-family:'IBM Plex Mono',monospace;font-size:32px;color:var(--c-chalk);"><span data-label="reportBought4">Позиція 04 · 1 шт</span></div>
+              </div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:26px;line-height:1.6;color:var(--c-dust);"><span data-label="reportSourceTitle">ЗВІДКИ ЗІБРАЛИ</span>: <span data-label="reportSource1">Банка monobank</span> · <span data-label="reportSource2">Instagram · донати</span> · <span data-label="reportSource3">Готівка · офлайн</span></div>
+            <div style="background:var(--c-acid);color:var(--c-ink);font-family:'Unbounded',sans-serif;font-weight:800;font-size:44px;text-align:center;padding:34px;"><span data-label="reportThanks">Дякуємо, банда</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="tpl-actions">
+        <button type="button" class="dl-btn" data-dl="reportfull">↓ PNG</button>
+        <button type="button" class="cp-btn" data-cp="reportfull">⧉ Копіювати</button>
+        <span class="tpl-status" data-status="reportfull"></span>
       </div>
     </div>
   </main>

@@ -12,7 +12,7 @@ const STORAGE_KEY = 'vg-tpl-state-v1';
 const LAYOUT_STORAGE_KEY = 'vg-tpl-layout-v1';
 const REMOVED_STORAGE_KEY = 'vg-tpl-removed-v1';
 const FORMAT_STORAGE_KEY = 'vg-tpl-format-v1';
-const CANVAS_IDS = ['announce', 'progress', 'urgent', 'push', 'report', 'thanks', 'closed', 'milestone', 'remaining', 'thermo', 'goalpost', 'photopost', 'photostory', 'halfway', 'deadline', 'share', 'weekly', 'quote', 'minimal', 'sos', 'closedstory', 'giftpost', 'giftstory', 'giftgrid', 'giftcountdown'];
+const CANVAS_IDS = ['announce', 'progress', 'urgent', 'push', 'report', 'thanks', 'closed', 'milestone', 'remaining', 'thermo', 'goalpost', 'photopost', 'photostory', 'halfway', 'deadline', 'share', 'weekly', 'quote', 'minimal', 'sos', 'closedstory', 'giftpost', 'giftstory', 'giftgrid', 'giftcountdown', 'reportbuy', 'reportthanks', 'reportsources', 'reportfull'];
 
 /** How the shared photo sits in every slot: `cover` crops to fill the frame
  *  (no empty gaps), `contain` fits the whole photo inside it. */
@@ -162,6 +162,20 @@ const DEFAULT_LABELS_FALLBACK: Record<string, string> = {
   giftItem4: 'ПОЗИЦІЯ 04',
   giftFor: 'Подарунки за донат',
   giftBrigade: 'ПОДАРУНКИ ЗА ДОНАТ',
+  reportKicker: 'ЗВІТ ПРО ЗБІР',
+  reportRaisedTitle: 'ЗІБРАЛИ РАЗОМ',
+  reportBoughtTitle: 'ЩО ПРИДБАЛИ',
+  reportBought1: 'Позиція 01 · 1 шт',
+  reportBought2: 'Позиція 02 · 1 шт',
+  reportBought3: 'Позиція 03 · 1 шт',
+  reportBought4: 'Позиція 04 · 1 шт',
+  reportSourceTitle: 'ЗВІДКИ ЗІБРАЛИ',
+  reportSource1: 'Банка monobank',
+  reportSource2: 'Instagram · донати',
+  reportSource3: 'Готівка · офлайн',
+  reportDelivered: 'ПЕРЕДАНО БРИГАДІ',
+  reportThanks: 'Дякуємо, банда',
+  reportThanksBody: 'Кожен донат став справою: гроші закрили збір і поїхали на фронт.',
 };
 const LABEL_ROLES = Object.keys(DEFAULT_LABELS_FALLBACK);
 
