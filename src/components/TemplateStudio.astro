@@ -1138,28 +1138,28 @@ const actionIcons = {
       <div class="tpl-cap">СТОРІЗ · ЗВІТ: ДЯКУЄМО · 1080×1920</div>
       <div class="tpl-preview" style="width:356px;height:633px;border:1px solid var(--c-line);">
         <div class="tpl-scale">
-          <div id="vgx-reportthanks" class="canvas" style="width:1080px;height:1920px;background:var(--c-pink);display:flex;flex-direction:column;">
+          <div id="vgx-reportthanks" class="canvas" style="width:1080px;height:1920px;background:var(--c-bubble);display:flex;flex-direction:column;">
             <!-- percentage height so the photo keeps its share when the card is
                  flipped between the post and story formats -->
             <div style="position:relative;height:47%;flex-shrink:0;">
               <div role="img" aria-label="Фото звіту" data-photo style="position:absolute;inset:0;background-size:contain;background-position:center;background-repeat:no-repeat;display:none;"></div>
-              <div data-nophoto data-export-optional="photo" style="position:absolute;inset:0;border-bottom:10px solid var(--c-chalk);background:repeating-linear-gradient(45deg,rgba(13,12,12,0.1),rgba(13,12,12,0.1) 24px,rgba(13,12,12,0.2) 24px,rgba(13,12,12,0.2) 48px);display:flex;align-items:center;justify-content:center;text-align:center;padding:40px;">
-                <span style="font-family:'IBM Plex Mono',monospace;font-size:32px;line-height:1.5;color:var(--c-chalk);">ВЕЛИКЕ ФОТО ЗВІТУ<br /><span style="font-size:24px;">· за бажанням ·</span></span>
+              <div data-nophoto data-export-optional="photo" style="position:absolute;inset:0;border-bottom:10px solid var(--c-ink);background:repeating-linear-gradient(45deg,var(--c-bubble),var(--c-bubble) 24px,var(--c-bubble2) 24px,var(--c-bubble2) 48px);display:flex;align-items:center;justify-content:center;text-align:center;padding:40px;">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:32px;line-height:1.5;color:rgba(13,12,12,0.6);">ВЕЛИКЕ ФОТО ЗВІТУ<br /><span style="font-size:24px;">· за бажанням ·</span></span>
               </div>
-              <div style="position:absolute;left:70px;bottom:-34px;background:var(--c-chalk);color:var(--c-ink);font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.06em;font-size:38px;padding:20px 34px;transform:rotate(-3deg);"><span data-label="reportDelivered">ПЕРЕДАНО БРИГАДІ</span> ✓</div>
+              <div style="position:absolute;left:70px;bottom:-34px;background:var(--c-ink);color:var(--c-bubble);font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.06em;font-size:38px;padding:20px 34px;transform:rotate(-3deg);"><span data-label="reportDelivered">ПЕРЕДАНО БРИГАДІ</span> ✓</div>
             </div>
             <div style="flex:1;min-height:0;padding:90px 80px 80px;display:flex;flex-direction:column;justify-content:space-between;gap:36px;">
               <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div style="font-family:'IBM Plex Mono',monospace;font-size:32px;letter-spacing:0.2em;color:var(--c-chalk);"><span data-label="reportKicker">ЗВІТ ПРО ЗБІР</span></div>
-                <TemplateLockup layout="inline" color="var(--c-chalk)" vSize={28} gSize={32} />
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:32px;letter-spacing:0.2em;color:rgba(13,12,12,0.66);"><span data-label="reportKicker">ЗВІТ ПРО ЗБІР</span></div>
+                <TemplateLockup layout="inline" color="var(--c-ink)" vSize={28} gSize={32} />
               </div>
-              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:130px;line-height:0.96;color:var(--c-chalk);"><span data-label="reportThanks">Дякуємо, банда</span></div>
-              <div style="background:var(--c-chalk);color:var(--c-ink);padding:34px 44px;display:flex;justify-content:space-between;align-items:baseline;gap:24px;">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0.02em;font-size:130px;line-height:0.96;color:var(--c-ink);"><span data-label="reportThanks">Дякуємо, банда</span></div>
+              <div style="background:var(--c-ink);color:var(--c-bubble);padding:34px 44px;display:flex;justify-content:space-between;align-items:baseline;gap:24px;">
                 <span style="font-family:'IBM Plex Mono',monospace;font-size:30px;letter-spacing:0.12em;"><span data-label="reportRaisedTitle">ЗІБРАЛИ РАЗОМ</span></span>
                 <span style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:60px;line-height:1;" data-bind="raisedFmt">{raisedFmt}</span>
               </div>
-              <p style="margin:0;font-family:'IBM Plex Mono',monospace;font-size:34px;line-height:1.6;color:var(--c-chalk);"><span data-label="reportThanksBody">Кожен донат став справою: гроші закрили збір і поїхали на фронт.</span></p>
-              <div style="font-family:'IBM Plex Mono',monospace;font-size:30px;line-height:1.6;color:var(--c-chalk);"><span data-label="reportSourceTitle">ЗВІДКИ ЗІБРАЛИ</span>: <span data-label="reportSource1">Банка monobank</span> · <span data-label="reportSource2">Instagram · донати</span> · <span data-label="reportSource3">Готівка · офлайн</span></div>
+              <p style="margin:0;font-family:'IBM Plex Mono',monospace;font-size:34px;line-height:1.6;color:var(--c-ink);"><span data-label="reportThanksBody">Кожен донат став справою: гроші закрили збір і поїхали на фронт.</span></p>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:30px;line-height:1.6;color:rgba(13,12,12,0.72);"><span data-label="reportSourceTitle">ЗВІДКИ ЗІБРАЛИ</span>: <span data-label="reportSource1">Банка monobank</span> · <span data-label="reportSource2">Instagram · донати</span> · <span data-label="reportSource3">Готівка · офлайн</span></div>
             </div>
           </div>
         </div>
