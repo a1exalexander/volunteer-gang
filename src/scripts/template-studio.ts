@@ -129,10 +129,14 @@ interface DragState {
   /** the node's on-canvas box with its current offset taken out */
   baseX: number;
   baseY: number;
-  /** its on-screen size in canvas px when the drag started — what a resize
-   *  measures the pointer's travel against, and a move snaps its edges by */
+  /** its on-screen size in canvas px when the drag started — what a move snaps
+   *  its edges by */
   width: number;
   height: number;
+  /** distance from its transform origin out to the grabbed corner, which is
+   *  what the pointer's travel is measured against while resizing */
+  armX: number;
+  armY: number;
 }
 
 // User-mixable template palette roles → the `--c-*` custom properties the
@@ -360,12 +364,22 @@ const FORMAT_META: Record<CardFormat, { label: string; res: string }> = {
   story: { label: studioUi.actions.formatStoryLabel, res: FORMAT_META_FALLBACK.story.res },
 };
 
+// The uploaded photo's own proportions, measured once the browser has decoded
+// it. Everything that keeps a picture from being squashed — and that fits a
+// slot to it — needs this, and it only arrives asynchronously.
+let photoRatio: number | null = null;
+let photoRatioSrc: string | null = null;
+/** an upload asks for its slots to be re-fitted as soon as the ratio lands */
+let fitSlotsWhenMeasured = false;
+
 let state = readInitial();
 const actionIcons = readActionIcons();
 let editLayouts = readLayouts();
 let removedNodes = readRemoved();
 let cardFormats = readFormats();
 const cardEditors = new Map<string, CardEditor>();
+/** the reverse of cardEditors' canvas, for lookups that start at an element */
+const canvasCards = new WeakMap<HTMLElement, string>();
 let activeCardId: string | null = null;
 let dragState: DragState | null = null;
 let drawerOpen = false;
@@ -550,6 +564,84 @@ function derived(): Record<string, string> {
   };
 }
 
+function measurePhoto(src: string | null): void {
+  if (src === photoRatioSrc) return;
+  photoRatioSrc = src;
+  photoRatio = null;
+  if (!src) {
+    fitSlotsWhenMeasured = false;
+    return;
+  }
+
+  const img = new Image();
+  img.onload = () => {
+    // A newer photo may have been picked while this one was decoding.
+    if (photoRatioSrc !== src || !img.naturalWidth || !img.naturalHeight) return;
+    photoRatio = img.naturalWidth / img.naturalHeight;
+    if (fitSlotsWhenMeasured) {
+      fitSlotsWhenMeasured = false;
+      fitPhotoSlots('upload');
+    }
+    applyPhotoSizing();
+  };
+  img.src = src;
+}
+
+/** every scale the element inherits, its own included — a slot nested in a
+ *  stretched box is stretched by both */
+function inheritedScale(el: HTMLElement): [number, number] {
+  const canvas = el.closest<HTMLElement>('.canvas');
+  const cardId = canvas ? canvasCards.get(canvas) : undefined;
+  if (!canvas || !cardId) return [1, 1];
+
+  let sx = 1;
+  let sy = 1;
+  let node: HTMLElement | null = el;
+  while (node && node !== canvas) {
+    const key = node.dataset.tplEditNode;
+    if (key) {
+      const value = getLayoutValue(cardId, key);
+      sx *= value.scaleX;
+      sy *= value.scaleY;
+    }
+    node = node.parentElement;
+  }
+  return [sx, sy];
+}
+
+// Stretching a container must not stretch the picture in it. The container is
+// resized by a transform, and a transform stretches the background it paints
+// as well — so the background is sized here in the box *before* that transform,
+// small enough on the pulled axis that the stretch lands it back at its true
+// proportions. What the user gets is a frame they can pull to any shape with
+// the photo sitting in it — whole (contain) or filling it (cover) — never
+// squashed. Without a measured photo, or an unstretched box, the plain keyword
+// already does exactly this.
+function photoBackgroundSize(el: HTMLElement): string {
+  const ratio = photoRatio;
+  if (!ratio) return state.photoFit;
+
+  const [sx, sy] = inheritedScale(el);
+  if (sx === 1 && sy === 1) return state.photoFit;
+
+  const boxWidth = el.offsetWidth * sx;
+  const boxHeight = el.offsetHeight * sy;
+  if (!boxWidth || !boxHeight) return state.photoFit;
+
+  // `contain` is led by whichever side runs out first, `cover` by the other.
+  const widthLed = (state.photoFit === 'contain') === (ratio > boxWidth / boxHeight);
+  const drawnWidth = widthLed ? boxWidth : boxHeight * ratio;
+  const drawnHeight = widthLed ? boxWidth / ratio : boxHeight;
+
+  return `${(drawnWidth / sx).toFixed(2)}px ${(drawnHeight / sy).toFixed(2)}px`;
+}
+
+function applyPhotoSizing(scope: ParentNode = document): void {
+  scope.querySelectorAll<HTMLElement>('[data-photo]').forEach((el) => {
+    el.style.backgroundSize = photoBackgroundSize(el);
+  });
+}
+
 function render(): void {
   const v = derived();
 
@@ -571,11 +663,13 @@ function render(): void {
     el.style.height = v.percentCss;
   });
 
+  measurePhoto(state.photo);
+
   const hasPhoto = !!state.photo;
   document.querySelectorAll<HTMLElement>('[data-photo]').forEach((el) => {
     el.style.backgroundImage = hasPhoto ? `url("${state.photo}")` : 'none';
     el.style.display = hasPhoto ? 'block' : 'none';
-    el.style.backgroundSize = state.photoFit;
+    el.style.backgroundSize = photoBackgroundSize(el);
   });
   document.querySelectorAll<HTMLElement>('[data-nophoto]').forEach((el) => {
     el.style.display = hasPhoto ? 'none' : 'flex';
@@ -587,6 +681,9 @@ function render(): void {
 function updatePhotoControls(): void {
   const clearBtn = document.getElementById('tpl-photo-clear');
   if (clearBtn) clearBtn.style.display = state.photo ? 'inline-block' : 'none';
+
+  const fitBtn = document.getElementById('tpl-photo-fit-slots');
+  if (fitBtn) fitBtn.style.display = state.photo ? 'inline-block' : 'none';
 
   const dropzone = document.getElementById('tpl-photo-drop');
   if (dropzone) dropzone.classList.toggle('has-photo', !!state.photo);
@@ -719,12 +816,21 @@ function bindImage(inputId: string, clearId: string): void {
   const fileInput = document.getElementById(inputId) as HTMLInputElement | null;
   const dropzone = document.getElementById('tpl-photo-drop');
 
+  // Re-fits the slots by hand — after the frames were dragged about, or a
+  // format switch left them a different shape.
+  document.getElementById('tpl-photo-fit-slots')?.addEventListener('click', () => {
+    if (state.photo) fitPhotoSlots('button');
+  });
+
   const loadFile = (file: File | null | undefined, source: 'picker' | 'drop'): void => {
     if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
     reader.onload = () => {
       state.photo = String(reader.result);
       persist();
+      // A fresh photo brings its own proportions: the slots take them on as
+      // soon as render() has had the picture measured.
+      fitSlotsWhenMeasured = true;
       render();
       trackTemplateEvent('photo_uploaded', {
         source,
@@ -982,7 +1088,11 @@ function hideGuides(canvas: HTMLElement): void {
   lines.h.hidden = true;
 }
 
-function formatTransform(base: string, value: LayoutValue): string {
+function formatTransform(base: string, value: LayoutValue, unsquash: [number, number] = [1, 1]): string {
+  const [fx, fy] = unsquash;
+  // Applied outermost, so it lands in the parent's space and cancels exactly
+  // the part of the parent's stretch that would have squashed this element.
+  const fix = fx === 1 && fy === 1 ? '' : `scale(${fx.toFixed(3)}, ${fy.toFixed(3)})`;
   const move = value.x === 0 && value.y === 0 ? '' : `translate(${value.x.toFixed(1)}px, ${value.y.toFixed(1)}px)`;
   // Two factors rather than one: an element that was stretched has a different
   // scale on each axis, and an untouched pair still prints as scale(1, 1).
@@ -990,7 +1100,43 @@ function formatTransform(base: string, value: LayoutValue): string {
     value.scaleX === 1 && value.scaleY === 1
       ? ''
       : `scale(${value.scaleX.toFixed(3)}, ${value.scaleY.toFixed(3)})`;
-  return [move, scale, base].filter(Boolean).join(' ').trim();
+  return [fix, move, scale, base].filter(Boolean).join(' ').trim();
+}
+
+// A photo container gets pulled to the shape of the picture — by hand or by
+// «Підлаштувати рамки» — and everything else riding in it (a «ЗБІР НА» badge
+// in the corner, a caption) would be pulled out of shape with it. Scaling such
+// a child back by this factor leaves the two stretches multiplying out to one
+// even number, their geometric mean: the child keeps its own proportions and
+// still grows and shrinks with the box the way it always did.
+function unsquashFactor(cardId: string, node: HTMLElement): [number, number] {
+  const canvas = node.closest<HTMLElement>('.canvas');
+  if (!canvas) return [1, 1];
+
+  let sx = 1;
+  let sy = 1;
+  let parent = node.parentElement;
+  while (parent && parent !== canvas) {
+    const key = parent.dataset.tplEditNode;
+    if (key && isPhotoContainer(parent)) {
+      const value = getLayoutValue(cardId, key);
+      sx *= value.scaleX;
+      sy *= value.scaleY;
+    }
+    parent = parent.parentElement;
+  }
+
+  if (sx === sy || !sx || !sy) return [1, 1];
+  const mean = Math.sqrt(sx * sy);
+  return [mean / sx, mean / sy];
+}
+
+/** the corner a template pinned an element to, so an un-squashed child stays
+ *  pinned there instead of drifting off it */
+function pinnedOrigin(node: HTMLElement): string {
+  const x = node.style.left !== '' ? 'left' : node.style.right !== '' ? 'right' : 'center';
+  const y = node.style.top !== '' ? 'top' : node.style.bottom !== '' ? 'bottom' : 'center';
+  return `${x} ${y}`;
 }
 
 // Three ways to resize, one grip each: the corner one scales both axes at once
@@ -1109,6 +1255,88 @@ function placeChrome(cardId: string): void {
   chrome.style.top = `${clamp(bottom - height - CHROME_MARGIN, maxTop)}px`;
 }
 
+/** the boxes a photo is poured into: a slot's frame, the picture itself, or a
+ *  plain box a template wraps around nothing but the picture and its
+ *  placeholder — never a column that also carries copy */
+function isPhotoContainer(node: HTMLElement): boolean {
+  if (
+    node.dataset.photoSlot !== undefined ||
+    node.dataset.photo !== undefined ||
+    node.dataset.nophoto !== undefined
+  ) {
+    return true;
+  }
+
+  const children = Array.from(node.children).filter(
+    (child): child is HTMLElement => child instanceof HTMLElement && child.dataset.exportIgnore !== 'true'
+  );
+  return (
+    children.length > 0 &&
+    children.some((child) => child.dataset.photo !== undefined) &&
+    children.every((child) => child.dataset.photo !== undefined || child.dataset.nophoto !== undefined)
+  );
+}
+
+/** a photo laid over the whole canvas is the card's backdrop, not a slot */
+function isBackdrop(node: HTMLElement, canvas: HTMLElement): boolean {
+  return node.offsetWidth >= canvas.offsetWidth * 0.98 && node.offsetHeight >= canvas.offsetHeight * 0.98;
+}
+
+// Gives every photo slot the shape of the photo itself, so a portrait picture
+// gets a portrait frame and a landscape one a landscape frame, with no empty
+// margins left inside. The slot is fitted *within* the footprint the template
+// gave it — one side keeps its length and the other shortens — so a fitted
+// slot never spills over the canvas or over the copy beside it. Backdrops are
+// left alone: a photo covering the whole card is meant to fill it, and the
+// cover/contain switch is what decides how.
+function fitPhotoSlots(source: 'upload' | 'button'): void {
+  const ratio = photoRatio;
+  if (!ratio) {
+    fitSlotsWhenMeasured = true;
+    return;
+  }
+
+  let fitted = 0;
+  cardEditors.forEach((editor, cardId) => {
+    const canvas = editor.canvas;
+    const done = new Set<string>();
+    const before = fitted;
+
+    canvas.querySelectorAll<HTMLElement>('[data-tpl-edit-node]').forEach((node) => {
+      const key = node.dataset.tplEditNode;
+      if (!key || done.has(key)) return;
+      if (!isPhotoContainer(node) || isBackdrop(node, canvas)) return;
+
+      const width = node.offsetWidth;
+      const height = node.offsetHeight;
+      if (!width || !height) return;
+      done.add(key);
+
+      const boxRatio = width / height;
+      const round = (value: number): number => Math.round(clampScale(value) * 1000) / 1000;
+      const current = getLayoutValue(cardId, key);
+      const next: LayoutValue =
+        ratio > boxRatio
+          ? { ...current, scaleX: 1, scaleY: round(boxRatio / ratio) }
+          : { ...current, scaleX: round(ratio / boxRatio), scaleY: 1 };
+
+      if (next.scaleX === current.scaleX && next.scaleY === current.scaleY) return;
+      setLayoutValue(cardId, key, next);
+      fitted += 1;
+    });
+
+    if (fitted > before) {
+      applyCardLayout(cardId);
+      updateCardControls(cardId);
+    }
+  });
+
+  if (!fitted) return;
+  persistLayouts();
+  applyPhotoSizing();
+  trackTemplateEvent('photo_slots_fitted', { source, slots: fitted });
+}
+
 function selectNode(cardId: string, node: HTMLElement): void {
   const editor = cardEditors.get(cardId);
   if (!editor) return;
@@ -1173,7 +1401,9 @@ function applyOffset(cardId: string, node: HTMLElement): void {
   if (!key) return;
 
   const base = node.dataset.tplEditBaseTransform ?? '';
-  node.style.transform = formatTransform(base, getLayoutValue(cardId, key));
+  const unsquash = unsquashFactor(cardId, node);
+  node.style.transform = formatTransform(base, getLayoutValue(cardId, key), unsquash);
+  node.style.transformOrigin = unsquash[0] === 1 && unsquash[1] === 1 ? '' : pinnedOrigin(node);
 }
 
 // Repaints every node under one layout key — a photo and its placeholder
@@ -1184,9 +1414,13 @@ function applyLayoutKey(cardId: string, key: string): void {
 
   editor.canvas.querySelectorAll<HTMLElement>(`[data-tpl-edit-node="${key}"]`).forEach((node) => {
     applyOffset(cardId, node);
+    // Whatever rides inside it has to be un-squashed against its new shape.
+    node.querySelectorAll<HTMLElement>('[data-tpl-edit-node]').forEach((child) => applyOffset(cardId, child));
   });
 
-  // The toolbar rides on the element's corner, so it moves with it.
+  // A resized container changes how the photo in it has to be drawn to keep
+  // its proportions, and the toolbar rides on the element's corner.
+  applyPhotoSizing(editor.canvas);
   if (selectedNode(editor.canvas)?.dataset.tplEditNode === key) placeChrome(cardId);
 }
 
@@ -1198,6 +1432,7 @@ function applyCardLayout(cardId: string): void {
     applyOffset(cardId, node);
   });
 
+  applyPhotoSizing(editor.canvas);
   // Every element just moved back under the toolbar parked on one of them.
   if (activeCardId === cardId) placeChrome(cardId);
 }
@@ -1320,6 +1555,16 @@ function registerEditableNodes(cardId: string, canvas: HTMLElement): void {
     node.dataset.tplEditBaseTransform = node.style.transform;
     applyOffset(cardId, node);
   }
+}
+
+/** where the element grows out of, as a fraction of its box (0.5 = centred) */
+function originFraction(node: HTMLElement): [number, number] {
+  const [x, y] = getComputedStyle(node).transformOrigin.split(' ');
+  const fraction = (value: string, size: number): number => {
+    const parsed = parseFloat(value);
+    return size && Number.isFinite(parsed) ? parsed / size : 0.5;
+  };
+  return [fraction(x, node.offsetWidth), fraction(y ?? x, node.offsetHeight)];
 }
 
 function getCanvasScale(canvas: HTMLElement): number {
@@ -1463,6 +1708,9 @@ function bindCardEditors(): void {
       const rect = node.getBoundingClientRect();
       const canvasRect = canvas.getBoundingClientRect();
       const viewScale = getCanvasScale(canvas);
+      const width = Math.max(1, rect.width / viewScale);
+      const height = Math.max(1, rect.height / viewScale);
+      const [originX, originY] = originFraction(node);
 
       dragState = {
         mode: handle ? 'scale' : 'move',
@@ -1482,8 +1730,13 @@ function bindCardEditors(): void {
         viewScale,
         baseX: (rect.left - canvasRect.left) / viewScale - layoutValue.x,
         baseY: (rect.top - canvasRect.top) / viewScale - layoutValue.y,
-        width: Math.max(1, rect.width / viewScale),
-        height: Math.max(1, rect.height / viewScale),
+        width,
+        height,
+        // How far the grabbed corner sits from the point the element grows
+        // out of: half the box for the usual centred origin, all of it for one
+        // pinned to a corner.
+        armX: Math.max(1, width * (1 - originX)),
+        armY: Math.max(1, height * (1 - originY)),
       };
 
       node.classList.add(handle ? scalingClass(axis) : 'is-dragging');
@@ -1492,6 +1745,7 @@ function bindCardEditors(): void {
     });
 
     cardEditors.set(cardId, { actions, canvas, button, resetButton, hint, status });
+    canvasCards.set(canvas, cardId);
     applyRemovedState(cardId);
     updateCardControls(cardId);
   });
@@ -1504,18 +1758,19 @@ function bindCardEditors(): void {
     let layoutValue: LayoutValue;
 
     if (dragState.mode === 'scale') {
-      // Pull right/down to grow, left/up to shrink. An element scales about its
-      // own centre, so its width grows by twice the pointer's travel — hence
-      // the 2 — and dividing by the element's current on-screen size turns that
-      // travel into a factor on the scale it started the drag with. Each axis
-      // is measured on its own: ↔ leaves scaleY alone and ↕ leaves scaleX, so
-      // an element can be stretched out of its original proportions, while the
+      // Pull right/down to grow, left/up to shrink: the grabbed corner follows
+      // the pointer. Measuring the travel against the corner's distance from
+      // the point the element grows out of turns it into a factor on the scale
+      // the drag started with — the usual centred element grows by twice the
+      // travel, one pinned to a corner by exactly the travel. Each axis is
+      // measured on its own: ↔ leaves scaleY alone and ↕ leaves scaleX, so an
+      // element can be stretched out of its original proportions, while the
       // corner grip feeds both axes the same factor and keeps them.
       const { axis, originScaleX, originScaleY } = dragState;
       const travelX = (event.clientX - dragState.startX) / dragState.viewScale;
       const travelY = (event.clientY - dragState.startY) / dragState.viewScale;
-      const growX = (2 * travelX) / dragState.width;
-      const growY = (2 * travelY) / dragState.height;
+      const growX = travelX / dragState.armX;
+      const growY = travelY / dragState.armY;
       const grow = axis === 'both' ? (growX + growY) / 2 : axis === 'x' ? growX : growY;
 
       layoutValue = {
@@ -1796,6 +2051,7 @@ function bindCardFormats(): void {
       const dims = FORMAT_DIMS[fmt];
       canvas.style.height = dims.canvas + 'px';
       preview.style.height = dims.preview + 'px';
+      applyPhotoSizing(canvas);
       // The element the toolbar sits on has just moved with the canvas.
       if (activeCardId === cardId) placeChrome(cardId);
       if (cap && capName) cap.textContent = `${FORMAT_META[fmt].label} · ${capName} · ${FORMAT_META[fmt].res}`;

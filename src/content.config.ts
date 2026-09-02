@@ -142,6 +142,8 @@ const templatesPage = defineCollection({
           dropzoneTitleFilled: z.string(),
           dropzoneHintFilled: z.string(),
           clearPhotoLabel: z.string(),
+          fitPhotoLabel: z.string(),
+          fitPhotoTitle: z.string(),
           photoFitLabel: z.string(),
           photoFitHint: z.string(),
           photoFitCoverLabel: z.string(),
