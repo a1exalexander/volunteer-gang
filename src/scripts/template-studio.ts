@@ -34,11 +34,20 @@ interface State {
   labels: Record<string, string>;
 }
 
+/** One element's edit: how far it was moved, and how it was resized. The two
+ *  scales are independent, so an element can be stretched wider or narrower
+ *  (taller or shorter) as well as resized proportionally. Layouts saved before
+ *  stretching existed carry a single `scale`; readLayouts migrates that into
+ *  an equal pair. */
 interface LayoutValue {
   x: number;
   y: number;
-  scale: number;
+  scaleX: number;
+  scaleY: number;
 }
+
+/** which way a resize handle pulls: both axes together, or one on its own */
+type ResizeAxis = 'both' | 'x' | 'y';
 
 interface ActionIcons {
   download: string;
@@ -101,6 +110,8 @@ interface CanvasFrame {
 
 interface DragState {
   mode: 'move' | 'scale';
+  /** for a resize: which axes the grabbed handle changes */
+  axis: ResizeAxis;
   cardId: string;
   key: string;
   node: HTMLElement;
@@ -111,16 +122,17 @@ interface DragState {
   startY: number;
   originX: number;
   originY: number;
-  originScale: number;
-  scale: number;
+  originScaleX: number;
+  originScaleY: number;
+  /** how much the preview shrinks the 1080px canvas (not an element scale) */
+  viewScale: number;
   /** the node's on-canvas box with its current offset taken out */
   baseX: number;
   baseY: number;
+  /** its on-screen size in canvas px when the drag started — what a resize
+   *  measures the pointer's travel against, and a move snaps its edges by */
   width: number;
   height: number;
-  centerX: number;
-  centerY: number;
-  startDistance: number;
 }
 
 // User-mixable template palette roles → the `--c-*` custom properties the
@@ -195,6 +207,8 @@ interface StudioUiText {
     copied: string;
     copyError: string;
     resizeElementAriaLabel: string;
+    stretchWidthAriaLabel: string;
+    stretchHeightAriaLabel: string;
     removeElementAriaLabel: string;
     editHint: string;
   };
@@ -216,9 +230,12 @@ const UI_TEXT_FALLBACK: StudioUiText = {
     saveError: 'Помилка збереження',
     copied: 'Скопійовано',
     copyError: 'Помилка копіювання',
-    resizeElementAriaLabel: 'Змінити розмір елемента',
+    resizeElementAriaLabel: 'Змінити розмір елемента пропорційно',
+    stretchWidthAriaLabel: 'Розтягнути елемент по ширині',
+    stretchHeightAriaLabel: 'Розтягнути елемент по висоті',
     removeElementAriaLabel: 'Видалити елемент',
-    editHint: 'Елементи рухаються кроком 16 px і прилипають до країв, полів і центру. Alt — рухати вільно, стрілки — крок, Shift+стрілки — 4 кроки.',
+    editHint:
+      'Елементи рухаються кроком 16 px і прилипають до країв, полів і центру. Alt — рухати вільно, стрілки — крок, Shift+стрілки — 4 кроки. Клік по елементу показує маркери: кутовий змінює розмір пропорційно, ↔ і ↕ розтягують окремо ширину чи висоту; Ctrl+стрілки — розтягнути виділене.',
   },
   labels: { ...DEFAULT_LABELS_FALLBACK },
 };
@@ -374,16 +391,35 @@ function persist(): void {
   updateGlobalReset();
 }
 
-function isLayoutValue(value: unknown): value is LayoutValue {
+/** a stored layout point, before migration — `scale` is the pre-stretch shape */
+type StoredLayoutValue = Partial<LayoutValue> & { scale?: number };
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isLayoutValue(value: unknown): value is StoredLayoutValue {
   if (!value || typeof value !== 'object') return false;
-  const point = value as Partial<LayoutValue>;
+  const point = value as StoredLayoutValue;
   return (
-    typeof point.x === 'number' &&
-    Number.isFinite(point.x) &&
-    typeof point.y === 'number' &&
-    Number.isFinite(point.y) &&
-    (point.scale == null || (typeof point.scale === 'number' && Number.isFinite(point.scale)))
+    isFiniteNumber(point.x) &&
+    isFiniteNumber(point.y) &&
+    (point.scale == null || isFiniteNumber(point.scale)) &&
+    (point.scaleX == null || isFiniteNumber(point.scaleX)) &&
+    (point.scaleY == null || isFiniteNumber(point.scaleY))
   );
+}
+
+// Payloads written before elements could be stretched hold one `scale`; it
+// becomes an equal scaleX/scaleY pair, so old edits reload unchanged.
+function toLayoutValue(point: StoredLayoutValue): LayoutValue {
+  const uniform = point.scale ?? 1;
+  return {
+    x: point.x ?? 0,
+    y: point.y ?? 0,
+    scaleX: point.scaleX ?? uniform,
+    scaleY: point.scaleY ?? uniform,
+  };
 }
 
 function readLayouts(): LayoutStore {
@@ -400,7 +436,7 @@ function readLayouts(): LayoutStore {
       const nodes: CardLayout = {};
       for (const [nodeKey, point] of Object.entries(cardLayout as Record<string, unknown>)) {
         if (isLayoutValue(point)) {
-          nodes[nodeKey] = { x: point.x, y: point.y, scale: point.scale ?? 1 };
+          nodes[nodeKey] = toLayoutValue(point);
         }
       }
 
@@ -479,7 +515,7 @@ function persistFormats(): void {
 }
 
 function isDefaultLayoutValue(value: LayoutValue): boolean {
-  return value.x === 0 && value.y === 0 && value.scale === 1;
+  return value.x === 0 && value.y === 0 && value.scaleX === 1 && value.scaleY === 1;
 }
 
 function hasCardLayoutChanges(cardId: string): boolean {
@@ -816,7 +852,7 @@ function nodePath(canvas: HTMLElement, el: HTMLElement): string {
 }
 
 function getLayoutValue(cardId: string, key: string): LayoutValue {
-  return editLayouts[cardId]?.[key] ?? { x: 0, y: 0, scale: 1 };
+  return editLayouts[cardId]?.[key] ?? { x: 0, y: 0, scaleX: 1, scaleY: 1 };
 }
 
 function setLayoutValue(cardId: string, key: string, value: LayoutValue): void {
@@ -878,6 +914,12 @@ function clampScale(value: number): number {
 
 function snapScale(value: number): number {
   return Math.round((Math.round(value / SCALE_STEP) * SCALE_STEP) * 100) / 100;
+}
+
+/** clamp a dragged scale, and land it on a SCALE_STEP unless Alt frees it */
+function fitScale(value: number, free: boolean): number {
+  const clamped = clampScale(value);
+  return free ? clamped : snapScale(clamped);
 }
 
 function readCanvasFrame(canvas: HTMLElement): CanvasFrame {
@@ -942,53 +984,129 @@ function hideGuides(canvas: HTMLElement): void {
 
 function formatTransform(base: string, value: LayoutValue): string {
   const move = value.x === 0 && value.y === 0 ? '' : `translate(${value.x.toFixed(1)}px, ${value.y.toFixed(1)}px)`;
-  const scale = value.scale === 1 ? '' : `scale(${value.scale.toFixed(3)})`;
+  // Two factors rather than one: an element that was stretched has a different
+  // scale on each axis, and an untouched pair still prints as scale(1, 1).
+  const scale =
+    value.scaleX === 1 && value.scaleY === 1
+      ? ''
+      : `scale(${value.scaleX.toFixed(3)}, ${value.scaleY.toFixed(3)})`;
   return [move, scale, base].filter(Boolean).join(' ').trim();
 }
 
-function ensureScaleHandle(node: HTMLElement): void {
-  if (node.querySelector(':scope > [data-tpl-scale-handle]')) return;
-
-  if (getComputedStyle(node).position === 'static' && !node.style.position) {
-    node.style.position = 'relative';
-  }
-
-  const handle = document.createElement('button');
-  handle.type = 'button';
-  handle.className = 'tpl-edit-handle';
-  handle.dataset.tplScaleHandle = 'true';
-  handle.dataset.exportIgnore = 'true';
-  handle.setAttribute('aria-label', studioUi.actions.resizeElementAriaLabel);
-  node.append(handle);
+// Three ways to resize, one grip each: the corner one scales both axes at once
+// (what the studio has always done), while ↔ and ↕ pull a single axis, so an
+// element — a photo above all — can be stretched wider or narrower without
+// changing its other side. The drag maths lives in the pointermove handler.
+function resizeHandleLabels(): Array<[ResizeAxis, string]> {
+  return [
+    ['x', studioUi.actions.stretchWidthAriaLabel],
+    ['y', studioUi.actions.stretchHeightAriaLabel],
+    ['both', studioUi.actions.resizeElementAriaLabel],
+  ];
 }
 
-// The remove button only appears once its node is selected (see the
-// `.is-selected` CSS rule); clicking it hides the element from the preview
-// and the export, restorable via the card's «Скинути» button.
-function ensureRemoveButton(cardId: string, node: HTMLElement): void {
-  if (node.querySelector(':scope > [data-tpl-remove-handle]')) return;
+// One toolbar per canvas — remove plus the three resize grips — parked over
+// whichever element is selected. It hangs off the canvas rather than off the
+// element for two reasons: photos sit on their own layer *below* the copy (see
+// the layering rules in vg.css), so a toolbar nested inside one would be
+// buried under the text and unclickable; and out here it can't be clipped by
+// an element's own overflow or shrunk by its scale. Kept out of the export by
+// data-export-ignore, like the snap guides.
+const canvasChrome = new WeakMap<HTMLElement, HTMLElement>();
 
-  if (getComputedStyle(node).position === 'static' && !node.style.position) {
-    node.style.position = 'relative';
-  }
+/** how close to the canvas edge a pushed-back toolbar may sit, in canvas px */
+const CHROME_MARGIN = 10;
 
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'tpl-remove-btn';
-  button.dataset.tplRemoveHandle = 'true';
-  button.dataset.exportIgnore = 'true';
-  button.setAttribute('aria-label', studioUi.actions.removeElementAriaLabel);
+function chromeFor(cardId: string, canvas: HTMLElement): HTMLElement {
+  const existing = canvasChrome.get(canvas);
+  if (existing) return existing;
+
+  const chrome = document.createElement('div');
+  chrome.className = 'tpl-edit-chrome';
+  chrome.dataset.exportIgnore = 'true';
+  chrome.hidden = true;
+
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.className = 'tpl-remove-btn';
+  remove.dataset.tplRemoveHandle = 'true';
+  remove.setAttribute('aria-label', studioUi.actions.removeElementAriaLabel);
   if (actionIcons.remove) {
-    button.innerHTML = `<span class="tpl-btn-icon" aria-hidden="true">${actionIcons.remove}</span>`;
+    remove.innerHTML = `<span class="tpl-btn-icon" aria-hidden="true">${actionIcons.remove}</span>`;
   } else {
-    button.textContent = '✕';
+    remove.textContent = '✕';
   }
-  button.addEventListener('click', (event) => {
+  remove.addEventListener('click', (event) => {
     event.stopPropagation();
-    const key = node.dataset.tplEditNode;
+    const key = selectedNode(canvas)?.dataset.tplEditNode;
     if (key) removeNode(cardId, key, 'button');
   });
-  node.append(button);
+  chrome.append(remove);
+
+  for (const [axis, label] of resizeHandleLabels()) {
+    const handle = document.createElement('button');
+    handle.type = 'button';
+    handle.className = `tpl-edit-handle tpl-edit-handle--${axis}`;
+    handle.dataset.tplScaleHandle = axis;
+    handle.setAttribute('aria-label', label);
+    chrome.append(handle);
+  }
+
+  canvas.append(chrome);
+  canvasChrome.set(canvas, chrome);
+  return chrome;
+}
+
+function selectedNode(canvas: HTMLElement): HTMLElement | null {
+  return canvas.querySelector<HTMLElement>('[data-tpl-edit-node].is-selected');
+}
+
+function hideChrome(canvas: HTMLElement): void {
+  const chrome = canvasChrome.get(canvas);
+  if (chrome) chrome.hidden = true;
+}
+
+// Parks the toolbar on the selected element's bottom-right corner, in the
+// canvas's own pixels — and keeps it inside the canvas, since an element
+// stretched past the edge would otherwise carry its toolbar out of reach and
+// leave no way to pull it back.
+function placeChrome(cardId: string): void {
+  const editor = cardEditors.get(cardId);
+  if (!editor) return;
+
+  const canvas = editor.canvas;
+  const node = selectedNode(canvas);
+  if (!node) {
+    hideChrome(canvas);
+    return;
+  }
+
+  const chrome = chromeFor(cardId, canvas);
+  chrome.hidden = false;
+
+  // The gallery shows the 1080px canvas at about a third of its size, which
+  // would leave the buttons a few pixels wide — too small to aim at, let alone
+  // tap. Scaling the toolbar back up by the same factor renders it at the size
+  // vg.css gives it, whatever the preview does; it then covers viewScale-times
+  // more canvas, which the clamp below has to account for.
+  const viewScale = getCanvasScale(canvas);
+  chrome.style.transform = viewScale === 1 ? '' : `scale(${(1 / viewScale).toFixed(3)})`;
+
+  const canvasRect = canvas.getBoundingClientRect();
+  const nodeRect = node.getBoundingClientRect();
+  const frame = readCanvasFrame(canvas);
+  // Absolutely positioned children start at the padding box, so the border
+  // comes off the border-box coordinates everything here is measured in.
+  const right = (nodeRect.right - canvasRect.left) / viewScale - frame.borderLeft;
+  const bottom = (nodeRect.bottom - canvasRect.top) / viewScale - frame.borderTop;
+  const width = chrome.offsetWidth / viewScale;
+  const height = chrome.offsetHeight / viewScale;
+  const maxLeft = canvas.offsetWidth - frame.borderLeft - width - CHROME_MARGIN;
+  const maxTop = canvas.offsetHeight - frame.borderTop - height - CHROME_MARGIN;
+
+  const clamp = (value: number, max: number): number => Math.max(CHROME_MARGIN, Math.min(value, max));
+  chrome.style.left = `${clamp(right - width - CHROME_MARGIN, maxLeft)}px`;
+  chrome.style.top = `${clamp(bottom - height - CHROME_MARGIN, maxTop)}px`;
 }
 
 function selectNode(cardId: string, node: HTMLElement): void {
@@ -998,6 +1116,7 @@ function selectNode(cardId: string, node: HTMLElement): void {
     if (n !== node) n.classList.remove('is-selected');
   });
   node.classList.add('is-selected');
+  placeChrome(cardId);
 }
 
 function clearSelection(cardId: string): void {
@@ -1006,6 +1125,7 @@ function clearSelection(cardId: string): void {
   editor.canvas.querySelectorAll<HTMLElement>('[data-tpl-edit-node].is-selected').forEach((n) => {
     n.classList.remove('is-selected');
   });
+  hideChrome(editor.canvas);
 }
 
 function applyRemovedState(cardId: string): void {
@@ -1019,6 +1139,8 @@ function applyRemovedState(cardId: string): void {
     node.classList.toggle('tpl-node-removed', isRemoved);
     if (isRemoved) node.classList.remove('is-selected');
   });
+
+  if (!selectedNode(editor.canvas)) hideChrome(editor.canvas);
 }
 
 function removeNode(cardId: string, key: string, source: 'button' | 'keyboard'): void {
@@ -1063,6 +1185,9 @@ function applyLayoutKey(cardId: string, key: string): void {
   editor.canvas.querySelectorAll<HTMLElement>(`[data-tpl-edit-node="${key}"]`).forEach((node) => {
     applyOffset(cardId, node);
   });
+
+  // The toolbar rides on the element's corner, so it moves with it.
+  if (selectedNode(editor.canvas)?.dataset.tplEditNode === key) placeChrome(cardId);
 }
 
 function applyCardLayout(cardId: string): void {
@@ -1072,6 +1197,9 @@ function applyCardLayout(cardId: string): void {
   editor.canvas.querySelectorAll<HTMLElement>('[data-tpl-edit-node]').forEach((node) => {
     applyOffset(cardId, node);
   });
+
+  // Every element just moved back under the toolbar parked on one of them.
+  if (activeCardId === cardId) placeChrome(cardId);
 }
 
 function setButtonLabel(button: HTMLElement, iconMarkup: string, label: string): void {
@@ -1190,8 +1318,6 @@ function registerEditableNodes(cardId: string, canvas: HTMLElement): void {
     // Document order guarantees the picture is keyed before its placeholder.
     node.dataset.tplEditNode = pairedPhotoKey(node) ?? nodePath(canvas, node);
     node.dataset.tplEditBaseTransform = node.style.transform;
-    ensureScaleHandle(node);
-    ensureRemoveButton(cardId, node);
     applyOffset(cardId, node);
   }
 }
@@ -1225,8 +1351,9 @@ function finishDragging(): void {
   const changed =
     finalValue.x !== stateAtDrag.originX ||
     finalValue.y !== stateAtDrag.originY ||
-    finalValue.scale !== stateAtDrag.originScale;
-  dragState.node.classList.remove('is-dragging', 'is-scaling');
+    finalValue.scaleX !== stateAtDrag.originScaleX ||
+    finalValue.scaleY !== stateAtDrag.originScaleY;
+  dragState.node.classList.remove('is-dragging', 'is-scaling', 'is-scaling-x', 'is-scaling-y');
   if (dragState.node.hasPointerCapture(dragState.pointerId)) {
     dragState.node.releasePointerCapture(dragState.pointerId);
   }
@@ -1237,8 +1364,20 @@ function finishDragging(): void {
     trackTemplateEvent('card_element_transformed', {
       card_id: stateAtDrag.cardId,
       mode: stateAtDrag.mode,
+      ...(stateAtDrag.mode === 'scale' ? { axis: stateAtDrag.axis } : {}),
     });
   }
+}
+
+/** the axis a grabbed handle resizes along ('both' when nothing was grabbed) */
+function readResizeAxis(handle: HTMLElement | null): ResizeAxis {
+  const axis = handle?.dataset.tplScaleHandle;
+  return axis === 'x' || axis === 'y' ? axis : 'both';
+}
+
+/** the cursor-matching class worn while a resize is in flight */
+function scalingClass(axis: ResizeAxis): string {
+  return axis === 'both' ? 'is-scaling' : `is-scaling-${axis}`;
 }
 
 /** arrow key → [x, y] direction of a one-step nudge */
@@ -1298,11 +1437,17 @@ function bindCardEditors(): void {
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
 
-      // The remove button handles its own click; don't start a drag under it.
+      // The remove button handles its own click; don't start a drag under it,
+      // and a click that lands between the toolbar's buttons is not a click on
+      // the canvas behind it — it must not drop the selection.
       if (target.closest<HTMLElement>('[data-tpl-remove-handle]')) return;
+      if (target.classList.contains('tpl-edit-chrome')) return;
 
+      // A grip belongs to the element the toolbar is parked on, which is the
+      // selected one — the toolbar itself hangs off the canvas, not off it.
       const handle = target.closest<HTMLElement>('[data-tpl-scale-handle]');
-      const node = target.closest<HTMLElement>('[data-tpl-edit-node]');
+      const axis = readResizeAxis(handle);
+      const node = handle ? selectedNode(canvas) : target.closest<HTMLElement>('[data-tpl-edit-node]');
       if (!node || !canvas.contains(node)) {
         clearSelection(cardId);
         return;
@@ -1311,19 +1456,17 @@ function bindCardEditors(): void {
       const key = node.dataset.tplEditNode;
       if (!key) return;
 
-      // Clicking an element selects it, revealing its remove button.
+      // Clicking an element selects it, bringing up its toolbar.
       selectNode(cardId, node);
 
       const layoutValue = getLayoutValue(cardId, key);
       const rect = node.getBoundingClientRect();
       const canvasRect = canvas.getBoundingClientRect();
       const viewScale = getCanvasScale(canvas);
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const startDistance = Math.max(1, Math.hypot(event.clientX - centerX, event.clientY - centerY));
 
       dragState = {
         mode: handle ? 'scale' : 'move',
+        axis,
         cardId,
         key,
         node,
@@ -1334,18 +1477,16 @@ function bindCardEditors(): void {
         startY: event.clientY,
         originX: layoutValue.x,
         originY: layoutValue.y,
-        originScale: layoutValue.scale,
-        scale: viewScale,
+        originScaleX: layoutValue.scaleX,
+        originScaleY: layoutValue.scaleY,
+        viewScale,
         baseX: (rect.left - canvasRect.left) / viewScale - layoutValue.x,
         baseY: (rect.top - canvasRect.top) / viewScale - layoutValue.y,
-        width: rect.width / viewScale,
-        height: rect.height / viewScale,
-        centerX,
-        centerY,
-        startDistance,
+        width: Math.max(1, rect.width / viewScale),
+        height: Math.max(1, rect.height / viewScale),
       };
 
-      node.classList.add(handle ? 'is-scaling' : 'is-dragging');
+      node.classList.add(handle ? scalingClass(axis) : 'is-dragging');
       node.setPointerCapture(event.pointerId);
       event.preventDefault();
     });
@@ -1363,21 +1504,43 @@ function bindCardEditors(): void {
     let layoutValue: LayoutValue;
 
     if (dragState.mode === 'scale') {
-      const distance = Math.max(1, Math.hypot(event.clientX - dragState.centerX, event.clientY - dragState.centerY));
-      const raw = clampScale(dragState.originScale * (distance / dragState.startDistance));
-      layoutValue = { x: dragState.originX, y: dragState.originY, scale: free ? raw : snapScale(raw) };
+      // Pull right/down to grow, left/up to shrink. An element scales about its
+      // own centre, so its width grows by twice the pointer's travel — hence
+      // the 2 — and dividing by the element's current on-screen size turns that
+      // travel into a factor on the scale it started the drag with. Each axis
+      // is measured on its own: ↔ leaves scaleY alone and ↕ leaves scaleX, so
+      // an element can be stretched out of its original proportions, while the
+      // corner grip feeds both axes the same factor and keeps them.
+      const { axis, originScaleX, originScaleY } = dragState;
+      const travelX = (event.clientX - dragState.startX) / dragState.viewScale;
+      const travelY = (event.clientY - dragState.startY) / dragState.viewScale;
+      const growX = (2 * travelX) / dragState.width;
+      const growY = (2 * travelY) / dragState.height;
+      const grow = axis === 'both' ? (growX + growY) / 2 : axis === 'x' ? growX : growY;
+
+      layoutValue = {
+        x: dragState.originX,
+        y: dragState.originY,
+        scaleX: axis === 'y' ? originScaleX : fitScale(originScaleX * (1 + grow), free),
+        scaleY: axis === 'x' ? originScaleY : fitScale(originScaleY * (1 + grow), free),
+      };
       hideGuides(dragState.canvas);
     } else {
-      const rawX = dragState.originX + (event.clientX - dragState.startX) / dragState.scale;
-      const rawY = dragState.originY + (event.clientY - dragState.startY) / dragState.scale;
+      const rawX = dragState.originX + (event.clientX - dragState.startX) / dragState.viewScale;
+      const rawY = dragState.originY + (event.clientY - dragState.startY) / dragState.viewScale;
 
       if (free) {
-        layoutValue = { x: rawX, y: rawY, scale: dragState.originScale };
+        layoutValue = { x: rawX, y: rawY, scaleX: dragState.originScaleX, scaleY: dragState.originScaleY };
         hideGuides(dragState.canvas);
       } else {
         const snapX = snapOffset(rawX, dragState.baseX, dragState.width, dragState.frame.guidesX);
         const snapY = snapOffset(rawY, dragState.baseY, dragState.height, dragState.frame.guidesY);
-        layoutValue = { x: snapX.offset, y: snapY.offset, scale: dragState.originScale };
+        layoutValue = {
+          x: snapX.offset,
+          y: snapY.offset,
+          scaleX: dragState.originScaleX,
+          scaleY: dragState.originScaleY,
+        };
         showGuides(dragState.canvas, dragState.frame, snapX.guide, snapY.guide);
       }
     }
@@ -1419,12 +1582,36 @@ function bindCardEditors(): void {
       return;
     }
 
-    const step = event.shiftKey ? GRID_STEP * 4 : GRID_STEP;
     const current = getLayoutValue(activeCardId, key);
+
+    // Ctrl/Cmd turns the arrows into a resize: ←/→ stretch the width, ↑/↓ the
+    // height (up grows it), one axis at a time and without touching the other.
+    if (event.ctrlKey || event.metaKey) {
+      const scaleStep = event.shiftKey ? SCALE_STEP * 4 : SCALE_STEP;
+      setLayoutValue(activeCardId, key, {
+        x: current.x,
+        y: current.y,
+        scaleX: nudge[0] ? fitScale(current.scaleX + nudge[0] * scaleStep, false) : current.scaleX,
+        // ArrowUp points at -1 on the move grid; for a resize it means taller.
+        scaleY: nudge[1] ? fitScale(current.scaleY - nudge[1] * scaleStep, false) : current.scaleY,
+      });
+      applyLayoutKey(activeCardId, key);
+      updateCardControls(activeCardId);
+      persistLayouts();
+      trackTemplateEvent('card_element_transformed', {
+        card_id: activeCardId,
+        mode: 'scale',
+        axis: nudge[0] ? 'x' : 'y',
+      });
+      return;
+    }
+
+    const step = event.shiftKey ? GRID_STEP * 4 : GRID_STEP;
     setLayoutValue(activeCardId, key, {
       x: current.x + nudge[0] * step,
       y: current.y + nudge[1] * step,
-      scale: current.scale,
+      scaleX: current.scaleX,
+      scaleY: current.scaleY,
     });
     applyLayoutKey(activeCardId, key);
     updateCardControls(activeCardId);
@@ -1609,6 +1796,8 @@ function bindCardFormats(): void {
       const dims = FORMAT_DIMS[fmt];
       canvas.style.height = dims.canvas + 'px';
       preview.style.height = dims.preview + 'px';
+      // The element the toolbar sits on has just moved with the canvas.
+      if (activeCardId === cardId) placeChrome(cardId);
       if (cap && capName) cap.textContent = `${FORMAT_META[fmt].label} · ${capName} · ${FORMAT_META[fmt].res}`;
       for (const key of ['post', 'story'] as CardFormat[]) {
         const active = key === fmt;
@@ -1648,7 +1837,11 @@ function bindStudioLayout(): void {
     document.documentElement.style.setProperty('--studio-header-h', `${h}px`);
   };
   setVar();
-  window.addEventListener('resize', setVar);
+  window.addEventListener('resize', () => {
+    setVar();
+    // A re-laid-out gallery moves the element the toolbar is parked on.
+    if (activeCardId) placeChrome(activeCardId);
+  });
 }
 
 // ---------- panel field → canvas highlight ----------

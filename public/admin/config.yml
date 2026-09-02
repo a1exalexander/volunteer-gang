@@ -278,6 +278,8 @@ collections:
                   - { name: copied, label: 'Тултіп успіху копіювання', widget: string }
                   - { name: copyError, label: 'Тултіп помилки копіювання', widget: string }
                   - { name: resizeElementAriaLabel, label: 'ARIA масштабування елемента', widget: string }
+                  - { name: stretchWidthAriaLabel, label: 'ARIA розтягування по ширині', widget: string }
+                  - { name: stretchHeightAriaLabel, label: 'ARIA розтягування по висоті', widget: string }
                   - { name: removeElementAriaLabel, label: 'ARIA видалення елемента', widget: string }
                   - { name: editHint, label: 'Підказка в режимі редагування', widget: text }
               - name: labels
