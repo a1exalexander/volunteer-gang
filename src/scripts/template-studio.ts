@@ -12,6 +12,7 @@ const STORAGE_KEY = 'vg-tpl-state-v1';
 const LAYOUT_STORAGE_KEY = 'vg-tpl-layout-v1';
 const REMOVED_STORAGE_KEY = 'vg-tpl-removed-v1';
 const FORMAT_STORAGE_KEY = 'vg-tpl-format-v1';
+const LIKED_STORAGE_KEY = 'vg-tpl-liked-v1';
 const CANVAS_IDS = ['announce', 'progress', 'urgent', 'push', 'report', 'thanks', 'closed', 'milestone', 'remaining', 'thermo', 'goalpost', 'photopost', 'photostory', 'halfway', 'deadline', 'share', 'weekly', 'quote', 'minimal', 'sos', 'closedstory', 'giftpost', 'giftstory', 'giftgrid', 'giftcountdown', 'reportbuy', 'reportthanks', 'reportsources', 'reportfull'];
 
 /** How the shared photo sits in every slot: `cover` crops to fill the frame
@@ -58,6 +59,7 @@ interface ActionIcons {
   remove: string;
   success: string;
   error: string;
+  like: string;
 }
 
 type CardLayout = Record<string, LayoutValue>;
@@ -215,6 +217,8 @@ interface StudioUiText {
     stretchHeightAriaLabel: string;
     removeElementAriaLabel: string;
     editHint: string;
+    like: string;
+    unlike: string;
   };
   labels: Record<string, string>;
 }
@@ -240,6 +244,8 @@ const UI_TEXT_FALLBACK: StudioUiText = {
     removeElementAriaLabel: 'Видалити елемент',
     editHint:
       'Елементи рухаються кроком 16 px і прилипають до країв, полів і центру. Alt — рухати вільно, стрілки — крок, Shift+стрілки — 4 кроки. Клік по елементу показує маркери: кутовий змінює розмір пропорційно, ↔ і ↕ розтягують окремо ширину чи висоту; Ctrl+стрілки — розтягнути виділене.',
+    like: 'Вподобати',
+    unlike: 'Вподобано',
   },
   labels: { ...DEFAULT_LABELS_FALLBACK },
 };
@@ -317,7 +323,7 @@ function readInitial(): State {
 }
 
 function readActionIcons(): ActionIcons {
-  const fallback: ActionIcons = { download: '', copy: '', edit: '', done: '', reset: '', remove: '', success: '', error: '' };
+  const fallback: ActionIcons = { download: '', copy: '', edit: '', done: '', reset: '', remove: '', success: '', error: '', like: '' };
   const el = document.getElementById('vg-tpl-icons');
   if (!el?.textContent) return fallback;
   try {
@@ -331,6 +337,7 @@ function readActionIcons(): ActionIcons {
       remove: typeof parsed.remove === 'string' ? parsed.remove : '',
       success: typeof parsed.success === 'string' ? parsed.success : '',
       error: typeof parsed.error === 'string' ? parsed.error : '',
+      like: typeof parsed.like === 'string' ? parsed.like : '',
     };
   } catch {
     return fallback;
@@ -377,6 +384,11 @@ const actionIcons = readActionIcons();
 let editLayouts = readLayouts();
 let removedNodes = readRemoved();
 let cardFormats = readFormats();
+let likedIds = readLiked();
+/** each card's fixed original slot in the gallery flow, marked once at
+ *  bind time so an unliked card can be dropped back exactly where it was */
+const likeAnchors = new Map<string, Comment>();
+const likeButtons = new Map<string, HTMLButtonElement>();
 const cardEditors = new Map<string, CardEditor>();
 /** the reverse of cardEditors' canvas, for lookups that start at an element */
 const canvasCards = new WeakMap<HTMLElement, string>();
@@ -526,6 +538,30 @@ function persistFormats(): void {
     console.error('Could not persist template formats.', error);
   }
   updateGlobalReset();
+}
+
+/** liked card ids, most-recently-liked first — that order is also the order
+ *  they stack in #tpl-liked-section, so persisting it keeps a reload's
+ *  layout identical to what the visitor left behind. */
+function readLiked(): string[] {
+  try {
+    const raw = localStorage.getItem(LIKED_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((id): id is string => typeof id === 'string' && CANVAS_IDS.includes(id));
+  } catch (error) {
+    console.error('Could not read liked templates.', error);
+    return [];
+  }
+}
+
+function persistLiked(): void {
+  try {
+    localStorage.setItem(LIKED_STORAGE_KEY, JSON.stringify(likedIds));
+  } catch (error) {
+    console.error('Could not persist liked templates.', error);
+  }
 }
 
 function isDefaultLayoutValue(value: LayoutValue): boolean {
@@ -1633,6 +1669,86 @@ const ARROW_NUDGE: Record<string, [number, number]> = {
   ArrowDown: [0, 1],
 };
 
+function updateLikedSectionVisibility(): void {
+  const section = document.getElementById('tpl-liked-section');
+  if (section) section.hidden = likedIds.length === 0;
+}
+
+function updateLikeButton(cardId: string): void {
+  const button = likeButtons.get(cardId);
+  if (!button) return;
+  const liked = likedIds.includes(cardId);
+  button.classList.toggle('is-liked', liked);
+  button.setAttribute('aria-pressed', String(liked));
+  setButtonLabel(button, actionIcons.like, liked ? studioUi.actions.unlike : studioUi.actions.like);
+}
+
+/** Moves `card` to where its liked state says it belongs: right after the
+ *  liked-section header (newest like closest to it) when liked, or back onto
+ *  its own anchor — its fixed original slot in the gallery flow — otherwise. */
+function placeCardForLikeState(cardId: string, card: HTMLElement): void {
+  const likedSection = document.getElementById('tpl-liked-section');
+  if (likedIds.includes(cardId)) {
+    likedSection?.after(card);
+  } else {
+    likeAnchors.get(cardId)?.after(card);
+  }
+}
+
+function setCardLiked(cardId: string, liked: boolean, card: HTMLElement): void {
+  const wasLiked = likedIds.includes(cardId);
+  if (liked === wasLiked) return;
+
+  likedIds = liked ? [cardId, ...likedIds.filter((id) => id !== cardId)] : likedIds.filter((id) => id !== cardId);
+  persistLiked();
+  updateLikeButton(cardId);
+  updateLikedSectionVisibility();
+  placeCardForLikeState(cardId, card);
+  trackTemplateEvent('card_liked', { card_id: cardId, liked });
+}
+
+function bindCardLikes(): void {
+  const likedSection = document.getElementById('tpl-liked-section');
+  if (!likedSection) return;
+
+  document.querySelectorAll<HTMLElement>('.tpl').forEach((card) => {
+    const actions = card.querySelector<HTMLElement>('.tpl-actions');
+    const exportBtn = actions?.querySelector<HTMLElement>('[data-dl]');
+    const cardId = exportBtn?.dataset.dl;
+    if (!actions || !cardId || !CANVAS_IDS.includes(cardId)) return;
+
+    // Mark this card's pristine slot in the gallery flow before anything can
+    // move it, so unliking it later has somewhere exact to put it back.
+    const anchor = document.createComment(`tpl-anchor-${cardId}`);
+    card.before(anchor);
+    likeAnchors.set(cardId, anchor);
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'cp-btn tpl-like-btn';
+    button.dataset.likeCard = cardId;
+    button.setAttribute('aria-pressed', 'false');
+    button.addEventListener('click', () => setCardLiked(cardId, !likedIds.includes(cardId), card));
+    likeButtons.set(cardId, button);
+    updateLikeButton(cardId);
+
+    const status = actions.querySelector<HTMLElement>('.tpl-status');
+    if (status) {
+      actions.insertBefore(button, status);
+    } else {
+      actions.append(button);
+    }
+  });
+
+  // Bring already-liked cards (from a previous visit) into the liked section,
+  // oldest like first so the most recent one ends up nearest the header.
+  [...likedIds].reverse().forEach((cardId) => {
+    const card = likeButtons.get(cardId)?.closest<HTMLElement>('.tpl');
+    if (card) likedSection.after(card);
+  });
+  updateLikedSectionVisibility();
+}
+
 function bindCardEditors(): void {
   document.querySelectorAll<HTMLElement>('.tpl').forEach((card) => {
     const actions = card.querySelector<HTMLElement>('.tpl-actions');
@@ -2329,6 +2445,7 @@ function init(): void {
   bindColors();
   bindLabels();
   bindActions();
+  bindCardLikes();
   bindCardFormats();
   bindCardEditors();
   bindFocusHighlight();

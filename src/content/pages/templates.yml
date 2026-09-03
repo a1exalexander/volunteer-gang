@@ -42,6 +42,8 @@ studio:
   alertBody: "Пунктирне місце під фото видно лише у прев'ю: якщо фото не завантажено, шаблон скачається або скопіюється без цього плейсхолдера."
   reportSectionTitle: ЗВІТИ ЗБОРУ
   reportSectionHint: "Чотири шаблони для звіту після збору: скільки зібрали, що придбали та звідки прийшли гроші. Велике фото — те саме, з панелі даних."
+  likedSectionTitle: ВПОДОБАНІ ШАБЛОНИ
+  likedSectionHint: "Шаблони, які ти вподобав(ла) — завжди першими, зверху списку."
   actions:
     download: PNG
     copy: Копіювати
@@ -49,6 +51,8 @@ studio:
     done: Готово
     reset: Скинути
     resetAll: Скинути все
+    like: Вподобати
+    unlike: Вподобано
     formatGroupAriaLabel: Формат
     formatPostLabel: Пост
     formatStoryLabel: Сторіз
