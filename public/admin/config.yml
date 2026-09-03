@@ -242,6 +242,8 @@ collections:
               - { name: dropzoneTitleFilled, label: 'Фото: заголовок (завантажено)', widget: string }
               - { name: dropzoneHintFilled, label: 'Фото: підказка (завантажено)', widget: string }
               - { name: clearPhotoLabel, label: 'Кнопка очистки фото', widget: string }
+              - { name: fitPhotoLabel, label: 'Кнопка підлаштувати рамки', widget: string }
+              - { name: fitPhotoTitle, label: 'Підказка кнопки підлаштування', widget: string }
               - { name: photoFitLabel, label: 'Фото: лейбл перемикача вписування', widget: string }
               - { name: photoFitHint, label: 'Фото: підказка перемикача вписування', widget: text }
               - { name: photoFitCoverLabel, label: 'Фото: варіант «заповнити» (cover)', widget: string }

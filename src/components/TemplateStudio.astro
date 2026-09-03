@@ -138,7 +138,11 @@ const actionIcons = {
         </div>
         <p class="panel-intro panel-intro--mini">{page.studio.photoFitHint}</p>
       </div>
+      <!-- «Підлаштувати» reshapes every photo slot to the picture's own
+           proportions (template-studio.ts → fitPhotoSlots); an upload does it
+           on its own, this button re-runs it after the frames were moved. -->
       <div class="panel-photo-row">
+        <button type="button" id="tpl-photo-fit-slots" class="ghost-btn" style="display:none" title={page.studio.fitPhotoTitle}>{page.studio.fitPhotoLabel}</button>
         <button type="button" id="tpl-photo-clear" class="ghost-btn" style="display:none">{page.studio.clearPhotoLabel}</button>
       </div>
     </div>
