@@ -4,7 +4,7 @@ import { fmtUAH, percentOf } from '../lib/format';
 import React from 'react';
 import type { IconType } from 'react-icons';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { FiAlertTriangle, FiCheck, FiCheckCircle, FiCopy, FiDownload, FiEdit3, FiRotateCcw, FiTrash2 } from 'react-icons/fi';
+import { FiAlertTriangle, FiCheck, FiCheckCircle, FiCopy, FiDownload, FiEdit3, FiHeart, FiRotateCcw, FiTrash2 } from 'react-icons/fi';
 import TemplateLockup from './brand/TemplateLockup.astro';
 import TplPhotoSlot from './TplPhotoSlot.astro';
 
@@ -47,6 +47,7 @@ const actionIcons = {
   done: iconMarkup(FiCheck),
   reset: iconMarkup(FiRotateCcw),
   remove: iconMarkup(FiTrash2),
+  like: iconMarkup(FiHeart),
   // Feedback icons paired with the success/error action tooltips
   // («Збережено» / «Скопійовано» vs. their «Помилка …» variants).
   success: iconMarkup(FiCheckCircle),
@@ -331,6 +332,14 @@ const actionIcons = {
       <p>
         <strong>{page.studio.alertLead}</strong> {page.studio.alertBody}
       </p>
+    </div>
+
+    <!-- ============ ВПОДОБАНІ ============ -->
+    <!-- Empty by default; template-studio.ts moves any liked .tpl card here
+         (most recently liked first) and hides the section when it's empty. -->
+    <div class="gallery-section gallery-section--liked" id="tpl-liked-section" hidden>
+      <h2 class="gallery-section-title">{page.studio.likedSectionTitle}</h2>
+      <p class="gallery-section-hint">{page.studio.likedSectionHint}</p>
     </div>
 
     <!-- POST: ANNOUNCE -->

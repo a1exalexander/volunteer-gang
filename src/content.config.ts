@@ -162,6 +162,8 @@ const templatesPage = defineCollection({
           alertBody: z.string(),
           reportSectionTitle: z.string(),
           reportSectionHint: z.string(),
+          likedSectionTitle: z.string(),
+          likedSectionHint: z.string(),
           actions: z.object({
             download: z.string(),
             copy: z.string(),
@@ -169,6 +171,8 @@ const templatesPage = defineCollection({
             done: z.string(),
             reset: z.string(),
             resetAll: z.string(),
+            like: z.string(),
+            unlike: z.string(),
             formatGroupAriaLabel: z.string(),
             formatPostLabel: z.string(),
             formatStoryLabel: z.string(),

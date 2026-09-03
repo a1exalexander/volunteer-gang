@@ -888,6 +888,10 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   line-height: 1.6;
   color: var(--dust);
 }
+/* Liked cards are moved here by template-studio.ts; the section stays out of
+   the flow (not just visually empty) while nothing is liked. */
+.gallery-section--liked[hidden] { display: none; }
+.gallery-section--liked .gallery-section-title { color: var(--bubble); }
 .tpl { display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .tpl-cap { font-family: var(--font-mono); font-size: 12px; color: var(--dust); letter-spacing: 0.08em; }
 /* Per-card post/story segmented toggle (created in template-studio.ts). */
@@ -965,6 +969,12 @@ textarea.input:focus { outline: 2px solid var(--bubble); outline-offset: -1px; }
   cursor: pointer;
 }
 .cp-btn:hover { border-color: var(--bubble); color: var(--bubble); }
+/* Heart toggle: outline by default, filled bubble-pink once a template is
+   liked (template-studio.ts moves the card into #tpl-liked-section on click). */
+.tpl-like-btn svg { fill: none; transition: fill 0.15s ease, stroke 0.15s ease; }
+.tpl-like-btn:hover { border-color: var(--bubble); color: var(--bubble); }
+.tpl-like-btn.is-liked { border-color: var(--bubble); color: var(--bubble); }
+.tpl-like-btn.is-liked svg { fill: var(--bubble); stroke: var(--bubble); }
 .tpl-status { font-family: var(--font-mono); font-size: 12px; color: var(--acid); display: none; }
 .tpl-status:not(:empty) { display: inline-block; min-width: 90px; }
 .tpl-actions button:has(.action-tooltip) { position: relative; }
